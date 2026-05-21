@@ -5,18 +5,18 @@
 
 ## What It Does
 
-Prompt Assistant adds a toolbar to ComfyUI that connects your workflow nodes to LLM services (cloud or local) so you can manipulate prompts without leaving the graph.
+Prompt Assistant adds a floating button bar to text input widgets on ComfyUI nodes. The buttons are mounted directly onto existing inputs — you don't need to click anything to "open" the assistant. It's just there.
 
-| Feature | What |
-|---------|------|
-| **Translate** | Auto-detect source language, translate prompts between any languages |
-| **Expand / Optimize** | Enrich short prompts into detailed, professional-grade descriptions |
-| **Image Caption** | Reverse-engineer images into prompts (natural language or tag format) |
-| **Video Caption** | Same for video frames — extract descriptive prompts from footage |
-| **Tags & Collections** | Save, organize, and insert commonly used prompts, terms, and LoRA triggers |
-| **History** | Per-input undo/redo — change tracking at the sentence level |
-| **Node Help Translation** | Translate ComfyUI node documentation inline |
-| **Markdown Note Translation** | Translate note and markdown nodes while preserving formatting |
+| Button | What |
+|--------|------|
+| **History/Undo/Redo** | Track changes per input, undo/redo at the sentence level |
+| **Tag Tool** | Search and insert prompt tags, LoRA triggers, and saved phrases at cursor position |
+| **Expand** | Send the current prompt text to an LLM for expansion/optimization |
+| **Translate** | Auto-detect language, translate the input text inline |
+
+Clicking **Expand** or **Translate** sends the input text to the configured service (cloud LLM, local Ollama, or Baidu Translate) and streams the result back into the same input field, with auto-save to history for undo.
+
+The assistant detects which rendering mode ComfyUI is using (litegraph.js canvas or Vue node2.0) and adapts its mounting strategy accordingly. It supports subgraph nodes and multiple inputs per node.
 
 ---
 
