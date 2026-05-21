@@ -1,0 +1,1389 @@
+/**
+ * General popup styles
+ * Provides reusable popup component styles
+ */
+
+/* Popup base styles */
+.popup_container {
+    position: fixed;
+    z-index: 10180;
+    /* background-color: rgba(30, 30, 30, 0.95); */
+    background-color: var(--p-content-background);
+    border: 1px solid var(--p-content-border-color);
+    /* border: 1px solid rgba(255, 255, 255, 0.2); */
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    min-width: 600px;
+    max-width: 600px;
+    min-height: 200px;
+    max-height: 80vh;
+    /* Use 80% of viewport height as max height */
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    backdrop-filter: blur(8px) !important;
+    padding: 0;
+    transform-origin: top center;
+    will-change: transform, opacity, left, top;
+    transition: transform 0.2s ease-in-out, opacity 0.2s ease-in-out;
+}
+
+/* Popup animation classes */
+.popup-up {
+    animation: clipFadeInDown 0.2s ease-in-out;
+}
+
+.popup-down {
+    animation: clipFadeInUp 0.2s ease-in-out;
+}
+
+.popup-closing-up {
+    animation: clipFadeOutUp 0.2s ease-in-out forwards;
+    pointer-events: none;
+}
+
+.popup-closing-down {
+    animation: clipFadeOutDown 0.2s ease-in-out forwards;
+    pointer-events: none;
+}
+
+/* Popup title bar */
+.popup_title_bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 10px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    margin-bottom: 0;
+    user-select: none;
+    gap: 10px;
+    flex-shrink: 0;
+    position: relative;
+}
+
+.popup_title {
+    font-size: 12px;
+    font-weight: bold;
+    /* color: rgba(255, 255, 255, 0.8); */
+    color: var(--p-text-color);
+    white-space: nowrap;
+}
+
+/* Popup button base styles */
+.popup_btn {
+    background: none;
+    border: none;
+    /* color: rgba(255, 255, 255, 0.6); */
+    color: var(--p-button-text-secondary-color);
+    cursor: pointer;
+    padding: 2px;
+    line-height: 1;
+    transition: all 0.2s ease;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+}
+
+/* Add PrimeIcons size control */
+.popup_btn .pi {
+    font-size: 12px;
+}
+
+.popup_btn:hover {
+    /* color: rgba(255, 255, 255, 0.9); */
+    color: var(--p-button-text-secondary-color);
+    background-color: color-mix(in srgb, var(--comfy-menu-secondary-bg), transparent 50%);
+}
+
+/* SVG icons in popups inherit base styles, no need to redefine */
+
+/* Popup button icon styles - compatible with old img and new svg */
+.popup_btn_icon {
+    width: 12px;
+    height: 12px;
+}
+
+/* Search box container */
+.popup_search_container {
+    flex: 1;
+    position: relative;
+    display: flex;
+    align-items: center;
+    min-width: 100px;
+    justify-content: flex-end;
+    z-index: 2;
+    /* Ensure search box is above title bar */
+}
+
+.popup_search_input {
+    width: 200px;
+    padding: 4px 28px 4px 8px;
+    background-color: color-mix(in srgb, var(--comfy-menu-secondary-bg), transparent 60%);
+    border: none;
+    border-radius: 10px;
+    color: var(--p-inputtext-color);
+    font-size: 12px;
+    outline: none;
+    transition: all 0.2s ease;
+    position: relative;
+    z-index: 2;
+    /* Ensure input is above title bar */
+}
+
+.popup_search_input:focus {
+    border-color: rgba(255, 255, 255, 0.4);
+    background-color: color-mix(in srgb, var(--p-primary-500), transparent 95%);
+    width: 260px;
+    z-index: 2;
+    /* Ensure it's above title bar when focused */
+}
+
+/* Search box clear button */
+.popup_search_container .popup_btn {
+    position: absolute;
+    right: 2px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: none;
+    z-index: 3;
+    /* Ensure clear button is on top */
+}
+
+/* Action buttons container */
+.popup_actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    position: relative;
+    z-index: 2;
+    /* Ensure action buttons are above title bar */
+}
+
+/* Search result list */
+.tag_search_result_list {
+    padding: 8px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    flex: 1;
+    height: 100%;
+    box-sizing: border-box;
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in srgb, var(--p-button-text-secondary-color), transparent 50%) transparent;
+    display: flex;
+    flex-wrap: wrap;
+    align-content: flex-start;
+    gap: 4px;
+    justify-content: flex-start;
+}
+
+.search_result_tag_item {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 12px;
+    border-radius: 16px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background-color: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    flex-shrink: 0;
+    white-space: nowrap;
+    font-size: 13px;
+}
+
+.search_result_tag_item:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.4);
+    transform: translateY(-1px);
+}
+
+.search_result_tag_item .tag_category_path {
+    margin-left: 8px;
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.search_result_tag_item.used {
+    background-color: rgba(40, 120, 40, 0.4);
+    border-color: rgba(40, 120, 40, 0.6);
+}
+
+.search_result_tag_item.used:hover {
+    background-color: rgba(40, 120, 40, 0.6);
+    border-color: rgba(40, 120, 40, 0.8);
+}
+
+/* Popup action buttons */
+.popup_action_btn {
+    background: none;
+    border: none;
+    color: var(--p-text-muted-color);
+    cursor: pointer;
+    font-size: 10px;
+    padding: 5px 8px;
+    border-radius: 16px;
+    transition: all 0.2s ease;
+}
+
+.popup_action_btn:hover {
+    background-color: color-mix(in srgb, var(--comfy-menu-secondary-bg), transparent 50%);
+    color: var(--p-text-muted-color);
+}
+
+.popup_action_btn:active {
+    transform: scale(0.95);
+}
+
+/* Popup content area */
+.popup_content {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in srgb, var(--p-button-text-secondary-color), transparent 50%) transparent;
+    min-height: 0;
+    /* Allow flex shrink */
+}
+
+.popup_content::-webkit-scrollbar {
+    width: 6px;
+}
+
+.popup_content::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.popup_content::-webkit-scrollbar-thumb {
+    background-color: color-mix(in srgb, var(--p-button-text-secondary-color), transparent 50%);
+    border-radius: 3px;
+}
+
+/* Popup list item */
+.popup_list_item {
+    padding: 10px 10px;
+    font-size: 14px;
+    cursor: pointer;
+    /* color: rgba(255, 255, 255, 0.7); */
+    color: var(--p-text-muted-color);
+    transition: all 0.2s ease;
+    /* border-bottom: 0px solid rgba(255, 255, 255, 0.05); */
+    background-color: color-mix(in srgb, var(--comfy-menu-secondary-bg), transparent 70%);
+    position: relative;
+    user-select: none;
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    min-height: 24px;
+    word-break: break-word;
+    overflow-wrap: break-word;
+}
+
+/* Add native tooltip style optimization */
+.popup_list_item[title] {
+    position: relative;
+}
+
+/* Ensure tooltip is above other elements */
+.popup_list_item[title]:hover {
+    z-index: 1000;
+}
+
+/* Alternate background color */
+.popup_list_item:nth-child(even) {
+    background-color: var(--p-dialog-background);
+}
+
+/* Current node indicator (left color bar) */
+.popup_list_item.current_node::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background-color: rgba(0, 255, 100, 0.7);
+    z-index: 1;
+    /* Ensure color bar is above content */
+}
+
+/* Mouse hover effect */
+.popup_list_item:hover {
+    /* background-color: rgba(211, 16, 16, 0.862); */
+    background-color: color-mix(in srgb, var(--p-primary-500), transparent 84%);
+}
+
+/* History record identification info */
+.popup_list_item .history_meta {
+    display: flex;
+    gap: 4px;
+    font-size: 11px;
+    /* color: rgba(255, 255, 255, 0.5); */
+    color: var(--p-text-muted-color);
+    flex-shrink: 0;
+    min-width: 4px;
+    margin-top: 2px;
+    background-color: color-mix(in srgb, var(--comfy-menu-secondary-bg), transparent 30%);
+    border-radius: 6px;
+}
+
+.popup_list_item .history_meta .node_id,
+.popup_list_item .history_meta .input_id,
+.popup_list_item .history_meta .translated,
+.popup_list_item .history_meta .original,
+.popup_list_item .history_meta .expanded {
+    background-color: var(--comfy-menu-secondary-bg);
+    padding: 1px 4px;
+    border-radius: 3px;
+    font-family: monospace;
+}
+
+.popup_list_item .history_meta .node_id {
+    color: rgb(100, 200, 255);
+}
+
+.popup_list_item .history_meta .input_id {
+    color: rgb(135, 133, 131);
+}
+
+/* Translation label style - purple */
+.popup_list_item .history_meta .translated {
+    color: rgb(180, 120, 255);
+}
+
+/* Reverse prompt label style - blue */
+.popup_list_item .history_meta .caption {
+    color: rgb(64, 158, 255);
+}
+
+/* Original text label style - blue */
+.popup_list_item .history_meta .original {
+    color: rgb(100, 160, 255);
+}
+
+/* Expanded label style - green */
+.popup_list_item .history_meta .expanded {
+    color: var(--p-green-500);
+}
+
+/* History content style */
+.popup_list_item .history_content {
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.4;
+    font-size: 14px;
+    min-width: 0;
+}
+
+/* Popup empty state prompt */
+.popup_empty {
+    padding: 20px;
+    text-align: center;
+    /* color: rgba(255, 255, 255, 0.4); */
+    color: var(--p-text-muted-color);
+    font-size: 14px;
+    user-select: none;
+}
+
+/* Danger action button style */
+.popup_action_btn.danger {
+    color: rgba(255, 100, 100, 0.8);
+}
+
+.popup_action_btn.danger:hover {
+    background-color: rgba(255, 100, 100, 0.2);
+    color: rgba(255, 100, 100, 1);
+}
+
+/* Accordion style */
+.tag_accordion {
+    transition: all 0.3s ease;
+    width: 100%;
+    margin-bottom: 4px;
+    border-radius: 6px;
+    overflow: hidden;
+    /* Remove overall pointer style, keep only on title and tags */
+    /* background-color: rgba(40, 40, 40, 0.5); */
+}
+
+.tag_accordion_header {
+    padding: 4px 14px;
+    background-color: color-mix(in srgb, var(--comfy-menu-secondary-bg), transparent 60%);
+    cursor: pointer;
+    user-select: none;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all 0.2s ease;
+    border-radius: 6px;
+}
+
+.tag_accordion_header:hover {
+    background-color: color-mix(in srgb, var(--p-surface-400), transparent 80%);
+
+}
+
+.tag_accordion_header.active {
+    background-color: color-mix(in srgb, var(--p-primary-400), transparent 85%);
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+}
+
+.tag_accordion_title {
+    flex: 1;
+    font-size: 12px;
+    /* color: rgba(255, 255, 255, 0.9); */
+    color: var(--p-text-muted-color);
+    font-weight: 500;
+}
+
+.tag_accordion_icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    /* color: rgba(255, 255, 255, 0.6); */
+    color: var(--p-text-muted-color);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Add accordion icon size control */
+.tag_accordion_icon .pi {
+    font-size: 12px;
+    transition: transform 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+/* Plus icon style */
+.accordion_add_icon {
+    margin-right: 6px;
+    cursor: pointer;
+    opacity: 0.6;
+    transition: all 0.2s ease;
+    width: 18px;
+    height: 18px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.accordion_add_icon:hover {
+    opacity: 1;
+    color: var(--p-primary-500);
+    background-color: color-mix(in srgb, var(--p-primary-500), transparent 85%);
+    transform: scale(1.1);
+}
+
+.tag_accordion_icon img,
+.tag_accordion_icon .svg-icon,
+.accordion_arrow_icon {
+    width: 10px;
+    height: 10px;
+    transition: transform 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.tag_accordion_icon img,
+.tag_accordion_icon .svg-icon svg {
+    filter: brightness(1.5);
+}
+
+.tag_accordion_content {
+    display: block;
+    max-height: 0;
+    padding: 0;
+    background-color: color-mix(in srgb, var(--comfy-menu-secondary-bg), transparent 90%);
+    overflow: hidden;
+    cursor: default;
+    /* Ensure content area uses default pointer */
+    /* Remove CSS transition, change to JavaScript-controlled animation */
+}
+
+.tag_accordion_content.active {
+    display: block;
+    max-height: none;
+    /* Remove height limit, let content adapt */
+    padding: 2px 0;
+    overflow: visible;
+    /* Remove scrollbar, let parent container handle scrolling */
+    cursor: default;
+    /* Ensure content area uses default pointer when active */
+}
+
+/* Optimize accordion animation performance */
+.tag_accordion_content {
+    will-change: max-height, padding;
+    /* Suggest browser optimize animation of these properties */
+    transform: translateZ(0);
+    /* Enable hardware acceleration */
+    backface-visibility: hidden;
+    /* Avoid backface visibility issues */
+}
+
+/* Rotate icon optimization */
+.rotate-180 {
+    transform: rotate(180deg);
+}
+
+.pi.rotate-180,
+.accordion_arrow_icon.rotate-180 {
+    transform: rotate(180deg);
+}
+
+/* Tag container style */
+.tag_category_container {
+    flex: 1;
+    overflow: visible;
+    /* Remove scrollbar, let parent handle scrolling */
+    padding: 4px;
+    position: relative;
+    min-height: 0;
+    /* Allow flex shrink */
+}
+
+/* Tag item style */
+.tag_item {
+    display: inline-block;
+    margin: 4px;
+    padding: 4px 10px;
+    background-color: color-mix(in srgb, var(--comfy-menu-secondary-bg), transparent 10%);
+    /* border: 1px solid rgba(255, 255, 255, 0.1); */
+    border-radius: 12px;
+    cursor: pointer;
+    /* Ensure default cursor is pointer */
+    transition: all 0.2s ease;
+    position: relative;
+    z-index: 1;
+    user-select: none;
+}
+
+.tag_item:hover {
+    background-color: color-mix(in srgb, var(--p-primary-500), transparent 84%);
+    ;
+    border-color: rgba(255, 255, 255, 0.2);
+    z-index: 10210;
+}
+
+.tag_item_text {
+    font-size: 14px;
+    /* color: rgba(255, 255, 255, 0.731); */
+    color: var(--p-inputtext-color);
+}
+
+/* Tag usage status style */
+.tag_item.used {
+    background-color: rgba(40, 120, 40, 0.8);
+    border-color: rgba(100, 255, 100, 0.2);
+}
+
+.tag_item.used:hover {
+    background-color: rgba(50, 140, 50, 0.9);
+}
+
+.tag_item.used .tag_item_text {
+    color: rgba(200, 255, 200, 0.9);
+}
+
+/* Custom scrollbar style */
+.tag_category_container::-webkit-scrollbar {
+    width: 6px;
+}
+
+.tag_category_container::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.1);
+}
+
+.tag_category_container::-webkit-scrollbar-thumb {
+    background-color: color-mix(in srgb, var(--p-button-text-secondary-color), transparent 50%);
+    border-radius: 3px;
+}
+
+.tag_category_container::-webkit-scrollbar-thumb:hover {
+    background-color: color-mix(in srgb, var(--p-button-text-secondary-color), transparent 50%);
+}
+
+/* Custom tooltip style */
+.tag_tooltip {
+    position: fixed;
+    padding: 8px 12px;
+    background-color: color-mix(in srgb, var(--bg-color), transparent 10%);
+    /* color: white; */
+    color: var(--p-inputtext-color);
+    font-size: 12px;
+    border-radius: 8px;
+    white-space: pre-line;
+    max-width: 300px;
+    word-wrap: break-word;
+    line-height: 1.6;
+    z-index: 10250;
+    pointer-events: none;
+    animation: clipFadeInDown 0.2s ease-in-out;
+    transform-origin: top center;
+    will-change: transform, opacity;
+    backdrop-filter: blur(8px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Add style for classification path in tooltip */
+.tag_tooltip .tooltip_path {
+    display: block;
+    font-size: 12px;
+    color: color-mix(in srgb, var(--p-inputtext-color), transparent 60%);
+    margin-top: 4px;
+}
+
+/* ---Scrollable tabs bar style--- */
+.popup_container .popup_tabs_container {
+    position: relative;
+    border-bottom: 1px solid var(--p-content-border-color);
+    /* background-color: rgba(30, 30, 30, 0.8); */
+    background-color: color-mix(in srgb, var(--comfy-menu-secondary-bg), transparent 60%);
+    user-select: none;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    padding: 0;
+}
+
+/* Scroll area */
+.popup_container .popup_tabs_scroll {
+    overflow-x: auto;
+    overflow-y: hidden;
+    white-space: nowrap;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+    padding: 2px 0 0;
+    position: relative;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
+/* Hide scrollbar */
+.popup_container .popup_tabs_scroll::-webkit-scrollbar {
+    display: none;
+    /* Chrome, Safari, Opera */
+}
+
+/* Tabs bar */
+.popup_container .popup_tabs {
+    display: inline-flex;
+    flex-wrap: nowrap;
+    gap: 2px;
+    padding: 4px 0 0;
+    position: relative;
+}
+
+/* Add left margin for the first tab */
+.popup_container .popup_tabs .popup_tab:first-child {
+    margin-left: 6px;
+}
+
+/* Single Tab label */
+.popup_container .popup_tab {
+    display: inline-block;
+    padding: 4px 10px 8px 10px;
+    font-size: 12px;
+    /* color: rgba(255, 255, 255, 0.6); */
+    color: var(--p-text-muted-color);
+    background-color: transparent;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    max-width: 120px;
+    position: relative;
+    border-radius: 0;
+}
+
+/* Tab active state - add bottom highlight bar */
+.popup_container .popup_tab.active {
+    /* color: rgba(255, 255, 255, 0.9); */
+    color: var(--p-listbox-option-selected-color);
+    background-color: transparent;
+    box-shadow: none;
+}
+
+/* Bottom highlight bar base style */
+.popup_container .popup_tab::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    width: 100%;
+    height: 2px;
+    background-color: rgba(100, 180, 255, 0.8);
+    border-radius: 2px 2px 0 0;
+    transform-origin: center;
+    transform: translateX(-50%) scaleX(0);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    will-change: transform;
+}
+
+/* Bottom highlight bar active state */
+.popup_container .popup_tab.active::after {
+    transform: translateX(-50%) scaleX(1);
+}
+
+/* Bottom highlight bar exit animation */
+.popup_container .popup_tab.active.exiting::after {
+    transform: translateX(-50%) scaleX(0);
+}
+
+/* Current node bottom highlight bar color */
+.popup_container .popup_tab.current_node::after {
+    background-color: var(--p-green-500);
+}
+
+/* Tab hover effect */
+.popup_container .popup_tab:hover {
+    /* color: rgba(255, 255, 255, 0.9); */
+    color: var(--p-inputtext-color);
+
+}
+
+/* Current node indicator */
+.popup_container .popup_tab.current_node {
+    background-color: transparent;
+    /* color: rgba(200, 255, 200, 0.8); */
+    color: var(--p-listbox-option-selected-color);
+}
+
+.popup_container .popup_tab.current_node.active {
+    background-color: transparent;
+    color: var(--p-green-500);
+    box-shadow: none;
+}
+
+.popup_container .popup_tab.current_node:hover {
+    background-color: rgba(0, 170, 80, 0.1);
+    border-radius: 8px 8px 0 0;
+}
+
+/* Tab content container */
+.popup_container .popup_tab_content {
+    display: none;
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in srgb, var(--p-button-text-secondary-color), transparent 50%) transparent;
+    padding-bottom: 8px;
+    min-height: 0;
+    /* Allow flex shrink */
+}
+
+.popup_container .popup_tab_content::-webkit-scrollbar {
+    width: 6px;
+}
+
+.popup_container .popup_tab_content::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.popup_container .popup_tab_content::-webkit-scrollbar-thumb {
+    background-color: color-mix(in srgb, var(--p-button-text-secondary-color), transparent 50%);
+    border-radius: 3px;
+}
+
+.popup_container .popup_tab_content.active {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Scroll indicator - floating design */
+.popup_container .tabs_scroll_indicator {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--p-text-muted-color);
+    cursor: pointer;
+    z-index: 10;
+    pointer-events: auto;
+    transition: color 0.2s ease;
+    border: none;
+}
+
+/* Add scroll indicator icon size control */
+.popup_container .tabs_scroll_indicator .pi {
+    font-size: 14px;
+    transition: transform 0.2s ease;
+}
+
+/* Left scroll indicator */
+.popup_container .tabs_scroll_indicator.left {
+    left: 0;
+    background: linear-gradient(to right,
+            var(--p-content-background) 0%,
+            var(--p-content-background) 40%,
+            transparent 100%);
+}
+
+/* Right scroll indicator */
+.popup_container .tabs_scroll_indicator.right {
+    right: 0;
+    background: linear-gradient(to left,
+            var(--p-content-background) 0%,
+            var(--p-content-background) 40%,
+            transparent 100%);
+}
+
+.popup_container .tabs_scroll_indicator:hover {
+    color: var(--p-text-color);
+}
+
+.popup_container .tabs_scroll_indicator:hover .pi {
+    transform: scale(1.2);
+}
+
+/* Scroll indicator icon style */
+.popup_container .scroll_indicator_icon {
+    width: 12px;
+    height: 12px;
+    display: block;
+    filter: brightness(1.5);
+}
+
+/* Left scroll indicator icon rotation */
+.popup_container .rotate_left {
+    transform: rotate(-90deg);
+}
+
+/* Right scroll indicator icon rotation */
+.popup_container .rotate_right {
+    transform: rotate(-90deg);
+}
+
+.popup_container .rotate-180 {
+    transform: rotate(180deg);
+}
+
+/* Dragging style */
+.popup_container.dragging {
+    opacity: 0.95;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+
+.popup_title_bar.dragging {
+    cursor: grabbing !important;
+}
+
+/* ---Window resize functionality style--- */
+/* Window resize handle */
+.popup_resize_handle {
+    position: absolute !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 14px !important;
+    height: 18px !important;
+    cursor: se-resize !important;
+    border-radius: 0 0 8px 0;
+    z-index: 1001 !important;
+    /* Ensure on top */
+    background: transparent;
+    transition: opacity 0.2s ease;
+    color: color-mix(in srgb, var(--p-button-text-secondary-color), transparent 50%);
+    opacity: 0.7;
+    pointer-events: auto !important;
+    /* Ensure can receive mouse events */
+}
+
+.popup_resize_handle:hover {
+    opacity: 1 !important;
+    color: var(--fg-color);
+}
+
+/* Ensure icon displays correctly */
+.popup_resize_handle .svg-icon {
+    width: 12px !important;
+    height: 12px !important;
+    display: block !important;
+    pointer-events: none;
+    /* Icon doesn't receive events, let parent handle */
+}
+
+/* Style during window resizing */
+.popup_container.resizing {
+    transition: none !important;
+    user-select: none;
+}
+
+.popup_container.resizing .popup_resize_handle {
+    opacity: 1 !important;
+}
+
+/* Tag popup specific styles */
+.popup_container.tag_popup {
+    resize: none;
+    /* Disable native resize, use custom */
+    max-width: none;
+    /* Remove width limit, allow width adjustment */
+    min-width: 300px;
+    /* Set minimum width */
+    min-height: 200px;
+    /* Set minimum height */
+    max-height: none;
+    /* Remove height limit, allow height adjustment */
+}
+
+/* Ensure content does not overflow during adjustment */
+.popup_container.resizing .tag_category_container,
+.popup_container.resizing .popup_tab_content {
+    overflow: hidden;
+}
+
+/* Tag popup content area adapts to dynamic height */
+.popup_container.tag_popup .popup_tab_content {
+    flex: 1;
+    min-height: 0;
+    /* Allow flex shrink */
+    overflow-y: auto;
+    /* Only tab content container has scrollbar */
+    overflow-x: hidden;
+}
+
+.popup_container.tag_popup .tag_category_container {
+    flex: 1;
+    min-height: 0;
+    /* Allow flex shrink */
+    overflow: visible;
+    /* Remove scrollbar, let parent handle */
+}
+
+/* Ensure accordion content does not produce scrollbar */
+.popup_container.tag_popup .tag_accordion_content {
+    overflow: visible !important;
+}
+
+.popup_container.tag_popup .tag_accordion_content.active {
+    overflow: visible !important;
+}
+
+.popup_container.tag_popup .tag_search_result_list {
+    max-height: none !important;
+    /* Remove fixed height limit */
+    height: 100% !important;
+    /* Fill available height */
+    flex: 1 !important;
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: wrap !important;
+    align-content: flex-start !important;
+    justify-content: flex-start !important;
+    gap: 4px !important;
+    position: relative !important;
+    /* Provide reference for absolute positioning of no-match message */
+    margin: 0 !important;
+    padding: 8px !important;
+    overflow-y: auto !important;
+    /* Ensure vertical scrolling available */
+    overflow-x: hidden !important;
+    /* Prevent horizontal scrolling */
+    box-sizing: border-box !important;
+    /* Ensure padding is included */
+    min-height: 0 !important;
+    /* Allow flex shrink */
+}
+
+/* Search result list scrollbar style */
+.tag_search_result_list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.tag_search_result_list::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.tag_search_result_list::-webkit-scrollbar-thumb {
+    background-color: color-mix(in srgb, var(--p-button-text-secondary-color), transparent 50%);
+    border-radius: 3px;
+}
+
+/* Search result empty message style */
+.search_empty_message {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    color: var(--p-text-muted-color);
+    font-size: 14px;
+    width: 100%;
+    pointer-events: none;
+    user-select: none;
+}
+
+/* Special styles in search state */
+.popup_container.tag_popup:has(.tag_search_result_list) .popup_tabs_container,
+.popup_container.tag_popup:has(.tag_search_result_list) .tag_category_container {
+    display: none !important;
+    visibility: hidden !important;
+}
+
+/* Ensure parent container of search result list has correct height and overflow settings */
+.popup_container.tag_popup:has(.tag_search_result_list) {
+    overflow: hidden;
+}
+
+.popup_container.tag_popup:has(.tag_search_result_list)>*:not(.popup_title_bar) {
+    height: calc(100% - 60px);
+    /* Subtract title bar height */
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.popup_container.tag_popup .tag_search_result_list:empty::after {
+    content: '';
+    display: block;
+    height: 100%;
+    min-height: 300px;
+}
+
+/* ====================== Button right-click menu style ====================== */
+
+/* Menu container style */
+.button-context-menu {
+    position: fixed;
+    background-color: var(--p-content-background);
+    border: 1px solid var(--p-content-border-color);
+    border-radius: 8px;
+    min-width: 100px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    z-index: 10215;
+    opacity: 0;
+    transform: translateY(-10px);
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    font-family: Arial, sans-serif;
+    font-size: 12px;
+    color: var(--p-text-color, #ddd);
+    backdrop-filter: blur(8px) !important;
+    overflow: hidden;
+}
+
+/* Menu display state */
+.button-context-menu.button-menu-visible {
+    opacity: 1;
+    transform: translateY(0);
+    animation: clipFadeInDown 0.2s ease-in-out;
+}
+
+/* Menu item list */
+.button-menu-list {
+    list-style: none;
+    margin: 0;
+    padding: 4px;
+}
+
+/* Menu item */
+.button-menu-item {
+    display: flex;
+    align-items: center;
+    padding: 8px 12px;
+    cursor: pointer;
+    transition: background-color 0.1s ease;
+    user-select: none;
+}
+
+/* Menu item hover state */
+.button-menu-item:hover {
+    background-color: color-mix(in srgb, var(--p-primary-500), transparent 84%);
+    border-radius: 4px;
+}
+
+/* Menu separator */
+.button-menu-separator {
+    height: 1px;
+    margin: 4px 0;
+    background-color: var(--p-content-border-color, #444);
+}
+
+/* Menu icon */
+.button-menu-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    margin-right: 8px;
+    color: var(--p-text-muted-color, #aaa);
+}
+
+/* SVG in menu icon */
+.button-menu-icon svg {
+    width: 16px;
+    height: 16px;
+    fill: currentColor;
+}
+
+/* Menu label */
+.button-menu-label {
+    flex: 1;
+    color: var(--p-text-muted-color, #aaa);
+    white-space: nowrap;
+    /* Prevent text wrapping */
+    overflow: hidden;
+    text-overflow: ellipsis;
+    /* Show ellipsis when too long */
+}
+
+/* Shortcut hint */
+.button-menu-shortcut {
+    color: var(--p-text-muted-color, #999);
+    margin-left: 8px;
+    font-size: 12px;
+    opacity: 0.7;
+}
+
+/* Disabled menu item */
+.button-menu-item-disabled {
+    opacity: 0.5;
+    cursor: default;
+    pointer-events: none;
+}
+
+/* Disabled menu item hover state */
+.button-menu-item-disabled:hover {
+    background-color: transparent;
+}
+
+/* Selected menu item */
+.button-menu-item.selected {
+    background-color: color-mix(in srgb, var(--p-primary-500), transparent 90%);
+}
+
+.button-menu-item.selected .button-menu-label,
+.button-menu-item.selected .button-menu-icon {
+    color: var(--p-listbox-option-selected-color, #fff);
+}
+
+/* Menu item active state */
+.button-menu-item:active {
+    background-color: color-mix(in srgb, var(--p-primary-500), transparent 70%);
+}
+
+/* Menu item keyboard focus state */
+.button-menu-item-focus {
+    background-color: color-mix(in srgb, var(--p-primary-500), transparent 84%);
+    outline: none;
+}
+
+/* Menu item keyboard focus state label */
+.button-menu-item-focus .button-menu-label {
+    color: var(--p-inputtext-color, #fff);
+}
+
+/* Active state icon style */
+.active-status {
+    color: var(--p-green-500, #4caf50) !important;
+}
+
+/* Inactive state icon style */
+.inactive-status {
+    color: var(--p-text-muted-color, #aaa) !important;
+}
+
+/* ===== Submenu extended styles (button context menu) ===== */
+/* Allow container to display submenu */
+.button-context-menu {
+    overflow: visible;
+    min-width: 140px;
+}
+
+/* Right arrow icon */
+.button-menu-right-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 8px;
+    color: var(--p-text-muted-color, #aaa);
+    font-size: 12px;
+}
+
+/* Submenu container (default on the right of parent, position adjusted dynamically by JS) */
+.button-submenu {
+    position: absolute;
+    top: 0;
+    left: 100%;
+    margin-left: 2px;
+    background-color: var(--p-content-background);
+    border: 1px solid var(--p-content-border-color);
+    border-radius: 8px;
+    min-width: 20px;
+    /* Increase width to accommodate long model names */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    opacity: 0;
+    transform: translateX(-6px);
+    pointer-events: none;
+    transition: opacity 0.15s ease, transform 0.15s ease;
+    overflow: visible;
+    /* Changed to visible to support nested submenu overflow */
+    z-index: 10216;
+    /* Above parent menu */
+}
+
+/* z-index increases for third-level and deeper submenus */
+.button-submenu .button-submenu {
+    z-index: 10217;
+}
+
+.button-submenu .button-submenu .button-submenu {
+    z-index: 10218;
+}
+
+/* Hover to show submenu - supports nesting */
+.button-menu-item.submenu-open>.button-submenu,
+.button-menu-item-has-children:hover>.button-submenu {
+    opacity: 1;
+    transform: translateX(0);
+    pointer-events: auto;
+}
+
+/* Ensure all menu items with submenus have position: relative as positioning reference for submenu */
+.button-menu-item-has-children {
+    position: relative;
+}
+
+/* Confirmation dialog specific styles - compact */
+.popup_container.confirm-dialog {
+    min-width: 320px !important;
+    max-width: 420px !important;
+    width: auto !important;
+    height: auto !important;
+    min-height: auto !important;
+}
+
+.popup_container.confirm-dialog .popup_content {
+    flex: 0 0 auto !important;
+    min-height: auto !important;
+    overflow: visible !important;
+}
+
+/* ---Tag cross-category drag and drop style--- */
+
+/* Style for tag while dragging */
+.tag_item.tag-dragging {
+    opacity: 0.8;
+    transform: scale(1.02);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    z-index: 1000;
+    cursor: grabbing;
+}
+
+/* Drop zone highlight style */
+.tag-drop-zone {
+    position: relative;
+    background-color: color-mix(in srgb, var(--p-primary-500), transparent 92%) !important;
+    border: 2px dashed var(--p-primary-400) !important;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+/* Drop zone pulse animation */
+.tag-drop-zone::before {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    border: 2px solid var(--p-primary-400);
+    border-radius: 10px;
+    opacity: 0;
+    animation: dropZonePulse 1.5s ease-in-out infinite;
+    pointer-events: none;
+}
+
+@keyframes dropZonePulse {
+
+    0%,
+    100% {
+        opacity: 0;
+        transform: scale(1);
+    }
+
+    50% {
+        opacity: 0.5;
+        transform: scale(1.02);
+    }
+}
+
+/* Ghost element during drag */
+.tag-ghost {
+    opacity: 0.4;
+    background-color: color-mix(in srgb, var(--p-primary-500), transparent 85%) !important;
+    border: 1px dashed var(--p-primary-500) !important;
+}
+
+/* Tag grab cursor */
+.tag_popup .tag_item {
+    cursor: pointer;
+}
+
+.tag_popup .tag_item:active {
+    cursor: grabbing;
+}
+
+/* ---Add category button style--- */
+
+/* Add category button in tab bar */
+.popup_container .popup_tab.add_category_tab {
+    padding: 4px 10px 8px 10px;
+    opacity: 0.6;
+    transition: all 0.2s ease;
+    min-width: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.popup_container .popup_tab.add_category_tab:hover {
+    opacity: 1;
+    color: var(--p-primary-500);
+}
+
+.popup_container .popup_tab.add_category_tab .pi {
+    font-size: 10px;
+}
+
+/* Add category button does not show bottom highlight bar */
+.popup_container .popup_tab.add_category_tab::after {
+    display: none;
+}
+
+/* Add subcategory button at the end of accordion list */
+.add_subcategory_button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 8px;
+    padding: 8px 16px;
+    border: 1px dashed transparent;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: var(--p-text-muted-color);
+    opacity: 0.5;
+}
+
+.add_subcategory_button:hover {
+    opacity: 1;
+    border-color: var(--p-content-border-color);
+    color: var(--p-text-muted-color);
+    background-color: transparent;
+}
+
+.add_subcategory_button .pi {
+    font-size: 10px;
+}

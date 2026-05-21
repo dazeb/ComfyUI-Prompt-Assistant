@@ -1,0 +1,234 @@
+{
+    "PromptExpand": {
+        "display_name": "✨Genişlet",
+        "description": "LLM kullanarak istemi geliştirin ve genişletin",
+        "inputs": {
+            "rule": {
+                "name": "Kural",
+                "tooltip": "İstem genişletmek için önceden tanımlanmış kural"
+            },
+            "custom_rule": {
+                "name": "Özel Kural",
+                "tooltip": "Aşağıdaki özel kural girişini etkinleştir"
+            },
+            "custom_rule_content": {
+                "name": "Özel Kural İçeriği",
+                "tooltip": "Özel kuralınızı buraya girin"
+            },
+            "user_prompt": {
+                "name": "Kullanıcı İstemi",
+                "tooltip": "Geliştirilecek istem"
+            },
+            "llm_service": {
+                "name": "LLM Servisi",
+                "tooltip": "LLM Servisini Seçin"
+            },
+            "ollama_auto_unload": {
+                "name": "Otomatik Yüklemeyi Kaldır",
+                "tooltip": "Ollama modelini otomatik olarak kaldır"
+            },
+            "source_text": {
+                "name": "Kaynak Metin",
+                "tooltip": "İsteğe bağlı metin girişi"
+            },
+            "seed": {
+                "name": "Tohum",
+                "tooltip": "Üretimin rastgeleliğini kontrol eder. Yeniden yürütmeyi zorlamak için sabit olmayan bir mod seçin"
+            }
+        },
+        "outputs": {
+            "0": {
+                "name": "İstem Çıktısı",
+                "tooltip": "Genişletme sonucu"
+            }
+        }
+    },
+    "ImageCaptionNode": {
+        "display_name": "✨Görüntü Başlığı",
+        "description": "VLM kullanarak görüntü için başlık oluşturun",
+        "inputs": {
+            "image": {
+                "name": "Görüntü",
+                "tooltip": "Girdi görüntüsü"
+            },
+            "rule": {
+                "name": "Kural",
+                "tooltip": "Başlık oluşturma için önceden tanımlanmış kural"
+            },
+            "custom_rule": {
+                "name": "Özel Kural",
+                "tooltip": "Özel kural girişini etkinleştir"
+            },
+            "custom_rule_content": {
+                "name": "Özel Kural İçeriği",
+                "tooltip": "Özel kural içeriği"
+            },
+            "user_prompt": {
+                "name": "Kullanıcı İstemi",
+                "tooltip": "Kural ile gönderilecek ek istemleri buraya girin"
+            },
+            "vlm_service": {
+                "name": "VLM Servisi",
+                "tooltip": "VLM Servisini Seçin"
+            },
+            "ollama_auto_unload": {
+                "name": "Otomatik Yüklemeyi Kaldır",
+                "tooltip": "Ollama modelini otomatik olarak kaldır"
+            },
+            "seed": {
+                "name": "Tohum",
+                "tooltip": "Üretimin rastgeleliğini kontrol eder. Yeniden yürütmeyi zorlamak için sabit olmayan bir mod seçin"
+            }
+        },
+        "outputs": {
+            "0": {
+                "name": "İstem Çıktısı",
+                "tooltip": "Oluşturulan başlık (toplu işlemde birleştirilir)"
+            },
+            "1": {
+                "name": "İstem Listesi",
+                "tooltip": "Toplu işlemdeki her görüntü için başlık listesi"
+            }
+        }
+    },
+    "PromptTranslate": {
+        "display_name": "✨Çeviri",
+        "description": "İstemi diller arasında çevirin",
+        "inputs": {
+            "source_text": {
+                "name": "Kaynak Metin",
+                "tooltip": "Çevrilecek metin"
+            },
+            "target_language": {
+                "name": "Hedef Dil",
+                "tooltip": "Çeviri için hedef dil",
+                "options": {
+                    "English": "İngilizce",
+                    "Chinese": "Çince"
+                }
+            },
+            "translate_service": {
+                "name": "Çeviri Servisi",
+                "tooltip": "Çeviri servisini seçin"
+            },
+            "ollama_auto_unload": {
+                "name": "Otomatik Yüklemeyi Kaldır",
+                "tooltip": "Ollama modelini otomatik olarak kaldır"
+            },
+            "seed": {
+                "name": "Tohum",
+                "tooltip": "Üretimin rastgeleliğini kontrol eder. Yeniden yürütmeyi zorlamak için sabit olmayan bir mod seçin"
+            }
+        },
+        "outputs": {
+            "0": {
+                "name": "İstem Çıktısı",
+                "tooltip": "Çeviri sonucu"
+            }
+        }
+    },
+    "VideoCaptionNode": {
+        "display_name": "✨Video Başlığı",
+        "description": "VLM kullanarak video için başlık oluşturun",
+        "inputs": {
+            "rule": {
+                "name": "Kural",
+                "tooltip": "Video başlıklandırma için önceden tanımlanmış kural"
+            },
+            "custom_rule": {
+                "name": "Özel Kural",
+                "tooltip": "Özel kural girişini etkinleştir"
+            },
+            "custom_rule_content": {
+                "name": "Özel Kural İçeriği",
+                "tooltip": "Özel kural içeriği"
+            },
+            "user_prompt": {
+                "name": "Kullanıcı İstemi",
+                "tooltip": "Kural ile gönderilecek ek istemleri buraya girin"
+            },
+            "vlm_service": {
+                "name": "VLM Servisi",
+                "tooltip": "VLM Servisini Seçin"
+            },
+            "sampling_mode": {
+                "name": "Örnekleme Modu",
+                "tooltip": "Kareleri videonun uzunluğuna göre eşit örneklemek için Auto (Uniform) seçeneğini belirleyin. Manual seçeneği, kareleri manuel olarak seçmenizi sağlar",
+                "options": {
+                    "Auto (Uniform)": "Otomatik (Eşit)",
+                    "Manual (Indices)": "Manuel (İndeksler)"
+                }
+            },
+            "frame_count": {
+                "name": "Kare Sayısı",
+                "tooltip": "Örneklenecek kare sayısı (Otomatik Mod)"
+            },
+            "manual_indices": {
+                "name": "Manuel İndeksler",
+                "tooltip": "Belirli kare indeksleri (Manuel Mod)"
+            },
+            "ollama_auto_unload": {
+                "name": "Otomatik Yüklemeyi Kaldır",
+                "tooltip": "Ollama modelini otomatik olarak kaldır"
+            },
+            "video": {
+                "name": "Video",
+                "tooltip": "Girdi videosu"
+            },
+            "seed": {
+                "name": "Tohum",
+                "tooltip": "Üretimin rastgeleliğini kontrol eder. Yeniden yürütmeyi zorlamak için sabit olmayan bir mod seçin"
+            },
+            "video_frames": {
+                "name": "Görüntüler",
+                "tooltip": "Görüntü dizisi (IMAGE batch)"
+            }
+        },
+        "outputs": {
+            "0": {
+                "name": "İstem Çıktısı",
+                "tooltip": "Oluşturulan video başlığı"
+            },
+            "1": {
+                "name": "Önizleme Kareleri",
+                "tooltip": "Önizleme kareleri"
+            }
+        }
+    },
+    "KontextPresetNode": {
+        "display_name": "✨Kontext Önayarı",
+        "description": "Kontext önayarlarını kullanarak yaratıcı talimatlar oluşturun",
+        "inputs": {
+            "image": {
+                "name": "Görüntü",
+                "tooltip": "Girdi görüntüsü"
+            },
+            "kontext_preset": {
+                "name": "Önayar",
+                "tooltip": "Kontext Önayarını Seçin"
+            },
+            "user_prompt": {
+                "name": "Kullanıcı İstemi",
+                "tooltip": "Önayar ile gönderilecek ek istemleri buraya girin"
+            },
+            "vlm_service": {
+                "name": "VLM Servisi",
+                "tooltip": "VLM Servisini Seçin"
+            },
+            "ollama_auto_unload": {
+                "name": "Otomatik Yüklemeyi Kaldır",
+                "tooltip": "Ollama modelini otomatik olarak kaldır"
+            },
+            "seed": {
+                "name": "Tohum",
+                "tooltip": "Üretimin rastgeleliğini kontrol eder. Yeniden yürütmeyi zorlamak için sabit olmayan bir mod seçin"
+            }
+        },
+        "outputs": {
+            "0": {
+                "name": "İstem Çıktısı",
+                "tooltip": "Oluşturulan yaratıcı talimat"
+            }
+        }
+    }
+}

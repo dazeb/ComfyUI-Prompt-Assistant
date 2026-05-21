@@ -1,0 +1,768 @@
+/**
+ * PromptAssistant Stylesheet
+ * Contains all component styles and animation definitions
+ */
+
+
+/* ==========================================================================
+   1. Core Container Components (Assistant Container)
+   ========================================================================== */
+
+/* Common container base styles */
+.assistant-container-common {
+    /* Positioning & Layout */
+    position: absolute;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    /* default alignment */
+    width: auto !important;
+    height: auto !important;
+    min-width: 0;
+    min-height: 0;
+    max-width: none;
+    box-sizing: border-box;
+
+    /* Visual styles */
+    padding: 2px;
+    /* background-color: color-mix(in srgb, var(--bg-color), transparent 50%); */
+    background-color: color-mix(in srgb, var(--node-component-header-surface), transparent 60%);
+    border: 1px solid color-mix(in srgb, var(--p-panel-border-color), transparent 60%);
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+
+    /* Effects */
+    z-index: 9999;
+    opacity: 0.95;
+    backdrop-filter: blur(4px);
+
+    /* Interaction & State */
+    user-select: none;
+    overflow: hidden;
+    pointer-events: all;
+    cursor: default;
+    /* remove grab cursor effect */
+
+    /* Transition animations */
+    transition: width 0.3s cubic-bezier(0.25, 1, 0.5, 1),
+        height 0.3s cubic-bezier(0.25, 1, 0.5, 1),
+        opacity 0.3s cubic-bezier(0.25, 1, 0.5, 1),
+        background-color 0.3s,
+        border-color 0.3s,
+        backdrop-filter 0.3s,
+        box-shadow 0.3s;
+}
+
+/* Compatibility fix: override PrimeVue or other style influences? */
+.assistant-container-common * {
+    box-sizing: border-box;
+}
+
+/* ==========================================================================
+   2. State Styles (States)
+   ========================================================================== */
+
+/* Expanded state */
+.assistant-container-common.expanded {
+    /* In expanded state, use JS-calculated dynamic width and height */
+    width: var(--expanded-width, 28px) !important;
+    height: var(--expanded-height, 28px) !important;
+}
+
+/* Collapsed state */
+.assistant-container-common.collapsed {
+    /* Fixed size in collapsed state */
+    width: 28px !important;
+    height: 28px !important;
+
+    /* Invisible mode */
+    background-color: transparent !important;
+    border-color: transparent !important;
+    backdrop-filter: none !important;
+    box-shadow: none !important;
+
+    /* Interaction */
+    pointer-events: none !important;
+    /* allow click-through */
+}
+
+/* Show/hide helper class */
+.assistant-show {
+    display: flex !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* ==========================================================================
+   3. Internal Elements
+   ========================================================================== */
+
+/* Hover detection area */
+.assistant-hover-area {
+    position: absolute;
+    top: -10px;
+    right: -10px;
+    bottom: -10px;
+    left: -10px;
+    z-index: -1;
+    pointer-events: auto;
+    /* ensure it can receive mouse events */
+    background: transparent;
+}
+
+/* Indicator icon (shown when collapsed) */
+.assistant-indicator {
+    position: absolute;
+    width: 18px;
+    height: 18px;
+    z-index: 2;
+    pointer-events: none;
+    opacity: 0;
+    /* transform only used for scaling animation */
+    transform: scale(1);
+    transition: opacity 0.45s cubic-bezier(0.34, 1.56, 0.64, 1), transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Indicator behavior in states */
+.assistant-container-common.collapsed .assistant-indicator {
+    opacity: var(--assistant-icon-opacity, 0.8);
+    pointer-events: auto;
+    filter: drop-shadow(0 0 2px rgba(255, 255, 255, 0.6)) drop-shadow(0 0 4px rgba(100, 200, 255, 0.5));
+}
+
+.assistant-container-common.expanded .assistant-indicator {
+    opacity: 0;
+    transform: scale(0);
+}
+
+/* --- Indicator layout positioning: fixed at center in collapsed state, not changing with container size --- */
+/* Collapsed state container size is 28x28px, indicator 18x18px, centering offset = (28-18)/2 = 5px */
+
+/* Top-left layout: indicator at top-left */
+.layout-top-left-h .assistant-indicator,
+.layout-top-left-v .assistant-indicator {
+    top: 5px;
+    left: 5px;
+}
+
+/* Top-center layout: indicator centered horizontally, top vertically */
+.layout-top-center-h .assistant-indicator {
+    top: 5px;
+    left: 50%;
+    margin-left: -9px;
+    /* 18px / 2 */
+}
+
+/* Top-right layout: indicator at top-right */
+.layout-top-right-h .assistant-indicator,
+.layout-top-right-v .assistant-indicator {
+    top: 5px;
+    right: 5px;
+}
+
+/* Right-center layout: indicator centered vertically, right horizontally */
+.layout-right-center-v .assistant-indicator {
+    top: 50%;
+    right: 5px;
+    margin-top: -9px;
+}
+
+/* Bottom-right layout: indicator at bottom-right */
+.layout-bottom-right-h .assistant-indicator,
+.layout-bottom-right-v .assistant-indicator {
+    bottom: 5px;
+    right: 5px;
+}
+
+/* Bottom-center layout: indicator centered horizontally, bottom vertically */
+.layout-bottom-center-h .assistant-indicator {
+    bottom: 5px;
+    left: 50%;
+    margin-left: -9px;
+}
+
+/* Bottom-left layout: indicator at bottom-left */
+.layout-bottom-left-h .assistant-indicator,
+.layout-bottom-left-v .assistant-indicator {
+    bottom: 5px;
+    left: 5px;
+}
+
+/* Left-center layout: indicator centered vertically, left horizontally */
+.layout-left-center-v .assistant-indicator {
+    top: 50%;
+    left: 5px;
+    margin-top: -9px;
+}
+
+/* Content area */
+.assistant-content {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    width: 100%;
+    height: 100%;
+    cursor: default;
+    /* ensure non-button areas use default */
+    transition: opacity 0.3s ease;
+}
+
+/* Content behavior in states */
+.assistant-container-common.collapsed .assistant-content {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.assistant-container-common.expanded .assistant-content {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* Content layout direction */
+.assistant-content.flex-row {
+    flex-direction: row;
+}
+
+.assistant-content.flex-col {
+    flex-direction: column;
+}
+
+/* --- Content area alignment: set according to container layout position --- */
+/* Note: when column-reverse, main axis is bottom to top, flex-start is bottom, flex-end is top */
+
+/* Horizontal layout - left: content left-aligned */
+.layout-top-left-h .assistant-content,
+.layout-bottom-left-h .assistant-content {
+    justify-content: flex-start;
+}
+
+/* Horizontal layout - right: content right-aligned */
+.layout-top-right-h .assistant-content,
+.layout-bottom-right-h .assistant-content {
+    justify-content: flex-end;
+}
+
+/* Horizontal layout - center: content center-aligned */
+.layout-top-center-h .assistant-content,
+.layout-bottom-center-h .assistant-content {
+    justify-content: center;
+}
+
+/* Vertical layout - top (column): content top-aligned */
+.layout-top-left-v .assistant-content,
+.layout-top-right-v .assistant-content {
+    justify-content: flex-start;
+}
+
+/* Vertical layout - bottom: content bottom-aligned */
+/* .assistant-content uses column direction, flex-end is bottom */
+.layout-bottom-left-v .assistant-content,
+.layout-bottom-right-v .assistant-content {
+    justify-content: flex-end;
+}
+
+/* Vertical layout - vertically centered: content center-aligned */
+.layout-left-center-v .assistant-content,
+.layout-right-center-v .assistant-content {
+    justify-content: center;
+}
+
+/* SVG icon common styles */
+.svg-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    position: relative;
+    z-index: 1;
+}
+
+.svg-icon svg {
+    width: 100%;
+    height: 100%;
+    fill: currentColor;
+    color: inherit;
+    transition: all 0.2s;
+    vertical-align: middle;
+}
+
+/* ==========================================================================
+   4. Button Styles (Buttons)
+   ========================================================================== */
+
+/* Basic button styles */
+.prompt-assistant-button,
+.image-assistant-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    padding: 0;
+    margin: 2px;
+    border: none;
+    border-radius: 3px;
+
+    background-color: transparent;
+    color: var(--p-dialog-color);
+
+    cursor: pointer;
+    opacity: 0;
+    flex-shrink: 0;
+    position: relative;
+
+    /* Staggered animation: delay calculated based on button index */
+    --stagger-delay: calc(var(--button-index, 0) * 30ms);
+    transition: transform 0.15s,
+        opacity 0.8s cubic-bezier(0.25, 1, 0.5, 1) var(--stagger-delay),
+        background-color 0.2s;
+}
+
+/* Button icon adjustment */
+.prompt-assistant-button .svg-icon,
+.image-assistant-button .svg-icon {
+    width: 18px;
+    height: 18px;
+    margin: 0;
+}
+
+/* Button interaction states */
+.prompt-assistant-button:hover,
+.image-assistant-button:hover {
+    opacity: 1;
+    transform: scale(1.15);
+    background-color: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 0 5px rgba(255, 255, 255, 0.2);
+}
+
+.prompt-assistant-button:active,
+.image-assistant-button:active {
+    transform: scale(0.95);
+}
+
+/* Active state */
+.button-active {
+    opacity: 1;
+    transform: scale(1.15);
+    background-color: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 0 5px rgba(255, 255, 255, 0.2);
+    color: var(--p-listbox-option-selected-color);
+}
+
+/* Processing state */
+.button-processing {
+    background-color: rgba(100, 100, 255, 0.15) !important;
+    opacity: 1 !important;
+    position: relative;
+    z-index: 1;
+    animation: buttonBreathing 1.5s infinite ease-in-out;
+}
+
+/* Disabled state */
+.button-disabled {
+    opacity: 0.4 !important;
+    filter: grayscale(60%);
+    cursor: not-allowed !important;
+    pointer-events: none;
+    transform: none !important;
+    color: var(--p-text-muted-color);
+}
+
+.button-disabled:hover {
+    background-color: transparent !important;
+    box-shadow: none !important;
+}
+
+/* Hide buttons in collapsed state (prevent residual interaction) */
+.assistant-container-common.collapsed .prompt-assistant-button,
+.assistant-container-common.collapsed .image-assistant-button {
+    opacity: 0 !important;
+    pointer-events: none !important;
+    /* Immediately hide when collapsed, no delay */
+    transition-delay: 0s !important;
+}
+
+/* Buttons show staggered when expanded */
+.assistant-container-common.expanded .prompt-assistant-button,
+.assistant-container-common.expanded .image-assistant-button {
+    opacity: 0.8;
+    pointer-events: auto;
+}
+
+/* Divider - vertical line in horizontal layout */
+.prompt-assistant-divider,
+.image-assistant-divider {
+    width: 1px;
+    height: 10px;
+    background-color: var(--p-content-border-color);
+    margin: 0 2px;
+    align-self: center;
+    flex-shrink: 0;
+    border-radius: 0.5px;
+}
+
+/* In vertical layout, divider becomes horizontal line (width/height swapped) */
+.assistant-content.flex-col .prompt-assistant-divider,
+.assistant-content.flex-col .image-assistant-divider {
+    width: 10px;
+    height: 1px;
+    margin: 2px 0;
+}
+
+/* Fix issue of Sortable drag detaching from parent container: use direct class name marker */
+.prompt-assistant-divider.divider-horizontal,
+.image-assistant-divider.divider-horizontal {
+    width: 10px;
+    height: 1px;
+    margin: 2px 0;
+}
+
+.assistant-container-common.collapsed .prompt-assistant-divider,
+.assistant-container-common.collapsed .image-assistant-divider {
+    opacity: 0 !important;
+}
+
+/* ==========================================================================
+   5. Layout Positioning (Anchor Positions)
+   ========================================================================== */
+
+/* Top left */
+.layout-top-left-h {
+    top: 4px;
+    left: 4px;
+    transform-origin: top left;
+    flex-direction: row;
+    justify-content: flex-start;
+}
+
+.layout-top-left-v {
+    top: 4px;
+    left: 4px;
+    transform-origin: top left;
+    flex-direction: column;
+    justify-content: flex-start;
+}
+
+/* Top center */
+.layout-top-center-h {
+    top: 4px;
+    left: 50%;
+    transform: translateX(-50%) scale(var(--assistant-scale, 1));
+    transform-origin: top center;
+    flex-direction: row;
+    justify-content: center;
+}
+
+/* Top right */
+.layout-top-right-h {
+    top: 4px;
+    right: 4px;
+    transform-origin: top right;
+    flex-direction: row;
+    justify-content: flex-end;
+}
+
+.layout-top-right-v {
+    top: 4px;
+    right: 4px;
+    transform-origin: top right;
+    flex-direction: column;
+    justify-content: flex-start;
+}
+
+/* Right center */
+.layout-right-center-v {
+    top: 50%;
+    right: 4px;
+    transform: translateY(-50%) scale(var(--assistant-scale, 1));
+    transform-origin: center right;
+    flex-direction: column;
+    justify-content: center;
+}
+
+/* Bottom right */
+.layout-bottom-right-h {
+    bottom: 4px;
+    right: 4px;
+    transform-origin: bottom right;
+    flex-direction: row;
+    justify-content: flex-end;
+}
+
+.layout-bottom-right-v {
+    bottom: 4px;
+    right: 4px;
+    transform-origin: bottom right;
+    flex-direction: column-reverse;
+    justify-content: flex-start;
+}
+
+/* Bottom center */
+.layout-bottom-center-h {
+    bottom: 4px;
+    left: 50%;
+    transform: translateX(-50%) scale(var(--assistant-scale, 1));
+    transform-origin: bottom center;
+    flex-direction: row;
+    justify-content: center;
+}
+
+/* Bottom left */
+.layout-bottom-left-h {
+    bottom: 4px;
+    left: 4px;
+    transform-origin: bottom left;
+    flex-direction: row;
+    justify-content: flex-start;
+}
+
+.layout-bottom-left-v {
+    bottom: 4px;
+    left: 4px;
+    transform-origin: bottom left;
+    flex-direction: column-reverse;
+    justify-content: flex-start;
+}
+
+/* Left center */
+.layout-left-center-v {
+    top: 50%;
+    left: 4px;
+    transform: translateY(-50%) scale(var(--assistant-scale, 1));
+    transform-origin: center left;
+    flex-direction: column;
+    justify-content: center;
+}
+
+/* Scale support - used for non-centered layouts; centered layouts are set individually in their classes */
+.assistant-container-common:not(.layout-top-center-h):not(.layout-bottom-center-h):not(.layout-left-center-v):not(.layout-right-center-v) {
+    transform: scale(var(--assistant-scale, 1));
+}
+
+/* ==========================================================================
+   6. Status Tips
+   ========================================================================== */
+
+.statustip {
+    position: absolute;
+    padding: 4px 8px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    white-space: nowrap;
+
+    z-index: 10000;
+    pointer-events: none;
+    backdrop-filter: blur(8px);
+    transform-origin: center bottom;
+    will-change: transform, opacity;
+}
+
+.statustip.success {
+    color: color-mix(in srgb, var(--p-inputtext-color, #fff), rgb(18, 255, 18) 40%) !important;
+    background-color: color-mix(in srgb, var(--p-content-background, #1e1e1e), rgb(4, 58, 4) 30%);
+}
+
+.statustip.error {
+    color: color-mix(in srgb, var(--p-inputtext-color, #fff), rgb(255, 0, 0) 60%) !important;
+    background-color: color-mix(in srgb, var(--p-content-background, #1e1e1e), rgb(74, 12, 12) 30%);
+}
+
+.statustip.loading {
+    color: color-mix(in srgb, var(--p-inputtext-color, #fff), rgb(249, 255, 69) 30%) !important;
+    background-color: color-mix(in srgb, var(--p-content-background, #1e1e1e), rgb(114, 117, 22) 30%);
+}
+
+.statustip.info {
+    color: color-mix(in srgb, var(--p-inputtext-color, #fff), rgb(82, 70, 255) 60%) !important;
+    background-color: color-mix(in srgb, var(--p-content-background, #1e1e1e), rgb(55, 8, 113) 30%);
+}
+
+/* Status tip animation classes */
+.statustip-show {
+    animation: tipScaleIn 0.1s ease-out forwards !important;
+}
+
+.statustip-hide {
+    animation: tipFloatUp 0.4s ease-out forwards !important;
+}
+
+/* ==========================================================================
+   7. Sortable Drag Styles
+   ========================================================================== */
+.sortable-ghost {
+    opacity: 0.4;
+    background: rgba(255, 255, 255, 0.2);
+}
+
+/* ==========================================================================
+   8. Vue Node 2.0 Mode Adaptation
+   ========================================================================== */
+
+/* Force override positioning */
+.vue-node-mode.assistant-container-common {
+    position: absolute !important;
+}
+
+/* Fine-tune position within Vue component */
+[data-node-id] .assistant-container-common.prompt-assistant-container {
+    right: 4px;
+    bottom: 4px;
+    z-index: 10;
+}
+
+[data-node-id] .assistant-container-common.image-assistant-container {
+    right: 6px;
+    bottom: 6px; 
+    left: auto;
+    z-index: 10;
+    transform: none;
+    /* No canvas scaling needed in Vue mode */
+}
+
+/* Ensure FloatLabel container positioning context */
+.p-floatlabel:has(.assistant-container-common),
+[class*="float"]:has(.assistant-container-common) {
+    position: relative;
+}
+
+/* Ensure buttons are clickable in Vue mode */
+.vue-node-mode .prompt-assistant-button,
+.vue-node-mode .image-assistant-button {
+    pointer-events: auto;
+}
+
+/* Ensure buttons are clickable in Vue mode */
+.vue-node-mode .prompt-assistant-button,
+.vue-node-mode .image-assistant-button {
+    pointer-events: auto;
+}
+
+/* ==========================================================================
+   9. Animation Keyframes
+   ========================================================================== */
+
+/* Indicator entrance animation - from small to large, fade in */
+@keyframes indicatorAppear {
+    0% {
+        opacity: 0;
+        transform: scale(0.3);
+    }
+
+    60% {
+        transform: scale(1.1);
+    }
+
+    100% {
+        opacity: var(--assistant-icon-opacity, 0.8);
+        transform: scale(1);
+    }
+}
+
+/* Indicator initialization - trigger entrance animation */
+.assistant-indicator.indicator-init {
+    animation: indicatorAppear 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+/* ==========================================================================
+   10. Streaming Overlay
+   ========================================================================== */
+/* Streaming output display overlay */
+/* --- Node embedded streaming display logic --- */
+
+/* Text container: mounted at the bottom of the node container */
+.node-streaming-text-container {
+    position: absolute;
+    bottom: 35px;
+    /* Right above the bottom toolbar */
+    left: 8px;
+    right: 8px;
+    z-index: 99;
+    pointer-events: none;
+    /* Does not interfere with node operations */
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+
+    /* Key: adjust mask range to keep clarity within the red box height, quickly fade out above */
+    -webkit-mask-image: linear-gradient(to top,
+            rgba(0, 0, 0, 1) 0%,
+            rgba(0, 0, 0, 1) 50%,
+            rgba(0, 0, 0, 0) 100%);
+    mask-image: linear-gradient(to top,
+            rgba(0, 0, 0, 1) 0%,
+            rgba(0, 0, 0, 1) 50%,
+            rgba(0, 0, 0, 0) 100%);
+
+    /* Animation */
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    height: 100px;
+    /* Height adjusted by user */
+    overflow: hidden;
+}
+
+/* High-performance synchronization layer in LiteGraph mode */
+.node-streaming-text-container.is-litegraph {
+    position: fixed;
+    z-index: 10001;
+    pointer-events: none;
+    background: transparent;
+    transform-origin: top left;
+    /* Important: scale from the calculated point */
+    /* Width, height, coordinates, and transform will be injected in real time by JS */
+}
+
+.node-streaming-text-container.show {
+    opacity: 1;
+}
+
+/* Internal streaming text */
+.node-streaming-text-content {
+    color: color-mix(in srgb, var(--text-primary), transparent 50%);
+    font-size: 10px;
+    line-height: 1.6;
+    /* text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8), 0 0 2px rgba(0, 0, 0, 1); */
+    white-space: pre-wrap;
+    word-break: break-all;
+    text-align: left;
+    padding-bottom: 6px;
+    /* Keep content always at the bottom */
+    margin-top: auto;
+}
+
+
+/* Prompt text style while generating */
+.image-assistant-streaming-overlay.placeholder {
+    color: var(--fg-color, #888);
+    font-style: italic;
+}
+
+/* Custom scrollbar style to prevent breaking rounded corners */
+.image-assistant-streaming-overlay::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+.image-assistant-streaming-overlay::-webkit-scrollbar-track {
+    background: transparent;
+    border-radius: 10px;
+}
+
+.image-assistant-streaming-overlay::-webkit-scrollbar-thumb {
+    background: color-mix(in srgb, var(--p-panel-border-color), transparent 50%);
+    border-radius: 10px;
+    /* Add transparent margin to make the thumb appear "floating" and not touching the edge */
+    border: 1px solid transparent;
+    background-clip: content-box;
+}
+
+.image-assistant-streaming-overlay::-webkit-scrollbar-thumb:hover {
+    background-color: var(--p-panel-border-color);
+}

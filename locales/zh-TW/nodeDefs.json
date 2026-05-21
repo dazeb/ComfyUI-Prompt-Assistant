@@ -1,0 +1,234 @@
+{
+    "PromptExpand": {
+        "display_name": "✨提示詞增強",
+        "description": "使用LLM增強或擴寫您的提示詞",
+        "inputs": {
+            "rule": {
+                "name": "規則預設",
+                "tooltip": "選擇提示詞增強的預設規則"
+            },
+            "custom_rule": {
+                "name": "自定義規則",
+                "tooltip": "啟用下方自定義規則輸入"
+            },
+            "custom_rule_content": {
+                "name": "自定義規則內容",
+                "tooltip": "在此輸入您的自定義規則內容"
+            },
+            "user_prompt": {
+                "name": "用戶提示詞",
+                "tooltip": "想要增強的原始提示詞"
+            },
+            "llm_service": {
+                "name": "LLM服務",
+                "tooltip": "選擇LLM服務和模型"
+            },
+            "ollama_auto_unload": {
+                "name": "自動釋放顯存",
+                "tooltip": "生成完成後自動釋放Ollama模型顯存"
+            },
+            "source_text": {
+                "name": "原文輸入",
+                "tooltip": "可選的輸入文本"
+            },
+            "seed": {
+                "name": "隨機種子",
+                "tooltip": "控制生成的隨機性。選擇非固定模式可強制節點重新執行"
+            }
+        },
+        "outputs": {
+            "0": {
+                "name": "提示詞輸出",
+                "tooltip": "增強後的提示詞結果"
+            }
+        }
+    },
+    "ImageCaptionNode": {
+        "display_name": "✨圖像反推提示詞",
+        "description": "使用VLM生成圖像描述",
+        "inputs": {
+            "image": {
+                "name": "圖像",
+                "tooltip": "輸入圖像"
+            },
+            "rule": {
+                "name": "規則預設",
+                "tooltip": "選擇圖像反推的預設規則"
+            },
+            "custom_rule": {
+                "name": "自定義規則",
+                "tooltip": "啟用下方自定義規則輸入"
+            },
+            "custom_rule_content": {
+                "name": "自定義規則內容",
+                "tooltip": "在此輸入您的自定義規則內容"
+            },
+            "user_prompt": {
+                "name": "使用者提示詞",
+                "tooltip": "在此輸入補充提示詞，將與規則一起發送"
+            },
+            "vlm_service": {
+                "name": "視覺服務",
+                "tooltip": "選擇視覺服務和模型"
+            },
+            "ollama_auto_unload": {
+                "name": "自動釋放顯存",
+                "tooltip": "生成完成後自動釋放Ollama模型顯存"
+            },
+            "seed": {
+                "name": "隨機種子",
+                "tooltip": "控制生成的隨機性。選擇非固定模式可強制節點重新執行"
+            }
+        },
+        "outputs": {
+            "0": {
+                "name": "提示詞輸出",
+                "tooltip": "生成的圖像描述（批量時合併輸出）"
+            },
+            "1": {
+                "name": "提示詞列表",
+                "tooltip": "批量處理時每張圖像的獨立描述列表"
+            }
+        }
+    },
+    "PromptTranslate": {
+        "display_name": "✨提示詞翻譯",
+        "description": "多語言提示詞翻譯",
+        "inputs": {
+            "source_text": {
+                "name": "原文",
+                "tooltip": "需要翻譯的文本"
+            },
+            "target_language": {
+                "name": "目標語言",
+                "tooltip": "翻譯的目標語言",
+                "options": {
+                    "English": "英文",
+                    "Chinese": "中文"
+                }
+            },
+            "translate_service": {
+                "name": "翻譯服務",
+                "tooltip": "選擇翻譯服務和模型"
+            },
+            "ollama_auto_unload": {
+                "name": "自動釋放顯存",
+                "tooltip": "生成完成後自動釋放Ollama模型顯存"
+            },
+            "seed": {
+                "name": "隨機種子",
+                "tooltip": "控制生成的隨機性。選擇非固定模式可強制節點重新執行"
+            }
+        },
+        "outputs": {
+            "0": {
+                "name": "提示詞輸出",
+                "tooltip": "翻譯後的文本"
+            }
+        }
+    },
+    "VideoCaptionNode": {
+        "display_name": "✨視頻反推提示詞",
+        "description": "使用VLM生成視頻描述",
+        "inputs": {
+            "rule": {
+                "name": "規則預設",
+                "tooltip": "選擇視頻反推的預設規則"
+            },
+            "custom_rule": {
+                "name": "自定義規則",
+                "tooltip": "啟用下方自定義規則輸入"
+            },
+            "custom_rule_content": {
+                "name": "自定義規則內容",
+                "tooltip": "在此輸入您的自定義規則內容"
+            },
+            "user_prompt": {
+                "name": "使用者提示詞",
+                "tooltip": "在此輸入補充提示詞，將與規則一起發送"
+            },
+            "vlm_service": {
+                "name": "視覺服務",
+                "tooltip": "選擇視覺服務和模型"
+            },
+            "sampling_mode": {
+                "name": "抽幀策略",
+                "tooltip": "選擇Auto (Uniform)將按照影片長度，均勻抽幀。Manual (Indices)模式，可透過「🎬選取反推幀」按鈕手動選擇幀",
+                "options": {
+                    "Auto (Uniform)": "自動(均勻)",
+                    "Manual (Indices)": "手動(幀索引)"
+                }
+            },
+            "frame_count": {
+                "name": "抽幀數量",
+                "tooltip": "需要採樣的幀數 (自動模式)"
+            },
+            "manual_indices": {
+                "name": "手動幀索引",
+                "tooltip": "指定幀索引，支持逗號分隔或範圍 (手動模式)"
+            },
+            "ollama_auto_unload": {
+                "name": "自動釋放顯存",
+                "tooltip": "生成完成後自動釋放Ollama模型顯存"
+            },
+            "video": {
+                "name": "影片",
+                "tooltip": "輸入視頻"
+            },
+            "seed": {
+                "name": "隨機種子",
+                "tooltip": "控制生成的隨機性。選擇非固定模式可強制節點重新執行"
+            },
+            "video_frames": {
+                "name": "圖片",
+                "tooltip": "輸入圖片序列（IMAGE batch）"
+            }
+        },
+        "outputs": {
+            "0": {
+                "name": "提示詞輸出",
+                "tooltip": "生成的視頻描述"
+            },
+            "1": {
+                "name": "預覽幀",
+                "tooltip": "採樣的預覽幀"
+            }
+        }
+    },
+    "KontextPresetNode": {
+        "display_name": "✨Kontext預設",
+        "description": "使用Kontext預設生成創意指令",
+        "inputs": {
+            "image": {
+                "name": "圖像",
+                "tooltip": "輸入圖像"
+            },
+            "kontext_preset": {
+                "name": "預設集",
+                "tooltip": "選擇Kontext預設"
+            },
+            "user_prompt": {
+                "name": "使用者提示詞",
+                "tooltip": "在此輸入補充提示詞,將與預設一起發送"
+            },
+            "vlm_service": {
+                "name": "視覺服務",
+                "tooltip": "選擇視覺服務和模型"
+            },
+            "ollama_auto_unload": {
+                "name": "自動釋放顯存",
+                "tooltip": "生成完成後自動釋放Ollama模型顯存"
+            },
+            "seed": {
+                "name": "隨機種子",
+                "tooltip": "控制生成的隨機性。選擇非固定模式可強制節點重新執行"
+            }
+        },
+        "outputs": {
+            "0": {
+                "name": "提示詞輸出",
+                "tooltip": "生成的創意轉換指令"
+            }
+        }
+    }
+}

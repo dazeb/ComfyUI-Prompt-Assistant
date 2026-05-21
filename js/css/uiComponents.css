@@ -1,0 +1,3581 @@
+/**
+ * Settings interface styles
+ *
+ * Style classification description:
+ * 1. Global base styles - CSS variables, Z-index hierarchy management
+ * 2. Settings modal common styles - modals, forms, buttons shared by all settings modules
+ * 3. API configuration manager exclusive styles - tab pages, service cards and other components in the API config interface
+ * 4. Tag manager exclusive styles - drag, accordion and other components in the tag management interface
+ * 5. Rule configuration exclusive styles - list, editor and other components in the prompt rule configuration interface
+ */
+
+/* ===================================================
+   1. Global base styles
+   =================================================== */
+
+/* ---Z-index hierarchy management--- */
+/* Hierarchy planning:
+ * - ComfyUI system modals: approximately 9000-9999
+ * - This plugin overlay: 10199
+ * - This plugin modal base: 10200
+ * - Dropdown menu: 10205
+ * - Context menu: 10215
+ * - Multi-listbox: 10220
+ * - Confirm popup: 10225
+ * - Tooltip: 10230 (topmost)
+ */
+:root {
+    --settings-modal-z-index: 10200;
+    --settings-overlay-z-index: 10199;
+    --settings-dropdown-z-index: 10205;
+    --settings-context-menu-z-index: 10215;
+    --settings-multi-listbox-z-index: 10220;
+    --settings-confirm-popup-z-index: 10225;
+    --settings-tooltip-z-index: 10230;
+}
+
+/* ===================================================
+   2. Settings modal common styles (shared by all settings modules)
+   =================================================== */
+
+/* ---Overlay styles--- */
+.settings-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: var(--settings-overlay-z-index);
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.settings-modal-overlay.overlay-show {
+    opacity: 1;
+    visibility: visible;
+}
+
+.settings-modal-overlay.overlay-hide {
+    opacity: 0;
+    visibility: hidden;
+}
+
+/* Settings panel container */
+.settings-panel {
+    padding: 1rem;
+}
+
+/* Settings item group */
+.settings-group {
+    margin-bottom: 1.5rem;
+}
+
+/* Settings item title */
+.settings-title {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: var(--fg-color);
+}
+
+/* Service application link container styles */
+.settings-service-links {
+    display: inline-flex;
+    align-items: center;
+    background-color: var(--p-button-secondary-background);
+    border-radius: 10px;
+    padding: 2px 8px;
+}
+
+
+/* Service application prefix text styles (consistent with link font size) */
+.settings-service-prefix {
+    color: var(--p-button-text-primary-color);
+    font-size: 14px;
+    padding: 2px 4px;
+}
+
+/* Service application link styles */
+.settings-service-link {
+    display: inline-block;
+    padding: 4px 4px;
+    color: var(--p-button-text-primary-color) !important;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: normal;
+    transition: color 0.2s ease;
+}
+
+.settings-service-link:hover {
+    color: var(--p-button-text-primary-color) !important;
+    text-decoration: none !important;
+}
+
+/* Service link separator */
+.settings-service-separator {
+    color: var(--p-button-text-primary-color);
+    opacity: 0.5;
+    padding: 0 2px;
+    user-select: none;
+}
+
+/* Settings item content */
+.settings-content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+/* Button group styles */
+.button-group {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+/* ---Settings modal styles--- */
+.settings-modal {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.8);
+    /* Responsive width setting */
+    width: min(90vw, 1048px);
+    min-width: 800px;
+    /* Responsive height setting */
+    max-height: 90vh;
+    min-height: 600px;
+    /* height: 760px; */
+    margin: 0;
+    z-index: var(--settings-modal-z-index);
+    background-color: var(--p-dialog-background);
+    border: 1px solid var(--p-dialog-border-color);
+    border-radius: var(--p-dialog-border-radius);
+    box-shadow: var(--p-dialog-shadow);
+    color: var(--p-dialog-color);
+    /* Add flex layout */
+    display: flex;
+    flex-direction: column;
+    /* Add animation properties */
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ---Secondary confirmation dialog independent styles--- */
+/* Applicable to various scenarios requiring secondary confirmation: delete, modify, update, etc. */
+.settings-modal.confirm-dialog {
+    /* Use max-width instead of width, let the dialog adapt width based on content */
+    width: fit-content;
+    max-width: min(90vw, 600px);
+    /* Set reasonable minimum width to avoid dialog being too narrow */
+    min-width: min(400px, 80vw);
+    min-height: auto;
+    height: auto;
+}
+
+/* Confirmation dialog content styles */
+.confirm-dialog-content {
+    text-align: center;
+    padding: 2rem 1rem;
+}
+
+.confirm-dialog-content-simple {
+    text-align: center;
+    padding: 1rem;
+}
+
+.confirm-dialog-icon {
+    font-size: 48px;
+    color: var(--p-orange-500);
+    margin-bottom: 1rem;
+}
+
+.confirm-dialog-message {
+    margin: 0 0 0.5rem 0;
+    font-size: 1.1rem;
+    font-weight: 500;
+}
+
+.confirm-dialog-message-simple {
+    margin: 0;
+    font-size: 1rem;
+    color: var(--p-text-color);
+}
+
+.confirm-dialog-warning {
+    margin: 0;
+    font-size: 0.9rem;
+    color: var(--p-text-muted-color);
+}
+
+/* Modal show animation class */
+.settings-modal.modal-show {
+    opacity: 1;
+    visibility: visible;
+    transform: translate(-50%, -50%) scale(1);
+}
+
+/* Modal hide animation class */
+.settings-modal.modal-hide {
+    opacity: 0;
+    visibility: hidden;
+    transform: translate(-50%, -50%) scale(0.8);
+}
+
+/* Drag state */
+.settings-modal.dragging {
+    transition: none;
+    cursor: move;
+}
+
+/* Title bar styles */
+.settings-modal .p-dialog-header {
+    padding: var(--p-dialog-header-padding);
+    border-bottom: 1px solid var(--p-dialog-border-color);
+
+    /* Fixed header */
+    flex: 0 0 auto;
+    user-select: none;
+}
+
+.settings-modal .p-dialog-content {
+    padding: 10px 40px;
+    position: relative;
+    /* As positioning reference for QR code, avoid being cropped by outer layer */
+    /* Content area adaptive */
+    flex: 1 1 auto;
+    overflow-y: auto;
+    /* Add smooth scrolling */
+    scroll-behavior: smooth;
+    /* Optimize scrollbar style */
+    scrollbar-width: thin;
+    scrollbar-color: var(--p-scrollpanel-bar-background) transparent;
+}
+
+/* Custom scrollbar styles */
+.settings-modal .p-dialog-content::-webkit-scrollbar {
+    width: 10px;
+}
+
+.settings-modal .p-dialog-content::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.settings-modal .p-dialog-content::-webkit-scrollbar-thumb {
+    background: var(--p-scrollpanel-bar-background);
+    border-radius: 4px;
+}
+
+.settings-modal .p-dialog-content::-webkit-scrollbar-thumb:hover {
+    background: var(--p-scrollpanel-bar-background);
+}
+
+.settings-modal .p-dialog-footer {
+    padding: 10px 40px 20px 40px;
+
+
+    gap: 0.9rem;
+    /* Fixed footer */
+    flex: 0 0 auto;
+}
+
+/* Form section styles */
+.settings-form-section {
+    /* margin-bottom: 2rem; */
+    /* padding-bottom: 0.5rem; */
+    /* border-bottom: 1px solid var(--p-dialog-border-color); */
+}
+
+.settings-form-section.baidu-translate-section {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: none;
+    padding: 50px 20px 80px 20px;
+    background: color-mix(in srgb, var(--secondary-background), transparent 30%);
+    border-radius: 6px;
+    /* box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.05); */
+    /* border: 1px solid var(--p-dialog-border-color); */
+}
+
+.settings-form-section-title {
+    font-size: 16px;
+    font-weight: 600;
+    margin: 0 0 1rem 0;
+    color: var(--p-text-muted-color);
+}
+
+/* Form group styles */
+.settings-form-group {
+    margin-bottom: 1rem;
+}
+
+/* Horizontal layout form group */
+.settings-form-group.horizontal {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+}
+
+.settings-form-group.horizontal>* {
+    flex: 1;
+    min-width: 0;
+    /* Prevent flex items from overflowing */
+}
+
+/* Adjust label styles in horizontal layout */
+.settings-form-group.horizontal .settings-form-label {
+    margin-bottom: 0.5rem;
+}
+
+/* Adjust dropdown selector styles in horizontal layout */
+.settings-form-group.horizontal .p-dropdown,
+.settings-form-group.horizontal .p-inputtext {
+    width: 100%;
+    min-width: 0;
+}
+
+/* Ensure dropdown container is not compressed */
+.settings-form-group.horizontal .p-dropdown-container {
+    min-width: 150px;
+}
+
+/* Ensure input container is not compressed */
+.settings-form-group.horizontal .p-input-wrapper {
+    min-width: 150px;
+}
+
+.settings-form-group:last-child {
+    margin-bottom: 0;
+}
+
+.settings-form-label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: var(--p-text-color);
+}
+
+/* ---Floating label input styles (PrimeVue FloatLabel variant="on")--- */
+.float-label-container {
+    position: relative;
+    width: 100%;
+}
+
+.float-label-container label {
+    position: absolute;
+    left: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--p-text-muted-color);
+    font-size: 1rem;
+    font-weight: 400;
+    transition: all 0.2s ease;
+    pointer-events: none;
+    background: var(--p-inputtext-background);
+    border-radius: 6px;
+    padding: 0 0.25rem;
+    z-index: 1;
+}
+
+.float-label-container input {
+    width: 100%;
+    padding: 0.75rem;
+    font-size: 1rem;
+    border: 1px solid var(--p-inputtext-border-color);
+    border-radius: var(--p-inputtext-border-radius, 6px);
+    background: var(--p-inputtext-background);
+    color: var(--p-inputtext-color);
+    transition: border-color 0.2s, box-shadow 0.2s;
+    box-shadow: var(--p-inputtext-shadow);
+}
+
+.float-label-container input:focus {
+    outline: none;
+    border-color: var(--p-inputtext-focus-border-color);
+    box-shadow: var(--p-inputtext-focus-ring-shadow);
+}
+
+.float-label-container input:hover:not(:focus) {
+    border-color: var(--p-inputtext-hover-border-color);
+}
+
+/* Floating state - when input has value or focus */
+.float-label-container input:focus~label,
+.float-label-container input:not(:placeholder-shown)~label {
+    top: 0;
+    transform: translateY(-50%);
+    font-size: 0.75rem;
+    color: var(--p-text-muted-color);
+    font-weight: 500;
+}
+
+/* Password input styles */
+.float-label-container input[type="password"] {
+    font-family: monospace;
+}
+
+/* ---Floating label textarea styles--- */
+.float-label-container textarea {
+    width: 100%;
+    padding: 0.75rem;
+    font-size: 1rem;
+    border: 1px solid var(--p-inputtext-border-color);
+    border-radius: var(--p-inputtext-border-radius, 6px);
+    background: var(--p-inputtext-background);
+    color: var(--p-inputtext-color);
+    transition: border-color 0.2s, box-shadow 0.2s;
+    box-shadow: var(--p-inputtext-shadow);
+}
+
+.float-label-container textarea:focus {
+    outline: none;
+    border-color: var(--p-inputtext-focus-border-color);
+    box-shadow: var(--p-inputtext-focus-ring-shadow);
+}
+
+.float-label-container textarea:hover:not(:focus) {
+    border-color: var(--p-inputtext-hover-border-color);
+}
+
+/* Initial label position for textarea (since textarea height is not fixed, use fixed top value) */
+.float-label-container textarea~label {
+    top: 1rem;
+    transform: translateY(0);
+}
+
+/* Floating state - when textarea has value or focus */
+.float-label-container textarea:focus~label,
+.float-label-container textarea:not(:placeholder-shown)~label {
+    top: 0;
+    transform: translateY(-50%);
+    font-size: 0.75rem;
+    color: var(--p-text-muted-color);
+    font-weight: 500;
+}
+
+/* Input container styles - prefix with pa- to avoid polluting global flex-1 */
+.pa-flex-1 {
+    flex: 1;
+    width: 100%;
+}
+
+/* ---Floating label dropdown styles--- */
+/* Dropdown label floating state by default (because dropdown always has a value) */
+.float-label-container .pa-dropdown~label {
+    top: 0;
+    transform: translateY(-50%);
+    font-size: 0.75rem;
+    color: var(--p-text-muted-color);
+    font-weight: 500;
+}
+
+/* Dropdown focus label styles */
+.float-label-container .pa-dropdown.p-focus~label {
+    color: var(--p-inputtext-focus-border-color);
+}
+
+/* Optimize close button hover effect */
+.settings-modal .p-dialog-header-icon.p-dialog-header-close {
+    width: 2rem;
+    height: 2rem;
+    border-radius: 50%;
+    transition: background-color 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 0.5rem;
+    color: var(--p-button-text-secondary-color);
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+}
+
+.settings-modal .p-dialog-header-icon.p-dialog-header-close:hover {
+    background-color: var(--p-button-text-secondary-hover-background);
+    ;
+
+}
+
+.settings-modal .p-dialog-header-icon.p-dialog-header-close .pi-times {
+    font-size: 1rem;
+
+}
+
+/* ---Danger button styles--- */
+/* Used for dangerous operations like delete - scoped within plugin */
+.pa-settings-root .p-button-danger,
+.prompt-assistant-container .p-button-danger {
+    background: var(--p-button-danger-background);
+    border-color: var(--p-button-danger-border-color);
+    color: var(--p-button-danger-color);
+}
+
+.pa-settings-root .p-button-danger:hover,
+.prompt-assistant-container .p-button-danger:hover {
+    background: var(--p-button-danger-hover-background);
+    border-color: var(--p-button-danger-hover-border-color);
+    color: var(--p-button-danger-color);
+}
+
+.pa-settings-root .p-button-danger:active,
+.pa-settings-root .p-button-danger:focus,
+.prompt-assistant-container .p-button-danger:active,
+.prompt-assistant-container .p-button-danger:focus {
+    outline: none;
+    box-shadow: 0 0 0 0.2rem var(--p-button-danger-active-border-color);
+}
+
+
+/* Independent dropdown selector component styles (not relying on PrimeVue global styles) */
+/* Only affects select boxes created by the assistant, does not change ComfyUI built-in components */
+.pa-dropdown {
+    display: inline-flex;
+    align-items: center;
+    position: relative;
+    cursor: pointer;
+    user-select: none;
+    background: var(--p-inputtext-background);
+    border: 1px solid var(--p-inputtext-border-color);
+    border-radius: 6px;
+    transition: border-color 0.2s;
+    width: 100%;
+    box-shadow: var(--p-inputtext-shadow);
+    height: 2.5rem;
+}
+
+.pa-dropdown:hover {
+    border-color: var(--p-form-field-hover-border-color);
+}
+
+.pa-dropdown.p-focus {
+    border-color: var(--p-form-field-focus-border-color);
+}
+
+.pa-dropdown .pa-dropdown-label {
+    flex: 1 1 auto;
+    border: 0 none;
+    color: var(--p-inputtext-color);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 1%;
+    height: 100%;
+    cursor: pointer;
+}
+
+.pa-dropdown .pa-dropdown-trigger {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 2.5rem;
+    color: var(--p-form-field-hover-border-color);
+    height: 100%;
+}
+
+/* Dropdown panel (independent styles) */
+.pa-dropdown-panel {
+    z-index: var(--settings-dropdown-z-index);
+    background: var(--p-select-overlay-background);
+    border: 1px solid var(--p-select-overlay-border-color);
+    box-shadow: var(--p-inputtext-shadow);
+    border-radius: 6px;
+    transform-origin: center top;
+    transition: transform 0.12s cubic-bezier(0, 0, 0.2, 1),
+        opacity 0.12s cubic-bezier(0, 0, 0.2, 1);
+}
+
+.pa-dropdown-panel.p-hidden {
+    opacity: 0;
+    transform: scaleY(0.8);
+    pointer-events: none;
+}
+
+.pa-dropdown-panel.p-enter-active {
+    opacity: 1;
+    transform: scaleY(1);
+    pointer-events: auto;
+}
+
+/* Hidden accessible selector - scoped within plugin */
+.pa-settings-root .p-hidden-accessible,
+.prompt-assistant-container .p-hidden-accessible {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    overflow: hidden !important;
+    clip: rect(0 0 0 0) !important;
+    clip-path: inset(50%) !important;
+    white-space: nowrap !important;
+    border: 0 !important;
+    padding: 0 !important;
+    margin: -1px !important;
+}
+
+/* Panel content scroll container (independent styles) */
+.pa-dropdown-panel .p-dropdown-items-wrapper {
+    max-height: 240px;
+    overflow: auto;
+}
+
+
+/* List and options (independent styles) */
+.pa-dropdown-panel .p-dropdown-items {
+    padding: 4px;
+    list-style: none;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.pa-dropdown-panel .p-dropdown-item {
+    padding: 10px 12px;
+    margin: 0;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+    color: var(--p-select-option-color);
+}
+
+.pa-dropdown-panel .p-dropdown-item:hover {
+    background-color: var(--p-form-field-filled-hover-background);
+}
+
+.pa-dropdown-panel .p-dropdown-item.p-highlight {
+    background-color: var(--p-list-option-selected-focus-background);
+    color: var(--p-form-field-focus-border-color);
+}
+
+/* ---Editable dropdown (ComboBox) styles--- */
+.pa-combobox {
+    display: inline-flex;
+    align-items: center;
+}
+
+.pa-combobox-input {
+    flex: 1 1 auto;
+    border: 0 none;
+    background: transparent;
+    color: var(--p-inputtext-color);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 1%;
+    height: 100%;
+    padding: 0 0.75rem;
+    font-size: 1rem;
+    outline: none;
+}
+
+.pa-combobox-input::placeholder {
+    color: var(--p-text-muted-color);
+}
+
+/* ComboBox floating label: floats when input has value or focus */
+.float-label-container .pa-combobox~label {
+    top: 0;
+    transform: translateY(-50%);
+    font-size: 0.75rem;
+    color: var(--p-text-muted-color);
+    font-weight: 500;
+}
+
+.float-label-container .pa-combobox.p-focus~label {
+    color: var(--p-inputtext-focus-border-color);
+}
+
+/* Width adaptation in horizontal form layout */
+.settings-form-group.horizontal .pa-dropdown,
+.pa-settings-root .settings-form-group.horizontal .p-inputtext {
+    width: 100%;
+    min-width: 0;
+}
+
+.settings-form-group.horizontal .pa-dropdown-container {
+    min-width: 150px;
+}
+
+
+/* Selector control styles */
+.settings-modal .p-dropdown:not(.pa-dropdown) {
+    display: inline-flex;
+    align-items: center;
+    position: relative;
+    cursor: pointer;
+    user-select: none;
+    background: var(--p-select-background);
+    border: 1px solid var(--p-select-border-color);
+    border-radius: var(--p-select-border-radius);
+    transition: border-color 0.2s;
+    width: 100%;
+    box-shadow: var(--p-select-shadow);
+    height: 2.5rem;
+}
+
+.settings-modal .p-dropdown:not(.pa-dropdown):hover {
+    border-color: var(--p-form-field-hover-border-color);
+}
+
+.settings-modal .p-dropdown:not(.pa-dropdown).p-focus {
+    border-color: var(--p-primary-color);
+}
+
+.settings-modal .p-dropdown-label:not(.pa-dropdown-label) {
+    flex: 1 1 auto;
+    padding: var(--p-select-padding-y) var(--p-select-padding-x);
+    padding-right: 0;
+    background: transparent;
+    border: 0 none;
+    color: var(--p-select-color);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 1%;
+    height: 100%;
+    cursor: pointer;
+}
+
+.settings-modal .p-dropdown-trigger:not(.pa-dropdown-trigger) {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 2.5rem;
+    color: var(--p-button-text-secondary-color);
+    height: 100%;
+}
+
+/* Dropdown panel animation related styles (excluding assistant dropdown) */
+.settings-modal .p-dropdown-panel:not(.pa-dropdown-panel),
+.settings-modal-dropdown-panel:not(.pa-dropdown-panel) {
+    z-index: var(--settings-dropdown-z-index);
+    background: var(--p-dialog-background);
+    border: 1px solid var(--p-select-overlay-border-color);
+    box-shadow: var(--p-select-overlay-shadow);
+    border-radius: var(--p-select-overlay-border-radius);
+    transform-origin: center top;
+    transition: transform 0.12s cubic-bezier(0, 0, 0.2, 1),
+        opacity 0.12s cubic-bezier(0, 0, 0.2, 1);
+}
+
+.settings-modal .p-dropdown-panel:not(.pa-dropdown-panel).p-hidden,
+.settings-modal-dropdown-panel:not(.pa-dropdown-panel).p-hidden {
+    opacity: 0;
+    transform: scaleY(0.8);
+    pointer-events: none;
+}
+
+.settings-modal .p-dropdown-panel:not(.pa-dropdown-panel).p-enter-active,
+.settings-modal-dropdown-panel:not(.pa-dropdown-panel).p-enter-active {
+    opacity: 1;
+    transform: scaleY(1);
+    pointer-events: auto;
+}
+
+.settings-modal .p-dropdown-panel:not(.pa-dropdown-panel) .p-dropdown-items,
+.settings-modal-dropdown-panel:not(.pa-dropdown-panel) .p-dropdown-items {
+    padding: var(--p-list-padding, 0.5rem 0);
+    list-style: none;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--p-select-list-gap);
+}
+
+.settings-modal .p-dropdown-panel:not(.pa-dropdown-panel) .p-dropdown-item,
+.settings-modal-dropdown-panel:not(.pa-dropdown-panel) .p-dropdown-item {
+    padding: var(--p-list-item-padding, 0.75rem 1rem);
+    margin: 0;
+    cursor: pointer;
+    border-radius: var(--p-select-option-border-radius);
+    transition: background-color 0.2s;
+    color: var(--p-list-item-color);
+}
+
+.settings-modal .p-dropdown-panel:not(.pa-dropdown-panel) .p-dropdown-item:hover,
+.settings-modal-dropdown-panel:not(.pa-dropdown-panel) .p-dropdown-item:hover {
+    background-color: var(--p-select-option-focus-background);
+    color: var(--p-select-option-focus-color);
+}
+
+.settings-modal .p-dropdown-panel:not(.pa-dropdown-panel) .p-dropdown-item.p-highlight,
+.settings-modal-dropdown-panel:not(.pa-dropdown-panel) .p-dropdown-item.p-highlight {
+    background-color: var(--p-select-option-selected-background);
+    color: var(--p-select-option-selected-color);
+}
+
+/* Responsive layout media query */
+@media screen and (max-width: 640px) {
+    .settings-modal {
+        width: 95vw;
+        min-width: 320px;
+        margin: 0.5rem;
+    }
+
+    .settings-form-group {
+        margin-bottom: 0.75rem;
+    }
+
+    .settings-form-section {
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+    }
+}
+
+/* ===================================================
+   3. API configuration manager exclusive styles
+   =================================================== */
+
+/* ---Tab container--- */
+.api-config-tabs {
+    width: 100%;
+}
+
+/* ---Tab header--- */
+.tab-header {
+    display: flex;
+    gap: 8px;
+    border-bottom: 2px solid var(--p-divider-color);
+    padding-bottom: 8px;
+    margin-bottom: 2px;
+    overflow-x: auto;
+    justify-content: flex-start;
+}
+
+/* ---Tab button--- */
+.tab-button {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 8px 16px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    border-radius: 4px;
+    min-width: 100px;
+    /* Remove transform transition to avoid interfering with Sortable.js drag animation */
+    transition: background 0.2s, color 0.2s, opacity 0.2s;
+    flex-shrink: 0;
+}
+
+.tab-button.active {
+    background: var(--p-primary-500);
+}
+
+.tab-button:hover:not(.active) {
+    background: var(--p-list-option-focus-background);
+
+}
+
+
+
+.tab-button.active .tab-title {
+    color: var(--p-button-primary-color);
+}
+
+.tab-button.active .tab-subtitle {
+    color: color-mix(in srgb, var(--p-button-primary-color), transparent 30%);
+}
+
+/* ---Tab title--- */
+.tab-title {
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--p-text-color);
+    white-space: nowrap;
+    font-weight: 600;
+}
+
+/* ---Tab subtitle--- */
+.tab-subtitle {
+    font-size: 12px;
+    color: color-mix(in srgb, var(--p-text-muted-color), transparent 30%);
+    margin-top: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 150px;
+}
+
+/* ---New service tab button--- */
+.service-tab-add {
+    padding: 8px 16px;
+    border: 1px dashed var(--p-divider-color);
+    background: transparent;
+    color: var(--p-text-muted-color);
+    cursor: pointer;
+    border-radius: 4px;
+    min-width: 40px;
+    transition: all 0.2s;
+    flex-shrink: 0;
+}
+
+.service-tab-add:hover {
+    border-color: var(--p-primary-500);
+    color: var(--p-primary-500);
+    background: var(--p-list-option-focus-background);
+}
+
+/* ---Tab content container--- */
+.tab-content {
+    width: 100%;
+}
+
+/* ---Tab panel--- */
+.tab-pane {
+    padding: 16px;
+    display: none;
+}
+
+.tab-pane.active {
+    display: block;
+}
+
+/* ---Service card--- */
+.service-card {
+    border: 1px solid var(--p-divider-color);
+    border-radius: 8px;
+    padding: 6px 20px 20px 20px;
+    background: var(--p-content-background);
+}
+
+/* Tab container general styles */
+.tab-pane {
+    padding: 16px;
+    display: none;
+}
+
+.tab-pane.active .service-sub-tabs .service-tab-button:first-child {
+    background: var(--p-primary-500);
+    color: white;
+}
+
+/* Service provider secondary tab navigation */
+.service-sub-tabs {
+    display: flex;
+    gap: 8px;
+    border-bottom: 2px solid var(--p-divider-color);
+    padding-bottom: 8px;
+    margin-bottom: 16px;
+    overflow-x: auto;
+}
+
+/* Service provider secondary tab button */
+.service-tab-button {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 8px 16px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    border-radius: 4px;
+    min-width: 120px;
+    transition: all 0.2s;
+}
+
+.service-tab-button:hover:not(.active) {
+    background: var(--p-surface-100);
+}
+
+.service-tab-button.active {
+    background: var(--p-primary-500);
+    color: white;
+}
+
+.service-tab-title {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--p-text-color);
+    white-space: nowrap;
+}
+
+.service-tab-button.active .service-tab-title {
+    color: white;
+}
+
+.service-tab-subtitle {
+    font-size: 12px;
+    color: var(--p-text-muted-color);
+    margin-top: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 150px;
+}
+
+.service-tab-button.active .service-tab-subtitle {
+    color: rgba(255, 255, 255, 0.8);
+}
+
+/* New service tab button */
+.service-tab-add {
+    padding: 8px 16px;
+    border: 1px dashed var(--p-divider-color);
+    background: transparent;
+    color: var(--p-text-color);
+    cursor: pointer;
+    border-radius: 4px;
+    min-width: 40px;
+    transition: all 0.2s;
+}
+
+.service-tab-add:hover {
+    border-color: var(--p-primary-500);
+    color: var(--p-primary-500);
+}
+
+/* Empty state hint */
+.empty-state-hint {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--p-text-muted-color);
+}
+
+.empty-state-hint-small {
+    text-align: center;
+    padding: 40px;
+    color: var(--p-text-muted-color);
+}
+
+.service-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.service-card-title {
+    margin: 0;
+    color: var(--p-text-color);
+    font-size: 16px;
+}
+
+.service-card-delete-btn {
+    padding: 4px 8px;
+    border: none;
+    background: none;
+    color: var(--p-red-500);
+    cursor: pointer;
+    font-size: 12px;
+}
+
+/* ---Simplified service configuration item--- */
+.service-setting-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: 16px;
+}
+
+.service-setting-item:first-child {
+    margin-left: 0;
+}
+
+.service-setting-label-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.service-setting-label {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--p-text-color);
+    white-space: nowrap;
+}
+
+.service-setting-info-icon {
+    font-size: 16px;
+    color: var(--p-text-muted-color);
+    transition: color 0.2s ease;
+}
+
+.service-setting-info-icon:hover {
+    color: var(--p-primary-500);
+}
+
+/* Configuration item container - right aligned */
+.service-settings-inline {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    margin-top: 16px;
+    /* padding-top: 12px; */
+    /* border-top: 1px solid var(--p-divider-color); */
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--p-dialog-border-color);
+}
+
+/* ---Switch control (simplified)--- */
+
+.switch-wrapper {
+    position: relative;
+    display: inline-block;
+    width: 44px;
+    height: 24px;
+    margin-left: 12px;
+    flex-shrink: 0;
+}
+
+.switch-wrapper input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.switch-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: 0.3s;
+    border-radius: 24px;
+}
+
+.switch-slider.checked {
+    background-color: var(--p-primary-500);
+}
+
+.switch-button {
+    position: absolute;
+    content: "";
+    height: 18px;
+    width: 18px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: 0.3s;
+    border-radius: 50%;
+}
+
+.switch-button.checked {
+    left: 23px;
+}
+
+/* ---Model configuration area--- */
+.models-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    min-height: 40px;
+    padding: 10px;
+    background: var(--secondary-background);
+    border-radius: 14px;
+    border: 1px dashed var(--p-divider-color);
+    box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+/* ---Model tag--- */
+.model-tag {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 10px;
+    background: var(--interface-menu-component-surface-selected);
+    color: var(--p-listbox-option-selected-color);
+    border-radius: 10px;
+    font-size: 13px;
+    cursor: pointer;
+    user-select: none;
+    /* Remove transform transition to avoid interfering with Sortable.js drag animation */
+    transition: background 0.2s, color 0.2s, border-color 0.2s, box-shadow 0.2s;
+    border: 2px solid transparent;
+}
+
+.model-tag.default {
+    background: var(--p-primary-500);
+    color: white;
+}
+
+.model-tag.selected {
+    border-color: var(--p-primary-500);
+}
+
+.model-tag:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.model-tag-icon {
+    font-size: 12px;
+    margin-right: 6px;
+    opacity: 0.8;
+}
+
+.model-tag-name {
+    margin-right: 6px;
+}
+
+.model-tag-badge {
+    font-size: 10px;
+    padding: 2px 4px;
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 2px;
+    margin-right: 6px;
+}
+
+/* ---Model delete button--- */
+.model-delete-btn {
+    background: none;
+    border: none;
+    color: var(--p-text-muted-color);
+    font-size: 18px;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0 4px;
+    margin-left: 4px;
+    transition: color 0.2s;
+}
+
+.model-tag.default .model-delete-btn {
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.model-delete-btn:hover {
+    color: var(--p-red-500);
+}
+
+/* ---Empty state hint--- */
+.empty-hint {
+    font-size: 12px;
+    color: var(--p-text-muted-color);
+    padding: 8px;
+}
+
+/* ---Advanced settings--- */
+.advanced-settings {
+    margin-top: 12px;
+    padding: 12px;
+    background: #1a1a1a;
+    border-radius: 4px;
+}
+
+.advanced-settings-title {
+    font-size: 13px;
+    font-weight: 500;
+    color: #fff;
+}
+
+.advanced-settings-hint {
+    font-size: 12px;
+    color: #999;
+}
+
+.settings-inputs {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    opacity: 0.5;
+}
+
+.settings-inputs.enabled {
+    opacity: 1;
+}
+
+.advanced-input-group label {
+    display: block;
+    font-size: 12px;
+    color: #ccc;
+    margin-bottom: 4px;
+}
+
+.advanced-input-group input {
+    width: 100%;
+    padding: 6px 8px;
+    background: #2a2a2a;
+    border: 1px solid #444;
+    border-radius: 4px;
+    color: #fff;
+    font-size: 13px;
+}
+
+/* ---Add model dialog--- */
+.pa-settings-root .model-listbox {
+    position: fixed;
+    width: 320px;
+    max-height: 400px;
+    background: var(--p-content-background);
+    border: 1px solid var(--p-divider-color);
+    border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    z-index: 10220;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.model-listbox-search {
+    padding: 12px;
+    border-bottom: 1px solid var(--p-divider-color);
+    background: var(--p-surface-50);
+}
+
+.model-listbox-search input {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid var(--p-divider-color);
+    border-radius: 4px;
+    background: var(--p-input-background);
+    color: var(--p-text-color);
+    font-size: 14px;
+}
+
+.model-list-container {
+    flex: 1;
+    overflow-y: auto;
+    padding: 4px;
+}
+
+.model-list-item {
+    padding: 10px 12px;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background 0.2s;
+    font-size: 14px;
+    color: var(--p-text-color);
+}
+
+.model-list-item:hover {
+    background: var(--p-primary-100);
+}
+
+.model-list-empty {
+    text-align: center;
+    padding: 24px;
+    color: var(--p-text-muted-color);
+    font-size: 13px;
+}
+
+.model-list-error {
+    text-align: center;
+    padding: 40px 20px;
+}
+
+.model-list-error-icon {
+    font-size: 48px;
+    margin-bottom: 16px;
+}
+
+.model-list-error-title {
+    font-size: 14px;
+    color: var(--p-text-color);
+    margin-bottom: 8px;
+}
+
+.model-list-error-detail {
+    font-size: 13px;
+    color: var(--p-red-500);
+}
+
+.model-listbox-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 10219;
+}
+
+/* ---New service dialog--- */
+.add-service-dialog {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10220;
+}
+
+.add-service-dialog-content {
+    background: var(--p-content-background);
+    border-radius: 8px;
+    padding: 24px;
+    min-width: 500px;
+    max-width: 600px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+}
+
+.add-service-dialog-title {
+    margin: 0 0 20px 0;
+    color: var(--p-text-color);
+}
+
+.add-service-dialog-buttons {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+    margin-top: 20px;
+}
+
+.add-service-dialog-btn {
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.add-service-dialog-btn.cancel {
+    border: 1px solid var(--p-divider-color);
+    background: var(--p-content-background);
+    color: var(--p-text-color);
+}
+
+.add-service-dialog-btn.create {
+    border: none;
+    background: var(--p-primary-500);
+    color: white;
+}
+
+/* ===================================================
+   4. Tag manager exclusive styles
+   =================================================== */
+
+/* ---Drag and sort related styles--- */
+.tags-manager-container .tag_accordion.dragging,
+.tags-manager-container .tag_item.dragging {
+    opacity: 0.7;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+    z-index: 100;
+}
+
+.tags-manager-container .tag_accordion.drag-over-top {
+    border-top: 3px solid var(--p-primary-500) !important;
+    margin-top: -1px;
+}
+
+.tags-manager-container .tag_accordion.drag-over-bottom {
+    border-bottom: 3px solid var(--p-primary-500) !important;
+    margin-bottom: -1px;
+}
+
+.tags-manager-container .tag_item.drag-over-left {
+    border-left: 3px solid var(--p-primary-500) !important;
+    margin-left: -1px;
+}
+
+.tags-manager-container .tag_item.drag-over-right {
+    border-right: 3px solid var(--p-primary-500) !important;
+    margin-right: -1px;
+}
+
+/* Tag management interface specific styles */
+.tags-manager-container {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.tags-scroll-container {
+    min-height: 300px;
+}
+
+.tags-manager-container .tag_item {
+    cursor: grab;
+    user-select: none;
+}
+
+.tags-manager-container .tag_item:active {
+    cursor: grabbing;
+}
+
+.tags-manager-container .tag_accordion {
+    cursor: grab;
+    user-select: none;
+    border: 1px solid transparent;
+    transition: all 0.2s ease;
+}
+
+.tags-manager-container .tag_accordion:active {
+    cursor: grabbing;
+}
+
+/* Tag configuration manager styles */
+.tags-config-container {
+    width: 800px;
+    height: 600px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.tags-config-form {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    overflow: hidden;
+}
+
+/* Tag management dialog size */
+.tags-config-dialog {
+    width: 760px;
+    height: 600px;
+}
+
+.tag-management-section {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.tags-action-container {
+    display: flex;
+    gap: 8px;
+    background: transparent;
+}
+
+.tags-scroll-container {
+    flex: 1;
+    overflow-y: hidden;
+    overflow-x: hidden;
+    padding: 10px;
+    border: 1px solid var(--comfy-menu-secondary-bg);
+    border-radius: 8px;
+    background-color: var(--p-listbox-background);
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+.settings-action-btn {
+    margin: 0 4px;
+}
+
+/* Delete button styles */
+
+.tag_delete_button {
+    background: none;
+    border: none;
+    color: var(--p-button-text-secondary-color);
+    cursor: pointer;
+    padding: 2px;
+    margin-left: 4px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    min-width: 24px;
+    /* Add min-width */
+    min-height: 24px;
+    /* Add min-height */
+    transition: all 0.2s;
+    opacity: 0.5;
+    box-sizing: border-box;
+    /* Ensure padding does not affect overall size */
+}
+
+.tag_delete_button.small {
+    width: 20px;
+    height: 20px;
+    min-width: 20px;
+    /* Add min-width */
+    min-height: 20px;
+    /* Add min-height */
+    padding: 2px;
+    box-sizing: border-box;
+    /* Ensure padding does not affect overall size */
+}
+
+.tag_delete_button:hover {
+    background: rgba(255, 100, 100, 0.2);
+    color: rgba(255, 100, 100, 1);
+    opacity: 1;
+}
+
+.tag_delete_icon {
+    width: 14px;
+    height: 14px;
+    min-width: 14px;
+    /* Add min-width */
+    min-height: 14px;
+    /* Add min-height */
+    flex-shrink: 0;
+    /* Prevent icon from being compressed */
+    display: block;
+    /* Ensure icon displays as block element */
+}
+
+.tag_delete_icon.small {
+    width: 12px;
+    height: 12px;
+    min-width: 12px;
+    /* Add min-width */
+    min-height: 12px;
+    /* Add min-height */
+}
+
+/* Edit button styles */
+.tag_edit_button {
+    background: none;
+    border: none;
+    color: var(--p-text-muted-color);
+    cursor: pointer;
+    padding: 2px;
+    margin-left: 4px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    min-width: 24px;
+    /* Add min-width */
+    min-height: 24px;
+    /* Add min-height */
+    transition: all 0.2s;
+    opacity: 0.5;
+    box-sizing: border-box;
+    /* Ensure padding does not affect overall size */
+}
+
+.tag_edit_button.small {
+    width: 20px;
+    height: 20px;
+    min-width: 20px;
+    /* Add min-width */
+    min-height: 20px;
+    /* Add min-height */
+    padding: 2px;
+    box-sizing: border-box;
+    /* Ensure padding does not affect overall size */
+}
+
+.tag_edit_button:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: rgb(207, 215, 211);
+    opacity: 1;
+}
+
+.tag_edit_icon {
+    color: var(--p-button-text-secondary-color);
+    font-size: 12px;
+    width: 12px;
+    height: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.2s ease;
+}
+
+.tag_edit_icon.small {
+    width: 10px;
+    height: 10px;
+}
+
+.tag_action_icon {
+    font-size: 14px;
+    width: 14px;
+    /* Add fixed width */
+    height: 14px;
+    /* Add fixed height */
+    min-width: 14px;
+    /* Add min-width */
+    min-height: 14px;
+    /* Add min-height */
+    flex-shrink: 0;
+    /* Prevent icon from being compressed */
+    display: flex;
+    /* Use flex layout to ensure content centered */
+    align-items: center;
+    justify-content: center;
+}
+
+.tag_action_icon.small {
+    font-size: 12px;
+    width: 12px;
+    /* Add fixed width */
+    height: 12px;
+    /* Add fixed height */
+    min-width: 12px;
+    /* Add min-width */
+    min-height: 12px;
+    /* Add min-height */
+}
+
+/* Ensure icon is centered in the button */
+.tag_accordion_icon {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    /* Add right alignment */
+    gap: 4px;
+    height: 24px;
+    /* Keep fixed height */
+    min-width: 80px;
+    /* Ensure container has enough width to hold all icons */
+}
+
+.tag_accordion_icon .accordion_arrow_icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    min-width: 24px;
+    min-height: 24px;
+    padding: 2px;
+    border-radius: 50%;
+    color: var(--p-button-text-secondary-color);
+    opacity: 0.5;
+    transition: all 0.2s;
+    box-sizing: border-box;
+    cursor: pointer;
+}
+
+.tag_accordion_icon .accordion_arrow_icon:hover {
+    background: rgba(255, 255, 255, 0.1);
+    opacity: 1;
+}
+
+.tag_accordion_icon .accordion_arrow_icon.rotate-180 {
+    transform: rotate(180deg);
+}
+
+/* Adjust icon container internal layout */
+.tag_accordion_header {
+    padding: 4px 14px;
+    background-color: color-mix(in srgb, var(--comfy-menu-secondary-bg), transparent 60%);
+    cursor: pointer;
+    user-select: none;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all 0.2s ease;
+    border-radius: 6px;
+    min-height: 32px;
+    /* Ensure title bar has enough height */
+}
+
+.tag_accordion_title {
+    flex: 1;
+    font-size: 12px;
+    color: var(--p-text-muted-color);
+    font-weight: 500;
+    margin-right: 8px;
+    /* Add right margin to keep distance from icons */
+    overflow: hidden;
+    /* Prevent text overflow */
+    text-overflow: ellipsis;
+    /* Show ellipsis when text overflows */
+    white-space: nowrap;
+    /* Keep single line */
+}
+
+.tags_container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 8px;
+    background-color: color-mix(in srgb, var(--comfy-menu-secondary-bg), transparent 90%);
+    border-radius: 0 0 4px 4px;
+}
+
+/* Use tag styles defined in popup.css, only modify cursor to grab */
+.tags-manager-container .tag_item {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: grab;
+}
+
+.tags-manager-container .tag_item:active {
+    cursor: grabbing;
+}
+
+.tags-manager-container .tag_accordion {
+    position: relative;
+    margin-bottom: 8px;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+    cursor: default;
+    /* Use default pointer in tag management page */
+    user-select: none;
+}
+
+.tags-manager-container .tag_accordion:hover {
+    border-color: color-mix(in srgb, var(--comfy-menu-secondary-bg), transparent 60%);
+}
+
+.tags-manager-container .tag_accordion_header {
+    cursor: grab;
+    /* Only header can be dragged */
+}
+
+.tags-manager-container .tag_accordion_header:active {
+    cursor: grabbing;
+    /* Show grab cursor when dragging */
+}
+
+/* Drag state styles */
+.tags-manager-container .tag_accordion.dragging,
+.tags-manager-container .tag_item.dragging {
+    opacity: 0.5;
+    box-shadow: 0 0 8px rgba(0, 0, 0, 0.2);
+    z-index: 10;
+}
+
+/* New drag animation styles */
+.tags-manager-container .tag-dragging,
+.tags-manager-container .category-dragging {
+    opacity: 0.6 !important;
+    /* Remove scale effect */
+    /* transform: scale(1.02); */
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2) !important;
+    z-index: 100 !important;
+}
+
+/* Target position indicator during drag */
+.tag-ghost,
+.category-ghost {
+    opacity: 0.3;
+    background-color: color-mix(in srgb, var(--p-primary-500), transparent 85%) !important;
+    border: 1px dashed var(--p-primary-500) !important;
+}
+
+/* Selected element styles */
+.tag-chosen,
+.category-chosen {
+    background-color: color-mix(in srgb, var(--p-primary-500), transparent 90%);
+    border-color: var(--p-primary-500) !important;
+}
+
+/* Drag styles */
+.tag-drag,
+.category-drag {
+    opacity: 0.8;
+}
+
+/* Add transition animation for element movement */
+.tags-manager-container .tag_accordion,
+.tags-manager-container .tag_item {
+    /* Remove transform transition effect */
+    transition: opacity 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+/* Position indicator during drag sort */
+.sortable-fallback {
+    opacity: 0 !important;
+}
+
+.sortable-ghost {
+    position: relative;
+}
+
+.sortable-ghost::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: color-mix(in srgb, var(--p-primary-500), transparent 90%);
+    border: 1px dashed var(--p-primary-500);
+    z-index: -1;
+    border-radius: 4px;
+}
+
+.tags-manager-container .tag_accordion.drag-over-top {
+    border-top: 2px solid var(--p-primary-500);
+}
+
+.tags-manager-container .tag_accordion.drag-over-bottom {
+    border-bottom: 2px solid var(--p-primary-500);
+}
+
+.tags-manager-container .tag_item.drag-over-left {
+    border-left: 2px solid var(--p-primary-500);
+}
+
+.tags-manager-container .tag_item.drag-over-right {
+    border-right: 2px solid var(--p-primary-500);
+}
+
+/* Tooltip handling */
+.has-tooltip {
+    position: relative;
+}
+
+/* Tag container layout */
+.tags-manager-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* Dialog form content styles */
+.dialog-form-content {
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    flex: 1;
+}
+
+.dialog-form-content .settings-form-group {
+    margin-bottom: 4rem;
+}
+
+.dialog-form-content .settings-form-group:last-child {
+    margin-bottom: 0;
+}
+
+/* Ensure dropdown and input have appropriate width and spacing */
+.dialog-form-content .p-dropdown,
+.dialog-form-content .p-inputtext {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* Rule configuration form styles */
+.rules-config-form {
+    max-height: 70vh;
+    overflow: auto;
+}
+
+.settings-form-textarea {
+    width: 100%;
+    min-height: 150px;
+    height: calc(100% - 30px);
+    resize: vertical;
+    font-family: monospace;
+    padding: 8px;
+    background-color: var(--p-inputtext-background);
+    border: 1px solid var(--p-inputtext-border-color);
+    border-radius: 4px;
+    color: var(--p-inputtext-color);
+    flex-grow: 1;
+}
+
+/* API config form styles */
+.api-config-form {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+}
+
+/* Refresh button styles */
+.settings-refresh-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 14px;
+    color: var(--p-message-info-color);
+    cursor: pointer;
+    background: transparent;
+    border: none;
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+}
+
+.settings-refresh-button:hover {
+    background-color: color-mix(in srgb, var(--p-message-info-color), transparent 90%);
+}
+
+.refresh-icon {
+    width: 16px;
+    height: 16px;
+    margin-right: 4px;
+    vertical-align: middle;
+}
+
+/* Form section spacing */
+.settings-form-section {
+    margin-bottom: 10px;
+}
+
+/* Form input component styles */
+.settings-form-group {
+    margin-bottom: 26px;
+}
+
+/* Horizontal layout group styles */
+.settings-form-group.horizontal {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.settings-form-group.horizontal>div {
+    flex: 1;
+    min-width: 200px;
+}
+
+/* Add tag management section styles */
+.tag-management-section {
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
+}
+
+.tags-config-container {
+    width: 100%;
+    max-width: 100%;
+}
+
+.tags-config-form {
+    width: 100%;
+    max-width: 100%;
+}
+
+.tags-manager-container {
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
+}
+
+.tags-scroll-container {
+    width: 100%;
+    max-width: 100%;
+    max-height: 500px;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+/* Ensure tag accordion adapts to width */
+.tag_accordion {
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
+}
+
+/* Ensure tag items do not cause container overflow */
+.tags_container {
+    width: 100%;
+    max-width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.tag_item {
+    max-width: calc(100% - 16px);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Fix dialog styles to ensure content does not overflow */
+.settings-dialog {
+    max-width: 90vw;
+    width: 600px;
+}
+
+.settings-dialog-content {
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
+}
+
+.settings-form-section {
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
+}
+
+
+/* ===================================================
+   5. Rule configuration exclusive styles
+   =================================================== */
+
+/* ---Prompt list styles--- */
+.prompt-list-container {
+    border: 1px solid var(--p-dialog-border-color);
+    border-radius: 4px;
+    overflow: hidden;
+    background-color: var(--p-listbox-background);
+    height: 300px;
+    min-height: 300px;
+    max-height: 300px;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Vision prompt rule configuration list specific height */
+.vision-prompt-list-container {
+    height: 300px;
+    min-height: 300px;
+    max-height: 300px;
+}
+
+/* Video vision prompt rule configuration list fixed height */
+.video-prompt-list-container {
+    height: 300px;
+    min-height: 300px;
+    max-height: 300px;
+}
+
+.prompt-list-header {
+    display: flex;
+    background-color: var(--p-button-secondary-background);
+    border-bottom: 1px solid var(--p-dialog-border-color);
+    font-weight: 600;
+    color: var(--p-dialog-header-color);
+    flex-shrink: 0;
+    position: relative;
+}
+
+/* Remove vertical split lines in table header cells */
+.prompt-list-header .prompt-list-cell {
+    border-right: none;
+}
+
+.prompt-scroll-list {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.prompt-list-row {
+    display: flex;
+    border-bottom: 1px solid var(--p-dialog-border-color);
+    transition: background-color 0.2s ease;
+    cursor: move;
+}
+
+.prompt-list-row:hover {
+    background-color: var(--p-select-option-focus-background);
+}
+
+.prompt-list-row:last-child {
+    border-bottom: none;
+}
+
+.prompt-list-row.sortable-ghost {
+    opacity: 0.4;
+}
+
+.prompt-list-row.sortable-chosen {
+    background-color: var(--p-select-option-selected-background);
+}
+
+.prompt-list-cell {
+    padding: 8px 12px;
+    border-right: 1px solid var(--p-dialog-border-color);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    position: relative;
+}
+
+.prompt-list-cell:last-child {
+    border-right: none;
+}
+
+.prompt-list-cell.status-cell {
+    width: 80px;
+    flex-shrink: 0;
+    text-align: center;
+    cursor: pointer;
+}
+
+.prompt-list-cell.name-cell {
+    width: 150px;
+    flex-shrink: 0;
+    min-width: 100px;
+}
+
+.prompt-list-cell.content-cell {
+    flex: 1;
+    min-width: 200px;
+}
+
+.prompt-list-cell.action-cell {
+    width: 100px;
+    flex-shrink: 0;
+    text-align: center;
+    min-width: 80px;
+}
+
+/* Column width adjustment handle */
+.column-resizer {
+    position: absolute;
+    top: 0;
+    right: -2px;
+    width: 4px;
+    height: 100%;
+    cursor: col-resize;
+    background: transparent;
+    z-index: 10;
+    transition: background-color 0.2s ease;
+}
+
+.column-resizer:hover {
+    background: var(--p-primary-500);
+    opacity: 0.8;
+}
+
+.column-resizer.resizing {
+    background: var(--p-primary-500);
+    opacity: 1;
+}
+
+/* Ensure column cells have relative positioning to support absolute positioned resize handles */
+.prompt-list-cell {
+    position: relative;
+}
+
+/* Global styles during drag */
+body.column-resizing {
+    cursor: col-resize !important;
+    user-select: none !important;
+}
+
+body.column-resizing * {
+    cursor: col-resize !important;
+    user-select: none !important;
+}
+
+/* Drag sort styles */
+.sortable-drag {
+    opacity: 0.8;
+    transform: rotate(2deg);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.prompt-list-row.sortable-ghost {
+    opacity: 0.4;
+    background: var(--p-primary-100);
+}
+
+.prompt-list-row.sortable-chosen {
+    background: var(--p-select-option-selected-background);
+    border: 1px solid var(--p-primary-500);
+}
+
+/* Status icon styles optimization */
+.status-cell .active-status {
+    color: var(--p-green-500);
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+.status-cell .inactive-status {
+    color: var(--p-surface-400);
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+.status-cell:hover .active-status {
+    color: var(--p-green-600);
+}
+
+.status-cell:hover .inactive-status {
+    color: var(--p-primary-500);
+}
+
+/* Status icon styles */
+.active-status {
+    color: var(--p-message-success-color);
+}
+
+.inactive-status {
+    color: var(--p-message-warn-color);
+}
+
+/* Action button styles */
+.prompt-action-btn {
+    background: transparent;
+    border: none;
+    padding: 4px 6px;
+    margin: 0 2px;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    color: var(--p-button-text-secondary-color);
+}
+
+.prompt-action-btn:hover {
+    background-color: var(--p-button-secondary-background);
+}
+
+.prompt-action-btn.toggle-btn:hover {
+    color: var(--p-message-info-color);
+}
+
+.prompt-action-btn.edit-btn:hover {
+    color: var(--p-message-warn-color);
+}
+
+.prompt-action-btn.delete-btn:hover {
+    color: var(--p-message-error-color);
+}
+
+/* Rule configuration dialog styles */
+.rules-config-form {
+    max-height: 70vh;
+    overflow-y: auto;
+}
+
+.settings-modal.prompt-edit-dialog {
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.rules-config-content {
+    padding: 20px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.rules-section {
+    margin-bottom: 30px;
+}
+
+.rules-section h3 {
+    margin: 0 0 15px 0;
+    color: var(--p-dialog-header-color);
+    font-size: 16px;
+    font-weight: 600;
+}
+
+/* Tab styles */
+.settings-modal .popup_tabs_container {
+    margin-bottom: 10px;
+}
+
+.settings-modal .popup_tabs_scroll {
+    overflow-x: hidden;
+    overflow-y: hidden;
+}
+
+.settings-modal .popup_tabs {
+    display: flex;
+    border-bottom: 1px solid var(--p-dialog-border-color);
+    min-width: max-content;
+}
+
+.settings-modal .popup_tab {
+    padding: 8px 16px;
+    background: var(--p-button-secondary-background);
+    border: 1px solid var(--p-dialog-border-color);
+    border-bottom: none;
+    cursor: pointer;
+    margin-right: 2px;
+    border-radius: 4px 4px 0 0;
+    white-space: nowrap;
+    font-size: 13px;
+    color: var(--p-button-text-secondary-color);
+    transition: background-color 0.2s ease;
+}
+
+.settings-modal .popup_tab.active {
+    background: var(--p-dialog-background);
+    border-bottom: 1px solid var(--p-dialog-background);
+    margin-bottom: -1px;
+    font-weight: 500;
+    color: var(--p-dialog-header-color);
+}
+
+.settings-modal .popup_tab:hover {
+    background: var(--p-select-option-focus-background);
+}
+
+.settings-modal .popup_tab.active:hover {
+    background: var(--p-dialog-background);
+}
+
+.settings-modal .popup_tab_content {
+    display: none;
+}
+
+.settings-modal .popup_tab_content.active {
+    display: block;
+}
+
+/* Dialog button styles */
+.dialog-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid var(--p-dialog-border-color);
+}
+
+.dialog-btn {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.2s ease;
+}
+
+.dialog-btn.primary {
+    background: var(--p-button-primary-background);
+    color: var(--p-button-primary-color);
+}
+
+.dialog-btn.primary:hover {
+    background: var(--p-button-primary-hover-background);
+}
+
+.dialog-btn.secondary {
+    background: var(--p-button-secondary-background);
+    color: var(--p-button-secondary-color);
+}
+
+.dialog-btn.secondary:hover {
+    background: var(--p-button-secondary-hover-background);
+}
+
+
+
+/* WeChat badge hover QR code */
+.pa-wechat-badge {
+    position: relative;
+    /* As QR code positioning reference */
+    /* Let absolute positioning reference to content container */
+}
+
+.pa-wechat-qr {
+    position: absolute;
+    opacity: 0;
+    visibility: hidden;
+    top: calc(100% + 6px);
+    right: 10px;
+    /* Shift left to avoid being occluded by scrollbar */
+    transform: none;
+    background: var(--p-dialog-background);
+    border: 1px solid var(--p-dialog-border-color);
+    border-radius: 10px;
+    padding: 6px;
+    box-shadow: var(--p-dialog-shadow);
+    z-index: calc(var(--settings-modal-z-index) + 5);
+    /* Fade in/out animation */
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.pa-wechat-badge:hover .pa-wechat-qr {
+    opacity: 1;
+    visibility: visible;
+}
+
+.pa-wechat-qr-img {
+    display: block;
+    width: 256px;
+    height: auto;
+}
+
+/* ===================================================
+   7. Confirm popup component styles (ConfirmPopup)
+   =================================================== */
+
+/* ---Popup container--- */
+.pa-confirm-popup {
+    position: fixed;
+    z-index: var(--settings-confirm-popup-z-index);
+    opacity: 0;
+    transform: scale(0.9);
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    box-shadow: var(--p-dialog-shadow);
+}
+
+.pa-confirm-popup.pa-confirm-popup-show {
+    opacity: 1;
+    transform: scale(1);
+}
+
+.pa-confirm-popup.pa-confirm-popup-hide {
+    opacity: 0;
+    transform: scale(0.9);
+}
+
+/* ---Popup content--- */
+.pa-confirm-popup-content {
+    background: var(--p-dialog-background);
+    border: 1px solid var(--p-dialog-border-color);
+    border-radius: 8px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+    padding: 18px 30px 16px 30px;
+    min-width: 280px;
+    max-width: 600px;
+}
+
+/* When containing model params form, use larger width */
+.pa-confirm-popup-content:has(.model-params-form) {
+    min-width: 480px;
+}
+
+/* ---Message area--- */
+.pa-confirm-popup-message {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 30px;
+    color: var(--p-dialog-color);
+    font-size: 16px;
+    line-height: 1.5;
+}
+
+.pa-confirm-popup-icon {
+    font-size: 18px;
+    color: var(--p-primary-500);
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+/* ---Divider--- */
+.pa-confirm-popup-divider {
+    height: 1px;
+    background-color: var(--p-dialog-border-color);
+    margin: 0 -30px 16px -30px;
+}
+
+/* ---Form area--- */
+.pa-confirm-popup-form {
+    margin-bottom: 16px;
+}
+
+.pa-confirm-popup-form .settings-form-group {
+    margin-bottom: 12px;
+}
+
+.pa-confirm-popup-form .settings-form-group:last-child {
+    margin-bottom: 0;
+}
+
+/* ---Model params form horizontal layout--- */
+.pa-confirm-popup-form.model-params-form {
+    display: flex;
+    gap: 20px;
+    flex-wrap: nowrap;
+}
+
+.pa-confirm-popup-form.model-params-form .settings-form-group {
+    margin-bottom: 0;
+    flex-shrink: 0;
+}
+
+/* ---Number input styles optimization--- */
+.pa-confirm-popup-form input[type="number"] {
+    /* Hide default up/down arrows */
+    appearance: textfield;
+    -moz-appearance: textfield;
+}
+
+.pa-confirm-popup-form input[type="number"]::-webkit-outer-spin-button,
+.pa-confirm-popup-form input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+/* Custom number input up/down button container */
+.pa-confirm-popup-form .float-label-container {
+    position: relative;
+}
+
+/* Add custom up/down buttons for number input */
+.pa-confirm-popup-form input[type="number"] {
+    padding-right: 20px;
+}
+
+/* Number input button group */
+.pa-confirm-popup-form .number-input-buttons {
+    position: absolute;
+    right: 1px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    height: calc(100% - 2px);
+    width: 24px;
+    z-index: 2;
+}
+
+.pa-confirm-popup-form .number-input-button {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--p-inputtext-background);
+    border: none;
+    border-left: 1px solid var(--p-inputtext-border-color);
+    color: var(--p-text-muted-color);
+    cursor: pointer;
+    font-size: 9px;
+    transition: all 0.2s;
+    user-select: none;
+    padding: 0;
+}
+
+.pa-confirm-popup-form .number-input-button:first-child {
+    border-top-right-radius: 5px;
+    border-bottom: 0.5px solid var(--p-inputtext-border-color);
+}
+
+.pa-confirm-popup-form .number-input-button:last-child {
+    border-bottom-right-radius: 5px;
+}
+
+.pa-confirm-popup-form .number-input-button:hover {
+    background: var(--p-inputtext-hover-border-color);
+    color: var(--p-inputtext-color);
+}
+
+.pa-confirm-popup-form .number-input-button:active {
+    background: var(--p-primary-500);
+    color: white;
+}
+
+.pa-confirm-popup-form .number-input-button .pi {
+    font-size: 9px;
+}
+
+
+
+/* ---Bottom button group--- */
+.pa-confirm-popup-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+.pa-confirm-popup-footer .p-button-sm {
+    padding: 6px 16px;
+    font-size: 13px;
+}
+
+/* ---Arrow pointer--- */
+.pa-confirm-popup-arrow {
+    position: absolute;
+    width: 0;
+    height: 0;
+    border-style: solid;
+}
+
+/* Arrow at top (popup below) */
+.pa-confirm-popup-arrow.top {
+    top: -8px;
+    border-width: 0 8px 8px 8px;
+    border-color: transparent transparent var(--p-dialog-border-color) transparent;
+}
+
+.pa-confirm-popup-arrow.top::after {
+    content: '';
+    position: absolute;
+    top: 1px;
+    left: -8px;
+    width: 0;
+    height: 0;
+    border-style: solid;
+    border-width: 0 8px 8px 8px;
+    border-color: transparent transparent var(--p-dialog-background) transparent;
+}
+
+/* Arrow at bottom (popup above) */
+.pa-confirm-popup-arrow.bottom {
+    bottom: -8px;
+    border-width: 8px 8px 0 8px;
+    border-color: var(--p-dialog-border-color) transparent transparent transparent;
+}
+
+.pa-confirm-popup-arrow.bottom::after {
+    content: '';
+    position: absolute;
+    top: -9px;
+    left: -8px;
+    width: 0;
+    height: 0;
+    border-style: solid;
+    border-width: 8px 8px 0 8px;
+    border-color: var(--p-dialog-background) transparent transparent transparent;
+}
+
+/* Arrow at left (popup right) */
+.pa-confirm-popup-arrow.left {
+    left: -8px;
+    border-width: 8px 8px 8px 0;
+    border-color: transparent var(--p-dialog-border-color) transparent transparent;
+}
+
+.pa-confirm-popup-arrow.left::after {
+    content: '';
+    position: absolute;
+    top: -8px;
+    left: 1px;
+    width: 0;
+    height: 0;
+    border-style: solid;
+    border-width: 8px 8px 8px 0;
+    border-color: transparent var(--p-dialog-background) transparent transparent;
+}
+
+/* Arrow at right (popup left) */
+.pa-confirm-popup-arrow.right {
+    right: -8px;
+    border-width: 8px 0 8px 8px;
+    border-color: transparent transparent transparent var(--p-dialog-border-color);
+}
+
+.pa-confirm-popup-arrow.right::after {
+    content: '';
+    position: absolute;
+    top: -8px;
+    left: -9px;
+    width: 0;
+    height: 0;
+    border-style: solid;
+    border-width: 8px 0 8px 8px;
+    border-color: transparent transparent transparent var(--p-dialog-background);
+}
+
+/* ===================================================
+   8. Context menu component styles (ContextMenu)
+   =================================================== */
+
+/* ---Menu container--- */
+.pa-context-menu {
+    position: fixed;
+    z-index: var(--settings-context-menu-z-index);
+    background: var(--p-dialog-background);
+    border: 1px solid var(--p-dialog-border-color);
+    border-radius: 6px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+    min-width: 180px;
+    opacity: 0;
+    transform: scale(0.95);
+    transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.pa-context-menu.pa-context-menu-show {
+    opacity: 1;
+    transform: scale(1);
+}
+
+.pa-context-menu.pa-context-menu-hide {
+    opacity: 0;
+    transform: scale(0.95);
+}
+
+/* ---Menu list--- */
+.pa-context-menu-list {
+    list-style: none;
+    margin: 0;
+    padding: 4px;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+}
+
+/* ---Menu item--- */
+.pa-context-menu-item {
+    position: relative;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background-color 0.2s ease;
+}
+
+.pa-context-menu-item:hover {
+    background-color: var(--p-form-field-filled-hover-background);
+}
+
+.pa-context-menu-item.disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+.pa-context-menu-item.disabled:hover {
+    background-color: transparent;
+}
+
+/* ---Menu item content--- */
+.pa-context-menu-item-content {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 10px;
+    color: var(--p-dialog-color);
+}
+
+/* ---Menu item icon--- */
+.pa-context-menu-item-icon {
+    font-size: 16px;
+    color: var(--p-text-muted-color);
+    width: 20px;
+    text-align: center;
+}
+
+.pa-context-menu-item:hover .pa-context-menu-item-icon {
+    color: var(--p-primary-500);
+}
+
+/* ---Menu item text--- */
+.pa-context-menu-item-label {
+    font-size: 14px;
+    white-space: nowrap;
+}
+
+/* ---Submenu styles--- */
+/* Menu item with submenu */
+.pa-context-menu-item-has-submenu {
+    position: relative;
+}
+
+.pa-context-menu-item-has-submenu:hover {
+    background-color: var(--p-form-field-filled-hover-background);
+}
+
+/* Submenu arrow icon */
+.pa-context-menu-submenu-icon {
+    margin-left: auto;
+    padding-left: 12px;
+    font-size: 10px;
+    color: var(--p-button-text-secondary-color);
+    opacity: 0.7;
+}
+
+.pa-context-menu-item-has-submenu:hover .pa-context-menu-submenu-icon {
+    opacity: 1;
+}
+
+/* Submenu panel */
+.pa-context-submenu {
+    min-width: 10rem;
+}
+
+/* ---Separator--- */
+.pa-context-menu-separator {
+    height: 1px;
+    background-color: var(--p-dialog-border-color);
+    margin: 4px 8px;
+    list-style: none;
+}
+
+/* ---Danger action styles (e.g. delete)--- */
+.pa-context-menu-item.danger .pa-context-menu-item-icon {
+    color: var(--p-red-500);
+}
+
+.pa-context-menu-item.danger:hover .pa-context-menu-item-icon {
+    color: var(--p-red-600);
+}
+
+/* ===================================================
+   9. Split button component styles (Split Button)
+   =================================================== */
+
+/* ---Split button container--- */
+.p-splitbutton-compact {
+    font-size: 0.85rem;
+}
+
+/* ---Split button general styles--- */
+.p-splitbutton-compact .p-button {
+    padding: 0.25rem 0.5rem;
+    white-space: nowrap;
+}
+
+/* ---Split button Primary theme--- */
+.p-splitbutton-compact.p-splitbutton-primary .p-button {
+    background: var(--p-button-primary-background);
+    color: var(--p-button-primary-color);
+    border-color: var(--p-button-primary-border-color);
+}
+
+.p-splitbutton-compact.p-splitbutton-primary .p-button:hover:not(:disabled) {
+    background: var(--p-button-primary-hover-background);
+    color: var(--p-button-primary-hover-color);
+    border-color: var(--p-button-primary-hover-border-color);
+}
+
+/* ---Dropdown trigger button--- */
+.p-splitbutton-compact .p-splitbutton-menubutton {
+    width: 23px;
+    padding: 0.25rem 0.3rem;
+}
+
+/* ---Button text and icon--- */
+.p-splitbutton-compact .p-button-label {
+    font-size: 0.85rem;
+}
+
+.p-splitbutton-compact .p-button-icon {
+    font-size: 10px;
+}
+
+.pa-context-menu-item.danger:hover {
+    background-color: rgba(239, 68, 68, 0.1);
+}
+
+/* ---Selected state styles (for dropdown selectors)--- */
+.pa-context-menu-item.active {
+    background-color: var(--p-form-field-filled-hover-background);
+}
+
+.pa-context-menu-item.active .pa-context-menu-item-label {
+    color: var(--p-primary-color);
+    font-weight: 500;
+}
+
+.pa-context-menu-item.active::before {
+    content: '\2713';
+    position: absolute;
+    left: 8px;
+    color: var(--p-primary-color);
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.pa-context-menu-item.active .pa-context-menu-item-content {
+    padding-left: 24px;
+}
+
+
+/* ===================================================
+   9. Tooltip component styles
+   =================================================== */
+
+/* ---Tooltip container--- */
+.pa-tooltip {
+    position: fixed;
+    z-index: var(--settings-tooltip-z-index);
+    background: var(--p-surface-700);
+    /* border: 1px solid var(--p-dialog-border-color); */
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-size: 13px;
+    color: var(--p-surface-0);
+    max-width: 300px;
+    word-wrap: break-word;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    opacity: 0;
+    transform: scale(0.95);
+    transition: opacity 0.15s ease, transform 0.15s ease;
+    pointer-events: none;
+}
+
+.pa-tooltip.pa-tooltip-show {
+    opacity: 1;
+    transform: scale(1);
+}
+
+/* ---Tooltip arrow--- */
+.pa-tooltip-arrow {
+    position: absolute;
+    width: 0;
+    height: 0;
+    border-style: solid;
+}
+
+/* Arrow at top (tooltip below) */
+.pa-tooltip-arrow.top {
+    top: -6px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-width: 0 6px 6px 6px;
+    border-color: transparent transparent var(--p-surface-700) transparent;
+}
+
+/* Arrow at bottom (tooltip above) */
+.pa-tooltip-arrow.bottom {
+    bottom: -6px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-width: 6px 6px 0 6px;
+    border-color: var(--p-surface-700) transparent transparent transparent;
+}
+
+/* Arrow at left (tooltip right) */
+.pa-tooltip-arrow.left {
+    left: -6px;
+    top: 50%;
+    transform: translateY(-50%);
+    border-width: 6px 6px 6px 0;
+    border-color: transparent var(--p-surface-700) transparent transparent;
+}
+
+/* Arrow at right (tooltip left) */
+.pa-tooltip-arrow.right {
+    right: -6px;
+    top: 50%;
+    transform: translateY(-50%);
+    border-width: 6px 0 6px 6px;
+    border-color: transparent transparent transparent var(--p-surface-700);
+}
+
+/* ===================================================
+   Multi-select Listbox component styles
+   =================================================== */
+
+/* ---Listbox container--- */
+.pa-multi-listbox {
+    position: fixed;
+    width: 320px;
+    max-height: 400px;
+    background: var(--p-content-background);
+    border: 1px solid var(--p-dialog-border-color);
+    border-radius: 6px;
+    box-shadow: var(--p-dialog-shadow);
+    z-index: var(--settings-multi-listbox-z-index);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* ---Search box container--- */
+.pa-multi-listbox-search {
+    padding: 12px;
+    border-bottom: 1px solid var(--p-dialog-border-color);
+    background: var(--p-inputtext-background);
+}
+
+.pa-multi-listbox-search-input {
+    width: 100%;
+    padding: 8px 12px;
+    padding-right: 32px;
+    border: 1px solid var(--p-divider-color);
+    border-radius: 4px;
+    background: var(--p-input-background);
+    color: var(--p-text-color);
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.pa-multi-listbox-search-input:focus {
+    border-color: var(--p-primary-color);
+}
+
+.pa-multi-listbox-search-input::placeholder {
+    color: var(--p-text-muted-color);
+}
+
+/* Search icon */
+.pa-multi-listbox-search-wrapper {
+    position: relative;
+}
+
+.pa-multi-listbox-search-icon {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--p-text-muted-color);
+    font-size: 14px;
+    pointer-events: none;
+}
+
+/* ---List container--- */
+.pa-multi-listbox-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 4px;
+}
+
+/* ---List item--- */
+.pa-multi-listbox-item {
+    display: flex;
+    align-items: center;
+    padding: 10px 12px;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background 0.2s;
+    font-size: 14px;
+    color: var(--p-text-color);
+    user-select: none;
+}
+
+.pa-multi-listbox-item:hover {
+    background: var(--p-list-option-focus-background);
+}
+
+.pa-multi-listbox-item.selected {
+    background: var(--p-dialog-border-color);
+}
+
+/* ---Checkbox styles (reference PrimeVue Checkbox)--- */
+.pa-multi-listbox-checkbox {
+    width: 18px;
+    height: 18px;
+    min-width: 18px;
+    border: 2px solid var(--p-checkbox-border-color, var(--p-inputtext-border-color));
+    border-radius: var(--p-checkbox-border-radius, 4px);
+    margin-right: 12px;
+    position: relative;
+    transition: background-color 0.2s, border-color 0.2s, box-shadow 0.2s;
+    background: var(--p-checkbox-background, var(--p-inputtext-background));
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Hover state */
+.pa-multi-listbox-item:hover .pa-multi-listbox-checkbox {
+    border-color: var(--p-checkbox-hover-border-color, var(--p-primary-color));
+}
+
+/* Selected state */
+.pa-multi-listbox-item.selected .pa-multi-listbox-checkbox {
+    background: var(--p-checkbox-checked-background, var(--p-primary-color));
+    border-color: var(--p-checkbox-checked-border-color, var(--p-primary-color));
+}
+
+/* Selected state hover */
+.pa-multi-listbox-item.selected:hover .pa-multi-listbox-checkbox {
+    background: var(--p-checkbox-checked-hover-background, var(--p-primary-hover-color));
+    border-color: var(--p-checkbox-checked-hover-border-color, var(--p-primary-hover-color));
+}
+
+/* Checkbox checkmark (using PrimeVue icon style) */
+.pa-multi-listbox-checkbox::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 5px;
+    height: 9px;
+    border: solid var(--p-checkbox-icon-checked-color, #ffffff);
+    border-width: 0 2px 2px 0;
+    transform: translate(-50%, -60%) rotate(45deg) scale(0);
+    transform-origin: center;
+    transition: transform 0.2s cubic-bezier(0.12, 0.4, 0.29, 1.46);
+}
+
+/* Show checkmark when selected, with elastic animation */
+.pa-multi-listbox-item.selected .pa-multi-listbox-checkbox::after {
+    transform: translate(-50%, -60%) rotate(45deg) scale(1);
+}
+
+/* ---Empty state hint--- */
+.pa-multi-listbox-empty {
+    text-align: center;
+    padding: 24px;
+    color: var(--p-text-muted-color);
+    font-size: 13px;
+}
+
+/* ---Bottom button bar--- */
+.pa-multi-listbox-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px;
+    border-top: 1px solid var(--p-divider-color);
+    background: var(--p-dialog-border-color);
+}
+
+.pa-multi-listbox-count {
+    font-size: 13px;
+    color: var(--p-text-muted-color);
+}
+
+.pa-multi-listbox-actions {
+    display: flex;
+    gap: 8px;
+}
+
+/* ===================================================
+   6. API configuration manager - bottom warning message
+   =================================================== */
+
+/* API manager main window - set min-height to fit content */
+.settings-modal.api-config-dialog-v2 {
+    min-height: 760px;
+}
+
+/* Adjust notification area position to the bottom */
+.api-config-dialog-v2 .p-dialog-notice {
+    order: 10;
+    padding: 0;
+    margin-top: auto;
+    width: 100%;
+}
+
+/* Warning message styles */
+.api-config-warning {
+    font-size: 12px;
+    color: color-mix(in srgb, var(--p-text-muted-color), transparent 50%);
+    padding: 10px 20px;
+    line-height: 1.6;
+    text-align: center;
+    border-top: 1px solid var(--p-divider-color);
+    /* background: var(--p-dialog-background); */
+}
+
+/* ===================================================
+   7. Rule configuration manager - tab styles
+   =================================================== */
+
+/* ---Rule configuration tab container--- */
+.rules-config-tabs {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+/* ---Tab header wrapper container--- */
+.rules-config-tabs .tab-header-wrapper {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 16px;
+    border-bottom: 2px solid var(--p-divider-color);
+    padding-bottom: 8px;
+    margin-bottom: 2px;
+    padding: 1px 16px 0px 16px;
+}
+
+/* ---Adjust tab header styles in rule configuration--- */
+.rules-config-tabs .tab-header {
+    border-bottom: none;
+    padding-bottom: 0;
+    margin-bottom: 0;
+    flex: 1;
+}
+
+/* ---Add button container--- */
+.tab-header-actions {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+/* ---Tab add button styles--- */
+.tab-add-button {
+    white-space: nowrap;
+}
+
+/* ---Rule panel notice--- */
+.rule-pane-notice {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    margin-bottom: 12px;
+    background: var(--p-message-info-background);
+    border: 1px solid var(--p-message-info-border-color);
+    border-radius: 6px;
+    font-size: 13px;
+    color: var(--p-message-info-color);
+}
+
+.rule-pane-notice .pi {
+    font-size: 14px;
+}
+
+/* ---Translation rule row styles (without status column)--- */
+.prompt-list-row.translate-row {
+    display: flex;
+    align-items: stretch;
+}
+
+.prompt-list-row.translate-row .name-cell {
+    flex: 0 0 120px;
+}
+
+.prompt-list-row.translate-row .content-cell {
+    flex: 1;
+}
+
+.prompt-list-row.translate-row .action-cell {
+    flex: 0 0 60px;
+    justify-content: center;
+}
+
+/* ===================================================
+   8. Tag manager exclusive styles (new version)
+   =================================================== */
+
+/* CSV selector */
+.popup_csv_selector {
+    padding: 4px 8px;
+    border-radius: 4px;
+    /* border: 0px solid var(--p-inputtext-border-color); */
+    background-color: var(--p-inputtext-background);
+    color: var(--p-inputtext-color);
+    outline: none;
+    font-size: 14px;
+    cursor: pointer;
+    transition: border-color 0.2s;
+}
+
+.popup_csv_selector:hover {
+    border-color: var(--p-primary-color);
+}
+
+/* Tag context menu */
+.tag_context_menu {
+    background-color: var(--p-content-background);
+    border: 1px solid var(--p-dialog-border-color);
+    border-radius: 6px;
+    padding: 4px 0;
+    box-shadow: var(--p-dialog-shadow);
+    z-index: var(--settings-context-menu-z-index);
+    min-width: 140px;
+}
+
+.tag_context_menu_item {
+    padding: 8px 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--p-text-color);
+    font-size: 14px;
+    transition: background-color 0.2s;
+}
+
+.tag_context_menu_item:hover {
+    background-color: var(--p-list-option-focus-background);
+}
+
+.tag_context_menu_item i {
+    font-size: 14px;
+}
+
+/* Favorite tags tab empty state hint */
+.empty_tip {
+    padding: 24px;
+    text-align: center;
+    color: var(--p-text-muted-color);
+    font-size: 14px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+/* ===================================================
+   9. Node help translator styles (Node Help Translator)
+   =================================================== */
+
+/* ---Translated text styles--- */
+.pa-trans-text {
+    display: block;
+    margin-top: 4px;
+    padding-top: 4px;
+    color: var(--p-primary-color, #a855f7);
+    font-size: 0.9em;
+    line-height: 1.4;
+    opacity: 0.9;
+}
+
+li .pa-trans-text {
+    margin-top: 2px;
+}
+
+td .pa-trans-text,
+th .pa-trans-text {
+    font-size: 0.85em;
+    margin-top: 2px;
+}
+
+/* ---Separator styles--- */
+.pa-trans-separator {
+    height: 4px;
+    margin-top: 2px;
+}
+
+/* ---Translate button container--- */
+.pa-help-translate-btn-container {
+    display: flex;
+    align-items: center;
+    margin-left: auto;
+    margin-right: 8px;
+    gap: 12px;
+}
+
+/* ---Translate button icon animation--- */
+.pa-translate-btn-icon {
+    font-size: 1.1em;
+}
+
+.pa-translate-btn-icon.spinning {
+    animation: pa-spin 1s linear infinite;
+}
+
+@keyframes pa-spin {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* ---View mode control--- */
+.pa-mode-bilingual .pa-original-content {
+    display: inline;
+}
+
+.pa-mode-bilingual .pa-trans-separator {
+    display: block;
+    height: 4px;
+    margin-top: 2px;
+}
+
+.pa-mode-bilingual .pa-trans-text {
+    display: block;
+}
+
+.pa-mode-translation-only .pa-original-content {
+    display: none;
+}
+
+.pa-mode-translation-only .pa-trans-separator {
+    display: none;
+}
+
+.pa-mode-translation-only .pa-trans-text {
+    display: block;
+    margin-top: 0;
+}
+
+.pa-mode-original-only .pa-original-content {
+    display: inline;
+}
+
+.pa-mode-original-only .pa-trans-separator {
+    display: none;
+}
+
+.pa-mode-original-only .pa-trans-text {
+    display: none;
+}
+
+/* ====================== SelectButton component styles ====================== */
+
+/* SelectButton group container */
+.pa-select-button-group {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.pa-select-button-group .pa-form-label {
+    margin-bottom: 0;
+    flex-shrink: 0;
+}
+
+/* Button container */
+.pa-select-button {
+    display: inline-flex;
+    border-radius: 10px;
+    overflow: hidden;
+    background: #000;
+    /* Dark background */
+    padding: 6px;
+    /* Padding creates spacing effect */
+    gap: 6px;
+    /* Spacing between button items */
+    border: 1px solid color-mix(in srgb, var(--p-inputtext-border-color), transparent 50%);
+
+
+}
+
+/* Button item */
+.pa-select-button-item {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.375rem;
+    padding: 0.5rem 0.75rem;
+    cursor: pointer;
+    user-select: none;
+    border: none;
+    outline: none;
+    background: #222;
+    /* Default dark background */
+    color: var(--p-text-muted-color);
+    border-radius: 6px;
+    /* Individual border radius */
+    font-size: 0.875rem;
+    font-family: inherit;
+    transition: background-color 0.2s, color 0.2s, box-shadow 0.2s;
+    position: relative;
+    box-shadow: var(--p-dialog-shadow);
+}
+
+/* Remove separator */
+.pa-select-button-item:not(:last-child)::after {
+    display: none;
+}
+
+/* Hover state */
+.pa-select-button-item:not(.pa-select-button-item-disabled):hover {
+    background: var(--p-button-primary-hover-background);
+    color: var(--p-button-primary-color);
+}
+
+/* Selected state */
+.pa-select-button-item-selected {
+    background: var(--p-primary-500) !important;
+    color: var(--p-button-primary-color);
+}
+
+.pa-select-button-item-selected::after {
+    display: none;
+}
+
+.pa-select-button-item-selected+.pa-select-button-item::after {
+    display: none;
+}
+
+/* Disabled state */
+.pa-select-button-item-disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Button icon */
+.pa-select-button-icon {
+    font-size: 0.875rem;
+}
+
+/* Button label */
+.pa-select-button-label {
+    white-space: nowrap;
+}
+
+/* Small size */
+.pa-select-button-small .pa-select-button-item {
+    padding: 0.4rem 1.0rem;
+    font-size: 0.75rem;
+}
+
+.pa-select-button-small .pa-select-button-icon {
+    font-size: 0.75rem;
+}
+
+/* Large size */
+.pa-select-button-large .pa-select-button-item {
+    padding: 0.625rem 1rem;
+    font-size: 1rem;
+}
+
+.pa-select-button-large .pa-select-button-icon {
+    font-size: 1rem;
+}
+
+/* ===================================================
+   10. General input styles
+   =================================================== */
+
+/* Disabled input */
+.pa-input-disabled {
+    cursor: not-allowed !important;
+    opacity: 0.5 !important;
+}

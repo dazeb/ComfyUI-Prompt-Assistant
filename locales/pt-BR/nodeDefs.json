@@ -1,0 +1,234 @@
+{
+    "PromptExpand": {
+        "display_name": "✨Expansão de Prompt",
+        "description": "Melhore e expanda o prompt usando LLM",
+        "inputs": {
+            "rule": {
+                "name": "Regra",
+                "tooltip": "Regra predefinida para expansão de prompt"
+            },
+            "custom_rule": {
+                "name": "Regra Personalizada",
+                "tooltip": "Ativar entrada de regra personalizada abaixo"
+            },
+            "custom_rule_content": {
+                "name": "Conteúdo da Regra",
+                "tooltip": "Insira sua regra personalizada aqui"
+            },
+            "user_prompt": {
+                "name": "Prompt do Usuário",
+                "tooltip": "Seu prompt a ser expandido"
+            },
+            "llm_service": {
+                "name": "Serviço LLM",
+                "tooltip": "Selecione o Serviço LLM"
+            },
+            "ollama_auto_unload": {
+                "name": "Descarregamento Automático",
+                "tooltip": "Descarregar o modelo Ollama automaticamente"
+            },
+            "source_text": {
+                "name": "Texto de Origem",
+                "tooltip": "Entrada de texto opcional"
+            },
+            "seed": {
+                "name": "Semente",
+                "tooltip": "Controla a aleatoriedade da geração. Selecione um modo não fixo para forçar a reexecução"
+            }
+        },
+        "outputs": {
+            "0": {
+                "name": "Saída do Prompt",
+                "tooltip": "Reusltado da expansão"
+            }
+        }
+    },
+    "ImageCaptionNode": {
+        "display_name": "✨Legenda de Imagem",
+        "description": "Gerar descrição da imagem usando VLM",
+        "inputs": {
+            "image": {
+                "name": "Imagem",
+                "tooltip": "Imagem de entrada"
+            },
+            "rule": {
+                "name": "Regra",
+                "tooltip": "Regra predefinida para geração de legenda"
+            },
+            "custom_rule": {
+                "name": "Regra Personalizada",
+                "tooltip": "Ativar entrada de regra personalizada"
+            },
+            "custom_rule_content": {
+                "name": "Conteúdo da Regra",
+                "tooltip": "Conteúdo da regra personalizada"
+            },
+            "user_prompt": {
+                "name": "Prompt do Usuário",
+                "tooltip": "Insira prompts adicionais aqui, enviados com a regra"
+            },
+            "vlm_service": {
+                "name": "Serviço VLM",
+                "tooltip": "Selecione o Serviço VLM"
+            },
+            "ollama_auto_unload": {
+                "name": "Descarregamento Automático",
+                "tooltip": "Descarregar o modelo Ollama automaticamente"
+            },
+            "seed": {
+                "name": "Semente",
+                "tooltip": "Controla a aleatoriedade da geração. Selecione um modo não fixo para forçar a reexecução"
+            }
+        },
+        "outputs": {
+            "0": {
+                "name": "Saída do Prompt",
+                "tooltip": "Legenda gerada (combinada para lotes)"
+            },
+            "1": {
+                "name": "Lista de Prompts",
+                "tooltip": "Lista de legendas para cada imagem no lote"
+            }
+        }
+    },
+    "PromptTranslate": {
+        "display_name": "✨Tradução de Prompt",
+        "description": "Traduzir prompt entre idiomas",
+        "inputs": {
+            "source_text": {
+                "name": "Texto de Origem",
+                "tooltip": "Texto a ser traduzido"
+            },
+            "target_language": {
+                "name": "Idioma de Destino",
+                "tooltip": "Idioma alvo para tradução",
+                "options": {
+                    "English": "Inglês",
+                    "Chinese": "Chinês"
+                }
+            },
+            "translate_service": {
+                "name": "Serviço de Tradução",
+                "tooltip": "Selecione o Serviço de Tradução"
+            },
+            "ollama_auto_unload": {
+                "name": "Descarregamento Automático",
+                "tooltip": "Descarregar o modelo Ollama automaticamente"
+            },
+            "seed": {
+                "name": "Semente",
+                "tooltip": "Controla a aleatoriedade da geração. Selecione um modo não fixo para forçar a reexecução"
+            }
+        },
+        "outputs": {
+            "0": {
+                "name": "Saída do Prompt",
+                "tooltip": "Resultado da tradução"
+            }
+        }
+    },
+    "VideoCaptionNode": {
+        "display_name": "✨Legenda de Vídeo",
+        "description": "Gerar descrição do vídeo usando VLM",
+        "inputs": {
+            "rule": {
+                "name": "Regra",
+                "tooltip": "Regra predefinida para legenda do vídeo"
+            },
+            "custom_rule": {
+                "name": "Regra Personalizada",
+                "tooltip": "Ativar entrada de regra personalizada"
+            },
+            "custom_rule_content": {
+                "name": "Conteúdo da Regra",
+                "tooltip": "Conteúdo da regra personalizada"
+            },
+            "user_prompt": {
+                "name": "Prompt do Usuário",
+                "tooltip": "Insira prompts adicionais aqui, enviados com a regra"
+            },
+            "vlm_service": {
+                "name": "Serviço VLM",
+                "tooltip": "Selecione o Serviço VLM"
+            },
+            "sampling_mode": {
+                "name": "Modo de Amostragem",
+                "tooltip": "Escolha Automático para amostrar frames pelo comprimento do vídeo. Manual permite seleção exata.",
+                "options": {
+                    "Auto (Uniform)": "Automático (Uniforme)",
+                    "Manual (Indices)": "Manual (Índices)"
+                }
+            },
+            "frame_count": {
+                "name": "Contagem de Frames",
+                "tooltip": "Número de frames a serem amostrados (Modo Auto)"
+            },
+            "manual_indices": {
+                "name": "Índices Manuais",
+                "tooltip": "Índices de frames específicos (Modo Manual)"
+            },
+            "ollama_auto_unload": {
+                "name": "Descarregamento Automático",
+                "tooltip": "Descarregar o modelo Ollama automaticamente"
+            },
+            "video": {
+                "name": "Vídeo",
+                "tooltip": "Vídeo de entrada"
+            },
+            "seed": {
+                "name": "Semente",
+                "tooltip": "Controla a aleatoriedade da geração. Selecione um modo não fixo para forçar a reexecução"
+            },
+            "video_frames": {
+                "name": "Imagens",
+                "tooltip": "Sequência de imagens (IMAGE batch)"
+            }
+        },
+        "outputs": {
+            "0": {
+                "name": "Saída do Prompt",
+                "tooltip": "Legenda do vídeo gerada"
+            },
+            "1": {
+                "name": "Frames de Visualização",
+                "tooltip": "Quadros de pré-visualização"
+            }
+        }
+    },
+    "KontextPresetNode": {
+        "display_name": "✨Predefinição Kontext",
+        "description": "Gerar instruções criativas usando predefinições Kontext",
+        "inputs": {
+            "image": {
+                "name": "Imagem",
+                "tooltip": "Imagem de entrada"
+            },
+            "kontext_preset": {
+                "name": "Predefinição",
+                "tooltip": "Selecionar Predefinição Kontext"
+            },
+            "user_prompt": {
+                "name": "Prompt do Usuário",
+                "tooltip": "Insira prompts adicionais aqui, enviados com a predefinição"
+            },
+            "vlm_service": {
+                "name": "Serviço VLM",
+                "tooltip": "Selecione o Serviço VLM"
+            },
+            "ollama_auto_unload": {
+                "name": "Descarregamento Automático",
+                "tooltip": "Descarregar o modelo Ollama automaticamente"
+            },
+            "seed": {
+                "name": "Semente",
+                "tooltip": "Controla a aleatoriedade da geração. Selecione um modo não fixo para forçar a reexecução"
+            }
+        },
+        "outputs": {
+            "0": {
+                "name": "Saída do Prompt",
+                "tooltip": "Instrução criativa gerada"
+            }
+        }
+    }
+}

@@ -1,0 +1,234 @@
+{
+    "PromptExpand": {
+        "display_name": "✨신속한 강화",
+        "description": "LLM을 사용하여 프롬프트를 강화하세요",
+        "inputs": {
+            "rule": {
+                "name": "규칙",
+                "tooltip": "신속한 개선을 위한 사전 설정된 규칙"
+            },
+            "custom_rule": {
+                "name": "맞춤 규칙",
+                "tooltip": "아래에서 맞춤 규칙 입력을 활성화하세요."
+            },
+            "custom_rule_content": {
+                "name": "사용자 정의 규칙 콘텐츠",
+                "tooltip": "여기에 사용자 정의 규칙을 입력하십시오."
+            },
+            "user_prompt": {
+                "name": "사용자 프롬프트",
+                "tooltip": "귀하의 메시지를 향상시키십시오."
+            },
+            "llm_service": {
+                "name": "LLM 서비스",
+                "tooltip": "LLM 서비스 선택"
+            },
+            "ollama_auto_unload": {
+                "name": "자동 언로드",
+                "tooltip": "Ollama 모델 자동 언로드"
+            },
+            "source_text": {
+                "name": "소스 텍스트",
+                "tooltip": "선택적 입력 텍스트입니다."
+            },
+            "seed": {
+                "name": "시드",
+                "tooltip": "생성의 무작위성을 제어합니다. 고정되지 않은 모드를 선택하면 재실행이 강제됩니다"
+            }
+        },
+        "outputs": {
+            "0": {
+                "name": "프롬프트 출력",
+                "tooltip": "개선 결과"
+            }
+        }
+    },
+    "ImageCaptionNode": {
+        "display_name": "✨이미지 캡션",
+        "description": "VLM을 사용하여 이미지 캡션 생성",
+        "inputs": {
+            "image": {
+                "name": "영상",
+                "tooltip": "입력 이미지"
+            },
+            "rule": {
+                "name": "규칙",
+                "tooltip": "캡션에 대한 사전 설정 규칙"
+            },
+            "custom_rule": {
+                "name": "맞춤 규칙",
+                "tooltip": "사용자 정의 규칙 입력 활성화"
+            },
+            "custom_rule_content": {
+                "name": "사용자 정의 규칙 콘텐츠",
+                "tooltip": "사용자 정의 규칙 콘텐츠"
+            },
+            "user_prompt": {
+                "name": "사용자 프롬프트",
+                "tooltip": "규칙과 함께 전송되는 추가 프롬프트를 여기에 입력하십시오."
+            },
+            "vlm_service": {
+                "name": "VLM 서비스",
+                "tooltip": "VLM 서비스 선택"
+            },
+            "ollama_auto_unload": {
+                "name": "자동 언로드",
+                "tooltip": "Ollama 모델 자동 언로드"
+            },
+            "seed": {
+                "name": "시드",
+                "tooltip": "생성의 무작위성을 제어합니다. 고정되지 않은 모드를 선택하면 재실행이 강제됩니다"
+            }
+        },
+        "outputs": {
+            "0": {
+                "name": "프롬프트 출력",
+                "tooltip": "생성된 캡션(일괄적으로 결합)"
+            },
+            "1": {
+                "name": "프롬프트 목록",
+                "tooltip": "일괄적으로 각 이미지에 대한 캡션 목록"
+            }
+        }
+    },
+    "PromptTranslate": {
+        "display_name": "✨신속한 번역",
+        "description": "언어 간 프롬프트 번역",
+        "inputs": {
+            "source_text": {
+                "name": "소스 텍스트",
+                "tooltip": "번역할 텍스트"
+            },
+            "target_language": {
+                "name": "대상 언어",
+                "tooltip": "번역 대상 언어",
+                "options": {
+                    "English": "영어",
+                    "Chinese": "중국인"
+                }
+            },
+            "translate_service": {
+                "name": "번역 서비스",
+                "tooltip": "번역 서비스 선택"
+            },
+            "ollama_auto_unload": {
+                "name": "자동 언로드",
+                "tooltip": "Ollama 모델 자동 언로드"
+            },
+            "seed": {
+                "name": "시드",
+                "tooltip": "생성의 무작위성을 제어합니다. 고정되지 않은 모드를 선택하면 재실행이 강제됩니다"
+            }
+        },
+        "outputs": {
+            "0": {
+                "name": "프롬프트 출력",
+                "tooltip": "번역된 결과"
+            }
+        }
+    },
+    "VideoCaptionNode": {
+        "display_name": "✨비디오 캡션",
+        "description": "VLM을 사용하여 비디오 캡션 생성",
+        "inputs": {
+            "rule": {
+                "name": "규칙",
+                "tooltip": "비디오 캡션에 대한 사전 설정 규칙"
+            },
+            "custom_rule": {
+                "name": "맞춤 규칙",
+                "tooltip": "사용자 정의 규칙 입력 활성화"
+            },
+            "custom_rule_content": {
+                "name": "사용자 정의 규칙 콘텐츠",
+                "tooltip": "사용자 정의 규칙 콘텐츠"
+            },
+            "user_prompt": {
+                "name": "사용자 프롬프트",
+                "tooltip": "규칙과 함께 전송되는 추가 프롬프트를 여기에 입력하십시오."
+            },
+            "vlm_service": {
+                "name": "VLM 서비스",
+                "tooltip": "VLM 서비스 선택"
+            },
+            "sampling_mode": {
+                "name": "샘플링 모드",
+                "tooltip": "비디오 길이에 따라 프레임을 균일하게 샘플링하려면 자동(균일)을 선택합니다.수동(색인) 모드에서는 '🎬캡션용 프레임 선택' 버튼을 통해 수동 프레임 선택이 가능합니다.",
+                "options": {
+                    "Auto (Uniform)": "자동(유니폼)",
+                    "Manual (Indices)": "수동(지수)"
+                }
+            },
+            "frame_count": {
+                "name": "프레임 수",
+                "tooltip": "샘플링할 프레임 수(자동 모드)"
+            },
+            "manual_indices": {
+                "name": "수동 인덱스",
+                "tooltip": "특정 프레임 인덱스(수동 모드)"
+            },
+            "ollama_auto_unload": {
+                "name": "자동 언로드",
+                "tooltip": "Ollama 모델 자동 언로드"
+            },
+            "video": {
+                "name": "동영상",
+                "tooltip": "입력 비디오"
+            },
+            "seed": {
+                "name": "시드",
+                "tooltip": "생성의 무작위성을 제어합니다. 고정되지 않은 모드를 선택하면 재실행이 강제됩니다"
+            },
+            "video_frames": {
+                "name": "이미지",
+                "tooltip": "이미지 시퀀스 (IMAGE batch)"
+            }
+        },
+        "outputs": {
+            "0": {
+                "name": "프롬프트 출력",
+                "tooltip": "생성된 비디오 캡션"
+            },
+            "1": {
+                "name": "미리보기 프레임",
+                "tooltip": "미리보기 프레임"
+            }
+        }
+    },
+    "KontextPresetNode": {
+        "display_name": "✨컨텍스트 사전 설정",
+        "description": "Kontext 사전 설정을 사용하여 창의적 지침 생성",
+        "inputs": {
+            "image": {
+                "name": "영상",
+                "tooltip": "입력 이미지"
+            },
+            "kontext_preset": {
+                "name": "프리셋",
+                "tooltip": "컨텍스트 사전 설정 선택"
+            },
+            "user_prompt": {
+                "name": "사용자 프롬프트",
+                "tooltip": "여기에 사전 설정과 함께 전송된 추가 프롬프트를 입력하세요."
+            },
+            "vlm_service": {
+                "name": "VLM 서비스",
+                "tooltip": "VLM 서비스 선택"
+            },
+            "ollama_auto_unload": {
+                "name": "자동 언로드",
+                "tooltip": "Ollama 모델 자동 언로드"
+            },
+            "seed": {
+                "name": "시드",
+                "tooltip": "생성의 무작위성을 제어합니다. 고정되지 않은 모드를 선택하면 재실행이 강제됩니다"
+            }
+        },
+        "outputs": {
+            "0": {
+                "name": "프롬프트 출력",
+                "tooltip": "생성된 창의적 지침"
+            }
+        }
+    }
+}

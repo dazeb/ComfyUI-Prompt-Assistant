@@ -1,0 +1,234 @@
+{
+    "PromptExpand": {
+        "display_name": "✨プロンプト拡張",
+        "description": "LLMを使用してプロンプトを拡張・改善します",
+        "inputs": {
+            "rule": {
+                "name": "ルール",
+                "tooltip": "プロンプト拡張のプリセットルール"
+            },
+            "custom_rule": {
+                "name": "カスタムルール",
+                "tooltip": "下部のカスタムルール入力を有効にします"
+            },
+            "custom_rule_content": {
+                "name": "カスタムルールの内容",
+                "tooltip": "ここにカスタムルールを入力してください"
+            },
+            "user_prompt": {
+                "name": "ユーザープロンプト",
+                "tooltip": "拡張するプロンプト"
+            },
+            "llm_service": {
+                "name": "LLMサービス",
+                "tooltip": "LLMサービスを選択"
+            },
+            "ollama_auto_unload": {
+                "name": "自動アンロード",
+                "tooltip": "Ollamaモデルを自動的にアンロードします"
+            },
+            "source_text": {
+                "name": "ソーステキスト",
+                "tooltip": "オプションの入力テキスト"
+            },
+            "seed": {
+                "name": "シード",
+                "tooltip": "生成のランダム性を制御します。固定以外のモードを選択すると、再実行が強制されます"
+            }
+        },
+        "outputs": {
+            "0": {
+                "name": "プロンプト出力",
+                "tooltip": "拡張の結果"
+            }
+        }
+    },
+    "ImageCaptionNode": {
+        "display_name": "✨画像キャプション",
+        "description": "VLMを使用して画像のキャプションを生成します",
+        "inputs": {
+            "image": {
+                "name": "画像",
+                "tooltip": "入力画像"
+            },
+            "rule": {
+                "name": "ルール",
+                "tooltip": "キャプション生成のプリセットルール"
+            },
+            "custom_rule": {
+                "name": "カスタムルール",
+                "tooltip": "カスタムルールの入力を有効にする"
+            },
+            "custom_rule_content": {
+                "name": "カスタムルールの内容",
+                "tooltip": "カスタムルールの内容"
+            },
+            "user_prompt": {
+                "name": "ユーザープロンプト",
+                "tooltip": "ルールと一緒に送信される追加のプロンプトをここに入力"
+            },
+            "vlm_service": {
+                "name": "VLMサービス",
+                "tooltip": "VLMサービスを選択"
+            },
+            "ollama_auto_unload": {
+                "name": "自動アンロード",
+                "tooltip": "Ollamaモデルを自動的にアンロードします"
+            },
+            "seed": {
+                "name": "シード",
+                "tooltip": "生成のランダム性を制御します。固定以外のモードを選択すると、再実行が強制されます"
+            }
+        },
+        "outputs": {
+            "0": {
+                "name": "プロンプト出力",
+                "tooltip": "生成されたキャプション (バッチの場合は結合されます)"
+            },
+            "1": {
+                "name": "プロンプトリスト",
+                "tooltip": "バッチ内の各画像のキャプションリスト"
+            }
+        }
+    },
+    "PromptTranslate": {
+        "display_name": "✨プロンプト翻訳",
+        "description": "言語間でプロンプトを翻訳します",
+        "inputs": {
+            "source_text": {
+                "name": "ソーステキスト",
+                "tooltip": "翻訳するテキスト"
+            },
+            "target_language": {
+                "name": "ターゲット言語",
+                "tooltip": "翻訳先の言語",
+                "options": {
+                    "English": "英語",
+                    "Chinese": "中国語"
+                }
+            },
+            "translate_service": {
+                "name": "翻訳サービス",
+                "tooltip": "翻訳サービスを選択"
+            },
+            "ollama_auto_unload": {
+                "name": "自動アンロード",
+                "tooltip": "Ollamaモデルを自動的にアンロードします"
+            },
+            "seed": {
+                "name": "シード",
+                "tooltip": "生成のランダム性を制御します。固定以外のモードを選択すると、再実行が強制されます"
+            }
+        },
+        "outputs": {
+            "0": {
+                "name": "プロンプト出力",
+                "tooltip": "翻訳結果"
+            }
+        }
+    },
+    "VideoCaptionNode": {
+        "display_name": "✨動画キャプション",
+        "description": "VLMを使用して動画のキャプションを生成します",
+        "inputs": {
+            "rule": {
+                "name": "ルール",
+                "tooltip": "動画キャプション生成のプリセットルール"
+            },
+            "custom_rule": {
+                "name": "カスタムルール",
+                "tooltip": "カスタムルールの入力を有効にする"
+            },
+            "custom_rule_content": {
+                "name": "カスタムルールの内容",
+                "tooltip": "カスタムルールの内容"
+            },
+            "user_prompt": {
+                "name": "ユーザープロンプト",
+                "tooltip": "ルールと一緒に送信される追加のプロンプトをここに入力"
+            },
+            "vlm_service": {
+                "name": "VLMサービス",
+                "tooltip": "VLMサービスを選択"
+            },
+            "sampling_mode": {
+                "name": "サンプリングモード",
+                "tooltip": "動画の長さに応じて均等にフレームをサンプリングするには自動(Uniform)を選択します。手動(Indices)モードでは「🎬キャプション用フレームを選択」ボタンで手動選択が可能です",
+                "options": {
+                    "Auto (Uniform)": "自動 (均等)",
+                    "Manual (Indices)": "手動 (インデックス)"
+                }
+            },
+            "frame_count": {
+                "name": "フレーム数",
+                "tooltip": "サンプリングするフレーム数 (自動モード)"
+            },
+            "manual_indices": {
+                "name": "手動インデックス",
+                "tooltip": "特定のフレームインデックス (手動モード)"
+            },
+            "ollama_auto_unload": {
+                "name": "自動アンロード",
+                "tooltip": "Ollamaモデルを自動的にアンロードします"
+            },
+            "video": {
+                "name": "動画",
+                "tooltip": "入力動画"
+            },
+            "seed": {
+                "name": "シード",
+                "tooltip": "生成のランダム性を制御します。固定以外のモードを選択すると、再実行が強制されます"
+            },
+            "video_frames": {
+                "name": "画像",
+                "tooltip": "画像シーケンス (IMAGE batch)"
+            }
+        },
+        "outputs": {
+            "0": {
+                "name": "プロンプト出力",
+                "tooltip": "生成された動画キャプション"
+            },
+            "1": {
+                "name": "プレビューフレーム",
+                "tooltip": "プレビューフレーム"
+            }
+        }
+    },
+    "KontextPresetNode": {
+        "display_name": "✨Kontextプリセット",
+        "description": "Kontextプリセットを使用してクリエイティブな指示を生成します",
+        "inputs": {
+            "image": {
+                "name": "画像",
+                "tooltip": "入力画像"
+            },
+            "kontext_preset": {
+                "name": "プリセット",
+                "tooltip": "Kontextプリセットを選択"
+            },
+            "user_prompt": {
+                "name": "ユーザープロンプト",
+                "tooltip": "プリセットと一緒に送信される追加のプロンプトをここに入力"
+            },
+            "vlm_service": {
+                "name": "VLMサービス",
+                "tooltip": "VLMサービスを選択"
+            },
+            "ollama_auto_unload": {
+                "name": "自動アンロード",
+                "tooltip": "Ollamaモデルを自動的にアンロードします"
+            },
+            "seed": {
+                "name": "シード",
+                "tooltip": "生成のランダム性を制御します。固定以外のモードを選択すると、再実行が強制されます"
+            }
+        },
+        "outputs": {
+            "0": {
+                "name": "プロンプト出力",
+                "tooltip": "生成されたクリエイティブな指示"
+            }
+        }
+    }
+}

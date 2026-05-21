@@ -1,0 +1,234 @@
+{
+    "PromptExpand": {
+        "display_name": "✨Amélioration rapide",
+        "description": "Améliorez votre invite à l'aide de LLM",
+        "inputs": {
+            "rule": {
+                "name": "Règle",
+                "tooltip": "Règle prédéfinie pour une amélioration rapide"
+            },
+            "custom_rule": {
+                "name": "Règle personnalisée",
+                "tooltip": "Activer la saisie de règles personnalisées ci-dessous"
+            },
+            "custom_rule_content": {
+                "name": "Contenu des règles personnalisées",
+                "tooltip": "Entrez votre règle personnalisée ici "
+            },
+            "user_prompt": {
+                "name": "Invite utilisateur",
+                "tooltip": "Votre invite à être améliorée "
+            },
+            "llm_service": {
+                "name": "Service LLM",
+                "tooltip": "Sélectionnez le service LLM"
+            },
+            "ollama_auto_unload": {
+                "name": "Déchargement automatique",
+                "tooltip": "Modèle Ollama à déchargement automatique"
+            },
+            "source_text": {
+                "name": "Texte source",
+                "tooltip": "Texte de saisie facultatif "
+            },
+            "seed": {
+                "name": "Graine",
+                "tooltip": "Contrôle le caractère aléatoire de la génération. Sélectionnez un mode non fixe pour forcer la réexécution"
+            }
+        },
+        "outputs": {
+            "0": {
+                "name": "Sortie rapide",
+                "tooltip": "Résultat de l'amélioration"
+            }
+        }
+    },
+    "ImageCaptionNode": {
+        "display_name": "✨Légende de l'image",
+        "description": "Générer une légende pour l'image à l'aide de VLM",
+        "inputs": {
+            "image": {
+                "name": "Image",
+                "tooltip": "Image d'entrée"
+            },
+            "rule": {
+                "name": "Règle",
+                "tooltip": "Règle prédéfinie pour le sous-titrage"
+            },
+            "custom_rule": {
+                "name": "Règle personnalisée",
+                "tooltip": "Activer la saisie de règles personnalisées"
+            },
+            "custom_rule_content": {
+                "name": "Contenu des règles personnalisées",
+                "tooltip": "Contenu des règles personnalisées "
+            },
+            "user_prompt": {
+                "name": "Invite utilisateur",
+                "tooltip": "Entrez ici des invites supplémentaires, envoyées avec la règle "
+            },
+            "vlm_service": {
+                "name": "Service VLM",
+                "tooltip": "Sélectionnez le service VLM"
+            },
+            "ollama_auto_unload": {
+                "name": "Déchargement automatique",
+                "tooltip": "Modèle Ollama à déchargement automatique"
+            },
+            "seed": {
+                "name": "Graine",
+                "tooltip": "Contrôle le caractère aléatoire de la génération. Sélectionnez un mode non fixe pour forcer la réexécution"
+            }
+        },
+        "outputs": {
+            "0": {
+                "name": "Sortie rapide",
+                "tooltip": "Légende générée (combinée pour le lot)"
+            },
+            "1": {
+                "name": "Liste d'invites",
+                "tooltip": "Liste des légendes pour chaque image en lot"
+            }
+        }
+    },
+    "PromptTranslate": {
+        "display_name": "✨Traduction rapide",
+        "description": "Traduire l'invite entre les langues",
+        "inputs": {
+            "source_text": {
+                "name": "Texte source",
+                "tooltip": "Texte à traduire "
+            },
+            "target_language": {
+                "name": "Langue cible",
+                "tooltip": "Langue cible pour la traduction",
+                "options": {
+                    "English": "English",
+                    "Chinese": "Chinese"
+                }
+            },
+            "translate_service": {
+                "name": "Service de traduction",
+                "tooltip": "Sélectionnez un service de traduction"
+            },
+            "ollama_auto_unload": {
+                "name": "Déchargement automatique",
+                "tooltip": "Modèle Ollama à déchargement automatique"
+            },
+            "seed": {
+                "name": "Graine",
+                "tooltip": "Contrôle le caractère aléatoire de la génération. Sélectionnez un mode non fixe pour forcer la réexécution"
+            }
+        },
+        "outputs": {
+            "0": {
+                "name": "Sortie rapide",
+                "tooltip": "Résultat traduit"
+            }
+        }
+    },
+    "VideoCaptionNode": {
+        "display_name": "✨Légende de la vidéo",
+        "description": "Générer une légende pour une vidéo à l'aide de VLM",
+        "inputs": {
+            "rule": {
+                "name": "Règle",
+                "tooltip": "Règle prédéfinie pour le sous-titrage vidéo"
+            },
+            "custom_rule": {
+                "name": "Règle personnalisée",
+                "tooltip": "Activer la saisie de règles personnalisées"
+            },
+            "custom_rule_content": {
+                "name": "Contenu des règles personnalisées",
+                "tooltip": "Contenu des règles personnalisées "
+            },
+            "user_prompt": {
+                "name": "Invite utilisateur",
+                "tooltip": "Entrez ici des invites supplémentaires, envoyées avec la règle "
+            },
+            "vlm_service": {
+                "name": "Service VLM",
+                "tooltip": "Sélectionnez le service VLM"
+            },
+            "sampling_mode": {
+                "name": "Mode d'échantillonnage",
+                "tooltip": "Sélectionnez Auto (Uniforme) pour échantillonner uniformément les images en fonction de la durée de la vidéo.Le mode Manuel (Indices) permet la sélection manuelle des images via le bouton « 🎬 Sélectionner les images pour le sous-titrage »",
+                "options": {
+                    "Auto (Uniform)": "Automatique (Uniforme)",
+                    "Manual (Indices)": "Manuel (Indices)"
+                }
+            },
+            "frame_count": {
+                "name": "Nombre d'images",
+                "tooltip": "Nombre d'images à échantillonner (mode Auto)"
+            },
+            "manual_indices": {
+                "name": "Indices manuels",
+                "tooltip": "Indices de trame spécifiques (mode manuel)"
+            },
+            "ollama_auto_unload": {
+                "name": "Déchargement automatique",
+                "tooltip": "Modèle Ollama à déchargement automatique"
+            },
+            "video": {
+                "name": "Vidéo",
+                "tooltip": "Vidéo d'entrée"
+            },
+            "seed": {
+                "name": "Graine",
+                "tooltip": "Contrôle le caractère aléatoire de la génération. Sélectionnez un mode non fixe pour forcer la réexécution"
+            },
+            "video_frames": {
+                "name": "Images",
+                "tooltip": "Séquence d'images (IMAGE batch)"
+            }
+        },
+        "outputs": {
+            "0": {
+                "name": "Sortie rapide",
+                "tooltip": "Légende vidéo générée"
+            },
+            "1": {
+                "name": "Aperçu des images",
+                "tooltip": "Aperçu des images"
+            }
+        }
+    },
+    "KontextPresetNode": {
+        "display_name": "✨Contexte prédéfini",
+        "description": "Générez des instructions créatives à l'aide des préréglages Kontext",
+        "inputs": {
+            "image": {
+                "name": "Image",
+                "tooltip": "Image d'entrée"
+            },
+            "kontext_preset": {
+                "name": "Préréglage",
+                "tooltip": "Sélectionnez le préréglage Kontext"
+            },
+            "user_prompt": {
+                "name": "Invite utilisateur",
+                "tooltip": "Entrez ici des invites supplémentaires, envoyées avec le préréglage "
+            },
+            "vlm_service": {
+                "name": "Service VLM",
+                "tooltip": "Sélectionnez le service VLM"
+            },
+            "ollama_auto_unload": {
+                "name": "Déchargement automatique",
+                "tooltip": "Modèle Ollama à déchargement automatique"
+            },
+            "seed": {
+                "name": "Graine",
+                "tooltip": "Contrôle le caractère aléatoire de la génération. Sélectionnez un mode non fixe pour forcer la réexécution"
+            }
+        },
+        "outputs": {
+            "0": {
+                "name": "Sortie rapide",
+                "tooltip": "Instruction créative générée"
+            }
+        }
+    }
+}

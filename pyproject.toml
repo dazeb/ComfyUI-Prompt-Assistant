@@ -1,0 +1,25 @@
+[project]
+name = "prompt-assistant"
+version = "2.0.6"
+description = "Prompt Assistant is a versatile, all-in-one prompt utility that offers one-click access to any online or local LLM. It features seamless prompt translation, refinement, expansion, and image/video-to-prompt reverse engineering, plus prompt collections for instant invocation."
+readme = "README.md"
+license = {text = "GNU General Public License v3"}
+classifiers = [
+    "Operating System :: OS Independent"  
+]
+dependencies = [
+    "comfyui-frontend-package>=1.39.16"
+]
+
+[project.urls]
+Repository = "https://github.com/yawiii/ComfyUI-Prompt-Assistant"
+
+
+[tool.setuptools.dynamic]
+dependencies = {file = ["requirements.txt"]}
+
+[tool.comfy]
+
+PublisherId = "yawiii"
+DisplayName = "Prompt Assistant" 
+Icon = "https://raw.githubusercontent.com/yawiii/assets/refs/heads/main/prompt_assistant/icon.png" 

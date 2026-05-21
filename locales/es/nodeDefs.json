@@ -1,0 +1,234 @@
+{
+    "PromptExpand": {
+        "display_name": "✨Mejora inmediata",
+        "description": "Mejore su mensaje usando LLM",
+        "inputs": {
+            "rule": {
+                "name": "Regla",
+                "tooltip": "Regla preestablecida para una mejora rápida"
+            },
+            "custom_rule": {
+                "name": "Regla personalizada",
+                "tooltip": "Habilite la entrada de reglas personalizadas a continuación"
+            },
+            "custom_rule_content": {
+                "name": "Contenido de regla personalizada",
+                "tooltip": "Ingrese su regla personalizada aquí"
+            },
+            "user_prompt": {
+                "name": "Aviso de usuario",
+                "tooltip": "Su mensaje para ser mejorado"
+            },
+            "llm_service": {
+                "name": "Servicio de Maestría en Derecho",
+                "tooltip": "Seleccione el servicio LLM"
+            },
+            "ollama_auto_unload": {
+                "name": "Descarga automática",
+                "tooltip": "Descarga automática modelo Ollama"
+            },
+            "source_text": {
+                "name": "Texto fuente",
+                "tooltip": "Texto de entrada opcional"
+            },
+            "seed": {
+                "name": "Semilla",
+                "tooltip": "Controla la aleatoriedad de la generación. Seleccione un modo no fijo para forzar la reejecución"
+            }
+        },
+        "outputs": {
+            "0": {
+                "name": "Salida rápida",
+                "tooltip": "Resultado de la mejora"
+            }
+        }
+    },
+    "ImageCaptionNode": {
+        "display_name": "✨ Pie de foto",
+        "description": "Generar título para imagen usando VLM",
+        "inputs": {
+            "image": {
+                "name": "Imagen",
+                "tooltip": "Imagen de entrada"
+            },
+            "rule": {
+                "name": "Regla",
+                "tooltip": "Regla preestablecida para subtítulos"
+            },
+            "custom_rule": {
+                "name": "Regla personalizada",
+                "tooltip": "Habilitar la entrada de reglas personalizadas"
+            },
+            "custom_rule_content": {
+                "name": "Contenido de regla personalizada",
+                "tooltip": "Contenido de reglas personalizadas"
+            },
+            "user_prompt": {
+                "name": "Aviso de usuario",
+                "tooltip": "Introduzca aquí indicaciones adicionales, enviadas con la regla"
+            },
+            "vlm_service": {
+                "name": "Servicio VLM",
+                "tooltip": "Seleccione el servicio VLM"
+            },
+            "ollama_auto_unload": {
+                "name": "Descarga automática",
+                "tooltip": "Descarga automática modelo Ollama"
+            },
+            "seed": {
+                "name": "Semilla",
+                "tooltip": "Controla la aleatoriedad de la generación. Seleccione un modo no fijo para forzar la reejecución"
+            }
+        },
+        "outputs": {
+            "0": {
+                "name": "Salida rápida",
+                "tooltip": "Título generado (combinado por lote)"
+            },
+            "1": {
+                "name": "Lista de mensajes",
+                "tooltip": "Lista de títulos para cada imagen en lote"
+            }
+        }
+    },
+    "PromptTranslate": {
+        "display_name": "✨Traducción rápida",
+        "description": "Traducir mensaje entre idiomas",
+        "inputs": {
+            "source_text": {
+                "name": "Texto fuente",
+                "tooltip": "Texto a traducir"
+            },
+            "target_language": {
+                "name": "Lengua de llegada",
+                "tooltip": "Idioma de destino para la traducción",
+                "options": {
+                    "English": "English",
+                    "Chinese": "Chinese"
+                }
+            },
+            "translate_service": {
+                "name": "Servicio de traducción",
+                "tooltip": "Seleccionar servicio de traducción"
+            },
+            "ollama_auto_unload": {
+                "name": "Descarga automática",
+                "tooltip": "Descarga automática modelo Ollama"
+            },
+            "seed": {
+                "name": "Semilla",
+                "tooltip": "Controla la aleatoriedad de la generación. Seleccione un modo no fijo para forzar la reejecución"
+            }
+        },
+        "outputs": {
+            "0": {
+                "name": "Salida rápida",
+                "tooltip": "Resultado traducido"
+            }
+        }
+    },
+    "VideoCaptionNode": {
+        "display_name": "✨Subtítulo de video",
+        "description": "Generar subtítulos para video usando VLM",
+        "inputs": {
+            "rule": {
+                "name": "Regla",
+                "tooltip": "Regla preestablecida para subtítulos de video"
+            },
+            "custom_rule": {
+                "name": "Regla personalizada",
+                "tooltip": "Habilitar la entrada de reglas personalizadas"
+            },
+            "custom_rule_content": {
+                "name": "Contenido de regla personalizada",
+                "tooltip": "Contenido de reglas personalizadas"
+            },
+            "user_prompt": {
+                "name": "Aviso de usuario",
+                "tooltip": "Introduzca aquí indicaciones adicionales, enviadas con la regla"
+            },
+            "vlm_service": {
+                "name": "Servicio VLM",
+                "tooltip": "Seleccione el servicio VLM"
+            },
+            "sampling_mode": {
+                "name": "Modo de muestreo",
+                "tooltip": "Seleccione Auto (Uniforme) para muestrear cuadros de manera uniforme según la duración del video.El modo manual (índices) permite la selección manual de fotogramas mediante el botón '🎬Seleccionar fotogramas para subtítulos'",
+                "options": {
+                    "Auto (Uniform)": "Automático (uniforme)",
+                    "Manual (Indices)": "Manual (Índices)"
+                }
+            },
+            "frame_count": {
+                "name": "Recuento de fotogramas",
+                "tooltip": "Número de cuadros para muestrear (modo automático)"
+            },
+            "manual_indices": {
+                "name": "Índices manuales",
+                "tooltip": "Índices de cuadros específicos (modo manual)"
+            },
+            "ollama_auto_unload": {
+                "name": "Descarga automática",
+                "tooltip": "Descarga automática modelo Ollama"
+            },
+            "video": {
+                "name": "Video",
+                "tooltip": "Vídeo de entrada"
+            },
+            "seed": {
+                "name": "Semilla",
+                "tooltip": "Controla la aleatoriedad de la generación. Seleccione un modo no fijo para forzar la reejecución"
+            },
+            "video_frames": {
+                "name": "Imágenes",
+                "tooltip": "Secuencia de imágenes (IMAGE batch)"
+            }
+        },
+        "outputs": {
+            "0": {
+                "name": "Salida rápida",
+                "tooltip": "Subtítulo de vídeo generado"
+            },
+            "1": {
+                "name": "Vista previa de marcos",
+                "tooltip": "Vista previa de marcos"
+            }
+        }
+    },
+    "KontextPresetNode": {
+        "display_name": "✨Contexto preestablecido",
+        "description": "Genere instrucción creativa utilizando los ajustes preestablecidos de Kontext",
+        "inputs": {
+            "image": {
+                "name": "Imagen",
+                "tooltip": "Imagen de entrada"
+            },
+            "kontext_preset": {
+                "name": "Programar",
+                "tooltip": "Seleccione el preajuste Kontext"
+            },
+            "user_prompt": {
+                "name": "Aviso de usuario",
+                "tooltip": "Introduzca aquí indicaciones adicionales, enviadas con el valor preestablecido"
+            },
+            "vlm_service": {
+                "name": "Servicio VLM",
+                "tooltip": "Seleccione el servicio VLM"
+            },
+            "ollama_auto_unload": {
+                "name": "Descarga automática",
+                "tooltip": "Descarga automática modelo Ollama"
+            },
+            "seed": {
+                "name": "Semilla",
+                "tooltip": "Controla la aleatoriedad de la generación. Seleccione un modo no fijo para forzar la reejecución"
+            }
+        },
+        "outputs": {
+            "0": {
+                "name": "Salida rápida",
+                "tooltip": "Instrucción creativa generada"
+            }
+        }
+    }
+}

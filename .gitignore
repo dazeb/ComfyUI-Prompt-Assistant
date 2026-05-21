@@ -1,0 +1,14 @@
+.agents/
+.claude/
+.codebuddy/
+.kiro/
+.trae/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.DS_Store
+skills-lock.json
+js/version.js
+doc/
+AGENTS.md
