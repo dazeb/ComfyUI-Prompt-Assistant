@@ -39,17 +39,21 @@ Available prompt templates include:
 
 ## Supported Services
 
-Any OpenAI-compatible API works. Built-in examples:
+Any OpenAI-compatible API works. Built-in providers come preconfigured:
 
-| Service | Type | Notes |
-|---------|------|-------|
-| **Baidu Translate** | Machine translation | Free tier: 5M chars/month |
-| **ZhipuAI (GLM)** | LLM | Fast, unlimited (rate-limited recently) |
-| **xFlow-API** | Aggregator | One API key for Gemini, Grok, ChatGPT, etc. |
-| **Ollama** | Local LLM | Run models on your own hardware |
-| Custom OpenAI-compatible | Any | Bring your own endpoint |
+| Service | Type | Base URL | Notes |
+|---------|------|----------|-------|
+| **OpenAI** | LLM + Vision | `https://api.openai.com/v1` | GPT-4o, GPT-4o-mini, o3-mini. Use API key or Codex OAuth. |
+| **Anthropic Claude** | LLM | — | Requires an OpenAI-compatible proxy or use via OpenRouter. Native Claude API (`/v1/messages`) is not directly supported. |
+| **OpenRouter** | LLM + Vision | `https://openrouter.ai/api/v1` | 200+ models through one API (Claude, GPT, Gemini, DeepSeek, etc.) |
+| **OpenCode Go** | LLM + Vision | `https://opencode.ai/go/v1` | Free high-speed inference. Models: qwen3.6-plus, deepseek-v4-flash, mimo-v2-pro. |
+| **OpenCode Zen** | LLM + Vision | `https://opencode.ai/zen/v1` | Free high-speed Zen tier. Models: big-pickle, qwen3.6-plus. |
+| **ZhipuAI (GLM)** | LLM + Vision | `https://open.bigmodel.cn/api/paas/v4` | Free GLM series models. No API key needed for limited usage. |
+| **xFlow-API** | LLM + Vision | `https://api.xflow.cc/v1` | Aggregator — one key for Gemini, Grok, ChatGPT, etc. |
+| **Ollama** | LLM + Vision | `http://localhost:11434/` | Local models — bring your own. Auto-discovers installed models. |
+| **Custom** | Any | Any | Add your own OpenAI-compatible endpoint with any model list. |
 
-Each feature (translate, expand, caption) can use a different service independently.
+Each feature (translate, expand, caption) can use a different service independently. Services auto-discover available models via `GET /v1/models` where supported.
 
 ---
 
