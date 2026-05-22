@@ -78,7 +78,7 @@
     78|        configEndpoint: '/config/translate',
     79|        serviceType: 'translate',
     80|        filterKey: 'llm_models',
-    81|        includeBaidu: true
+    81|        includeDeepSeek: true
     82|    },
     83|    llm: {
     84|        name: tUI('Prompt optimization'),
@@ -190,16 +190,16 @@
    190|        const services = await this.getServices();
    191|        const options = [];
    192|
-   193|        // 添加百度Translation选项（仅Translation类型）
-   194|        if (config.includeBaidu) {
-   195|            options.push({ value: 'baidu', text: tUI('Baidu Translation') });
+   193|        // 添加DeepSeek Translation选项（仅Translation类型）
+   194|        if (config.includeDeepSeek) {
+   195|            options.push({ value: 'deepseek_translate', text: tUI('DeepSeek Translation') });
    196|        }
    197|
    198|        // 过滤并添加其他服务
    199|        services
    200|            .filter(service => {
    201|                const models = service[config.filterKey];
-   202|                return models && models.length > 0;
+   202|                return models && models.length > 0 && service.id !== 'deepseek_translate';
    203|            })
    204|            .forEach(service => {
    205|                options.push({

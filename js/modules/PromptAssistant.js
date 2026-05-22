@@ -2208,7 +2208,7 @@ class PromptAssistant {
                                     }
 
                                     if (isBaidu) {
-                                        // 百度翻译不支持流式，使用原有接口（自动降级）
+                                        // DeepSeek translation uses the standard LLM path
                                         result = await APIService.baiduTranslate(
                                             contentToTranslate,
                                             langResult.from,
@@ -2343,25 +2343,23 @@ class PromptAssistant {
                     // 创建服务菜单项
                     const serviceMenuItems = [];
 
-                    // 百度翻译项（永远显示在第一位）
-                    const isBaiduCurrent = currentTranslateService === 'baidu';
+                    // DeepSeek Translation项（永远显示在第一位）
+                    const isDeepSeekCurrent = currentTranslateService === 'deepseek_translate';
                     serviceMenuItems.push({
-                        label: '百度翻译',
-                        icon: `<span class="pi ${isBaiduCurrent ? 'pi-check-circle active-status' : 'pi-circle-off inactive-status'}"></span>`,
+                        label: 'DeepSeek Translation',
+                        icon: `<span class="pi ${isDeepSeekCurrent ? 'pi-check-circle active-status' : 'pi-circle-off inactive-status'}"></span>`,
                         onClick: async (context) => {
                             try {
-                                const res = await fetch(APIService.getApiUrl('/services/current'), {
+                                const res = await fetch(APIService.getApiUrl('/settings/service'), {
                                     method: 'POST',
                                     headers: { 'Content-Type': 'application/json' },
-                                    body: JSON.stringify({ service_type: 'translate', service_id: 'baidu' })
+                                    body: JSON.stringify({ service_type: 'translate', service_id: 'deepseek_translate' })
                                 });
                                 if (!res.ok) throw new Error(`服务器返回错误: ${res.status}`);
-                                UIToolkit.showStatusTip(context.buttonElement, 'success', `已切换到: 百度翻译`);
-                                logger.log(`翻译服务切换 | 服务: 百度翻译`);
 
                                 // 派发全局事件通知其他组件同步
                                 window.dispatchEvent(new CustomEvent('pa-service-changed', {
-                                    detail: { service_type: 'translate', service_id: 'baidu' }
+                                    detail: { service_type: 'translate', service_id: 'deepseek_translate' }
                                 }));
                             } catch (err) {
                                 logger.error(`切换翻译服务失败: ${err.message}`);
@@ -2372,7 +2370,7 @@ class PromptAssistant {
 
                     // 动态添加其他LLM服务
                     const otherServiceMenuItems = services
-                        .filter(service => service.llm_models && service.llm_models.length > 0)
+                        .filter(service => service.id !== 'deepseek_translate' && service.llm_models && service.llm_models.length > 0)
                         .map(service => {
                             const isCurrentService = currentTranslateService === service.id;
 

@@ -606,12 +606,12 @@ class MigrationTool:
 
         translate_service = current_services.get('translate', {})
         translate_id = translate_service.get('service') if isinstance(translate_service, dict) else None
-        if translate_id in {'baidu', 'zhipu', 'xFlow', None, ''} and 'opencode_go' in service_map:
+        if translate_id in {'baidu', 'zhipu', 'xFlow', None, ''} and 'deepseek_translate' in service_map:
             current_services['translate'] = {
-                'service': 'opencode_go',
-                'model': first_model_id(service_map['opencode_go'])
+                'service': 'deepseek_translate',
+                'model': first_model_id(service_map['deepseek_translate'])
             }
-            self._log("[config.json] 切换翻译默认服务到 OpenCode Go")
+            self._log("[config.json] 切换翻译默认服务到 DeepSeek Translate")
 
     def _update_json_file(self, file_path, default_data, file_desc):
         """

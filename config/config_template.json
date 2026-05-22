@@ -7,84 +7,6 @@
   },
   "model_services": [
     {
-      "id": "zhipu",
-      "type": "openai_compatible",
-      "name": "Zhipu",
-      "description": "Free GLM-series models",
-      "base_url": "https://open.bigmodel.cn/api/paas/v4",
-      "api_key": "",
-      "disable_thinking": true,
-      "enable_advanced_params": true,
-      "filter_thinking_output": true,
-      "llm_models": [
-        {
-          "name": "glm-4-flash-250414",
-          "display_name": "",
-          "is_default": true,
-          "temperature": 0.7,
-          "max_tokens": 4096,
-          "top_p": 0.9
-        },
-        {
-          "name": "glm-4.5-flash",
-          "display_name": "",
-          "is_default": false,
-          "temperature": 0.7,
-          "max_tokens": 4096,
-          "top_p": 0.9
-        }
-      ],
-      "vlm_models": [
-        {
-          "name": "glm-4.6V-Flash",
-          "display_name": "",
-          "is_default": true,
-          "temperature": 0.7,
-          "max_tokens": 4096,
-          "top_p": 0.9
-        },
-        {
-          "name": "glm-4v-flash",
-          "display_name": "",
-          "is_default": false,
-          "temperature": 0.7,
-          "max_tokens": 4096,
-          "top_p": 0.9
-        }
-      ]
-    },
-    {
-      "id": "xFlow",
-      "type": "openai_compatible",
-      "name": "xFlow API Aggregator",
-      "description": "Gemini, Grok, ChatGPT, and more",
-      "base_url": "https://api.xflow.cc/v1",
-      "api_key": "",
-      "disable_thinking": true,
-      "enable_advanced_params": true,
-      "filter_thinking_output": true,
-      "llm_models": [
-        {
-          "name": "gemini-3-flash-preview-nothinking",
-          "display_name": "",
-          "is_default": true,
-          "temperature": 0.7,
-          "max_tokens": 4096,
-          "top_p": 0.9
-        }
-      ],
-      "vlm_models": [
-        {
-          "name": "grok-4-1-fast-non-reasoning",
-          "display_name": "",
-          "is_default": true,
-          "temperature": 0.7,
-          "max_tokens": 4096,
-          "top_p": 0.9
-        }
-      ]
-    },
-    {
       "id": "opencode_zen",
       "type": "openai_compatible",
       "name": "OpenCode Zen",
@@ -104,7 +26,16 @@
           "top_p": 0.9
         }
       ],
-      "vlm_models": []
+      "vlm_models": [
+        {
+          "name": "gemini-3-flash",
+          "display_name": "",
+          "is_default": true,
+          "temperature": 0.7,
+          "max_tokens": 4096,
+          "top_p": 0.9
+        }
+      ]
     },
     {
       "id": "opencode_go",
@@ -126,7 +57,16 @@
           "top_p": 0.9
         }
       ],
-      "vlm_models": []
+      "vlm_models": [
+        {
+          "name": "glm-5",
+          "display_name": "",
+          "is_default": true,
+          "temperature": 0.7,
+          "max_tokens": 4096,
+          "top_p": 0.9
+        }
+      ]
     },
     {
       "id": "ollama",
@@ -141,6 +81,28 @@
       "filter_thinking_output": true,
       "llm_models": [],
       "vlm_models": []
+    },
+    {
+      "id": "deepseek_translate",
+      "type": "openai_compatible",
+      "name": "DeepSeek Translate",
+      "description": "API key access to DeepSeek translation models",
+      "base_url": "https://api.deepseek.com/v1",
+      "api_key": "",
+      "disable_thinking": true,
+      "enable_advanced_params": true,
+      "filter_thinking_output": true,
+      "llm_models": [
+        {
+          "name": "deepseek-v4-flash",
+          "display_name": "",
+          "is_default": true,
+          "temperature": 0.7,
+          "max_tokens": 4096,
+          "top_p": 0.9
+        }
+      ],
+      "vlm_models": []
     }
   ],
   "current_services": {
@@ -149,12 +111,12 @@
       "model": "gemini-3-flash"
     },
     "vlm": {
-      "service": "zhipu",
-      "model": "glm-4v-flash"
+      "service": "opencode_zen",
+      "model": "gemini-3-flash"
     },
     "translate": {
-      "service": "opencode_go",
-      "model": "glm-5"
+      "service": "deepseek_translate",
+      "model": "deepseek-v4-flash"
     }
   }
 }

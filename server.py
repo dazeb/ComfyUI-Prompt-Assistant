@@ -401,10 +401,7 @@ async def get_service_models(request):
         api_key = service.get('api_key', '')
         service_type = service.get('type', 'openai_compatible')
         
-        # 特殊处理:智谱服务强制使用 'zhipu' 类型(使用预定义列表)
-        if service_id == 'zhipu':
-            service_type = 'zhipu'
-        
+
         # 获取模型列表（新格式包含success和error）
         result = get_models_from_service(base_url, api_key, service_type)
         
@@ -1030,7 +1027,7 @@ async def update_llm_config(request):
         if providers:
             # 逐个更新各提供商的配置
             for provider, provider_config in providers.items():
-                if provider not in ['zhipu', 'siliconflow', '302ai', 'ollama', 'custom']:
+                if provider not in ['opencode_zen', 'opencode_go', 'siliconflow', '302ai', 'ollama', 'custom']:
                     continue
                     
                 model = provider_config.get('model')
@@ -1091,7 +1088,7 @@ async def update_vision_config(request):
         if providers:
             # 逐个更新各提供商的配置
             for provider, provider_config in providers.items():
-                if provider not in ['zhipu', 'siliconflow', '302ai', 'ollama', 'custom']:
+                if provider not in ['opencode_zen', 'opencode_go', 'siliconflow', '302ai', 'ollama', 'custom']:
                     continue
                     
                 model = provider_config.get('model')
@@ -1868,7 +1865,7 @@ async def get_models_list(request):
     """
     获取模型列表API
     请求参数:
-    - provider: 服务提供商 (zhipu, siliconflow, 302ai, ollama, custom)
+    - provider: 服务提供商 (opencode_zen, opencode_go, siliconflow, 302ai, ollama, custom)
     - model_type: 模型类型 ('llm' 或 'vision')
     - recommended: 是否获取推荐列表 (可选，默认False)
     """

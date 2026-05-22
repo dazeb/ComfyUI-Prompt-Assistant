@@ -1232,21 +1232,21 @@ class NodeHelpTranslator {
 
         const menuItems = [];
 
-        // 1. 添加百度翻译选项（始终显示）
-        const isBaidu = currentServiceId === 'baidu';
+        // 1. 添加 DeepSeek 翻译选项（始终显示）
+        const isDeepSeek = currentServiceId === 'deepseek_translate';
         menuItems.push({
-            label: '百度翻译',
-            icon: isBaidu ? 'pi pi-check' : '',
+            label: 'DeepSeek Translation',
+            icon: isDeepSeek ? 'pi pi-check' : '',
             command: async () => {
-                const success = await this._setTranslateConfig('baidu', '');
+                const success = await this._setTranslateConfig('deepseek_translate', '');
                 if (success) {
                     // 立即更新本地缓存，实现实时同步
-                    this._currentTranslateConfig = { provider: 'baidu', model: '' };
+                    this._currentTranslateConfig = { provider: 'deepseek_translate', model: '' };
 
                     UIToolkit.showStatusTip(
                         document.querySelector(`.pa-translate-btn[data-node-name="${nodeName}"]`),
                         'success',
-                        '已选择: 百度翻译'
+                        'Selected: DeepSeek Translation'
                     );
                     if (this.currentHelpPanel.splitBtn) {
                         this.currentHelpPanel.splitBtn.updateMenu(this._getMenuItems(nodeName, currentMode));
@@ -1254,7 +1254,7 @@ class NodeHelpTranslator {
 
                     // 广播全局服务变更事件，通知其他组件同步
                     window.dispatchEvent(new CustomEvent('pa-service-changed', {
-                        detail: { service_type: 'translate', service_id: 'baidu' }
+                        detail: { service_type: 'translate', service_id: 'deepseek_translate' }
                     }));
                 }
             }
@@ -1263,7 +1263,7 @@ class NodeHelpTranslator {
         menuItems.push({ separator: true });
 
         // 2. 为每个 LLM 服务创建菜单项
-        services.filter(s => s.llm_models && s.llm_models.length > 0).forEach(service => {
+        services.filter(s => s.id !== 'deepseek_translate' && s.llm_models && s.llm_models.length > 0).forEach(service => {
             const isCurrentService = currentServiceId === service.id;
             const models = service.llm_models || [];
 

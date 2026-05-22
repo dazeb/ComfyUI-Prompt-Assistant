@@ -807,19 +807,17 @@ class ConfigManager:
             current_service_id = current_service_info.get('service')
             current_model_name = current_service_info.get('model')
         else:
-            # 未设置，默认使用百度翻译
-            current_service_id = 'baidu'
+            # 未设置，默认使用 DeepSeek 翻译
+            current_service_id = 'deepseek_translate'
             current_model_name = None
         
-        # 百度翻译特殊处理（使用独立的baidu_translate配置）
+        # DeepSeek 翻译特殊处理（兼容旧配置）
         if current_service_id == 'baidu':
-            baidu_config = self.get_baidu_translate_config()
             return {
-                "provider": "baidu",
-                "model": "",
-                "base_url": "",
-                "api_key": baidu_config.get('app_id', ''),
-                "secret_key": baidu_config.get('secret_key', ''),
+                "provider": "deepseek_translate",
+                "model": "deepseek-v4-flash",
+                "base_url": "https://api.deepseek.com/v1",
+                "api_key": "",
                 "temperature": 0.7,
                 "max_tokens": 1000,
                 "top_p": 0.9,
@@ -829,14 +827,12 @@ class ConfigManager:
         # 查找对应的LLM服务
         service = self._get_service_by_id(current_service_id)
         if not service:
-            # 服务不存在，回退到百度翻译
-            baidu_config = self.get_baidu_translate_config()
+            # 服务不存在，回退到 DeepSeek 翻译
             return {
-                "provider": "baidu",
-                "model": "",
-                "base_url": "",
-                "api_key": baidu_config.get('app_id', ''),
-                "secret_key": baidu_config.get('secret_key', ''),
+                "provider": "deepseek_translate",
+                "model": "deepseek-v4-flash",
+                "base_url": "https://api.deepseek.com/v1",
+                "api_key": "",
                 "temperature": 0.7,
                 "max_tokens": 1000,
                 "top_p": 0.9,
@@ -857,14 +853,12 @@ class ConfigManager:
                                 llm_models[0] if llm_models else None)
         
         if not target_model:
-            # 没有可用模型，回退到百度翻译
-            baidu_config = self.get_baidu_translate_config()
+            # 没有可用模型，回退到 DeepSeek 翻译
             return {
-                "provider": "baidu",
-                "model": "",
-                "base_url": "",
-                "api_key": baidu_config.get('app_id', ''),
-                "secret_key": baidu_config.get('secret_key', ''),
+                "provider": "deepseek_translate",
+                "model": "deepseek-v4-flash",
+                "base_url": "https://api.deepseek.com/v1",
+                "api_key": "",
                 "temperature": 0.7,
                 "max_tokens": 1000,
                 "top_p": 0.9,

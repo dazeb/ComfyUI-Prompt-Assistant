@@ -12,39 +12,6 @@ except ImportError:
     # 如果导入失败,使用默认值
     ERROR_PREFIX = "✨-错误"
 
-# --- 智谱AI预定义模型列表 ---
-ZHIPU_MODELS = [
-    "glm-5.1",
-    "glm-5",
-    "glm-5-turbo",
-    "glm-5v-turbo",
-    "glm-4.7",
-    "glm-4.7-flash",
-    "glm-4.7-flashx",
-    "glm-4.6",
-    "glm-4.6v",
-    "glm-4.6v-flash",
-    "glm-4.5",
-    "glm-4.5-flash",
-    "glm-4.5-air",
-    "glm-4.5-airx",
-    "glm-4.5v",
-    "glm-4-plus",
-    "glm-4-flash",
-    "glm-4-flash-250414",
-    "glm-4-air",
-    "glm-4-air-250414",
-    "glm-z1-flash",
-    "glm-4v-plus",
-    "glm-4v-flash",
-    "glm-4v",
-    "glm-ocr",
-    "glm-4-long",
-    "glm-4-longwriter",
-    "glm-zero-preview",
-    "glm-4.1v-thinking-flash"
-]
-
 def get_models_from_service(base_url: str, api_key: str, service_type: str) -> Dict:
 
     """
@@ -53,7 +20,7 @@ def get_models_from_service(base_url: str, api_key: str, service_type: str) -> D
     参数:
         base_url: API基础URL
         api_key: API密钥
-        service_type: 服务类型 ('openai_compatible', 'ollama', 'zhipu')
+        service_type: 服务类型 ('openai_compatible', 'ollama')
     
     返回:
         Dict: {
@@ -70,10 +37,7 @@ def get_models_from_service(base_url: str, api_key: str, service_type: str) -> D
                 "error": "请填写Base URL"
             }
         
-        # 智谱使用预定义列表,不需要API Key验证
-        if service_type == 'zhipu':
-            return _get_zhipu_models()
-        
+
         if service_type == 'openai_compatible' and not api_key:
             return {
                 "success": False,
@@ -244,19 +208,5 @@ def _fetch_ollama_models(base_url: str) -> Dict:
             "success": False,
             "error": f"获取Ollama模型失败: {str(e)}"
         }
-
-
-def _get_zhipu_models() -> Dict:
-    """
-    获取智谱AI的预定义模型列表
-    智谱AI暂不提供公开的模型列表API,使用预定义列表
-    """
-    return {
-        "success": True,
-        "models": {
-            "llm": ZHIPU_MODELS.copy(),
-            "vlm": ZHIPU_MODELS.copy()
-        }
-    }
 
 
