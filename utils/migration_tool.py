@@ -509,7 +509,10 @@ class MigrationTool:
             
             # 2. model_services 按 id 匹配合并
             self._merge_model_services(user_config, default_config)
-            
+
+            # 3. 将已弃用的中国服务默认切换到 OpenCode API-key 服务
+            self._migrate_current_services_to_opencode(user_config, default_config)
+
             # 更新版本号（重构字典确保版本号在开头）
             user_config = {'__config_version': template_version, **{k: v for k, v in user_config.items() if k != '__config_version'}}
             
@@ -574,6 +577,41 @@ class MigrationTool:
             new_service = copy.deepcopy(template_service)
             user_config['model_services'].append(new_service)
             self._log(f"[config.json] 追加新服务商: {new_service.get('name', service_id)}")
+
+    def _migrate_current_services_to_opencode(self, user_config, default_config):
+        """Prefer OpenCode services for prompt optimization and translation when available."""
+        current_services = user_config.get('current_services')
+        current_services = user_config.get('current_services')
+        if not isinstance(current_services, dict):
+            return
+
+        model_services = default_config.get('model_services', [])
+        service_map = {svc.get('id'): svc for svc in model_services if svc.get('id')}
+
+        def first_model_id(service):
+            for key in ('llm_models', 'vlm_models'):
+                for model in service.get(key, []) or []:
+                    if isinstance(model, dict) and model.get('name'):
+                        return model['name']
+            return ''
+
+        llm_service = current_services.get('llm', {})
+        llm_id = llm_service.get('service') if isinstance(llm_service, dict) else None
+        if llm_id in {'zhipu', 'xFlow', 'baidu', None, ''} and 'opencode_zen' in service_map:
+            current_services['llm'] = {
+                'service': 'opencode_zen',
+                'model': first_model_id(service_map['opencode_zen'])
+            }
+            self._log("[config.json] 切换 LLM 默认服务到 OpenCode Zen")
+
+        translate_service = current_services.get('translate', {})
+        translate_id = translate_service.get('service') if isinstance(translate_service, dict) else None
+        if translate_id in {'baidu', 'zhipu', 'xFlow', None, ''} and 'opencode_go' in service_map:
+            current_services['translate'] = {
+                'service': 'opencode_go',
+                'model': first_model_id(service_map['opencode_go'])
+            }
+            self._log("[config.json] 切换翻译默认服务到 OpenCode Go")
 
     def _update_json_file(self, file_path, default_data, file_desc):
         """

@@ -24,7 +24,7 @@ import { tUI } from "../utils/uiI18n.js";
 
 class APIConfigManager {
     // 预置服务商ID列表（不可编辑/删除）
-    static PRESET_SERVICE_IDS = ['zhipu', 'xFlow', 'ollama'];
+    static PRESET_SERVICE_IDS = ['zhipu', 'xFlow', 'opencode_zen', 'opencode_go', 'ollama'];
 
     constructor() {
         // 服务商数据

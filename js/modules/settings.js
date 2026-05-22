@@ -476,12 +476,12 @@ export async function registerSettings() {
             settings: localizeSettingsPayload([
                 {
                     id: UI_LANGUAGE_SETTING_ID,
-                    name: "界面语言",
-                    category: ["✨提示词小助手", "系统", "界面语言"],
+                    name: "Interface Language",
+                    category: ["✨ Prompt Assistant", "System", "Interface Language"],
                     type: "combo",
                     options: LANGUAGE_OPTIONS,
                     defaultValue: "en",
-                    tooltip: "切换插件界面语言，修改后自动刷新页面生效",
+                    tooltip: "Switch the plugin UI language; the page refreshes automatically after changes take effect",
                     onChange: (value) => {
                         const previous = getStoredUiLanguage();
                         const normalized = persistUiLanguage(value);
@@ -834,17 +834,17 @@ export async function registerSettings() {
                 // 混合语言翻译规则
                 {
                     id: "PromptAssistant.Features.MixedLangTranslateRule",
-                    name: "混合语言翻译规则",
-                    category: ["✨提示词小助手", " 翻译功能设置", "混合语言规则"],
+                    name: "Mixed Language Translation Rule",
+                    category: ["✨ Prompt Assistant", "Translation Settings", "Mixed Language Rule"],
                     type: "combo",
                     options: [
-                        { text: "翻译成英文", value: "to_en" },
-                        { text: "翻译成中文", value: "to_zh" },
-                        { text: "自动翻译小比例语言", value: "auto_minor" },
-                        { text: "自动翻译大比例语言", value: "auto_major" }
+                        { text: "Translate to English", value: "to_en" },
+                        { text: "Translate to Chinese", value: "to_zh" },
+                        { text: "Auto-translate minority-language text", value: "auto_minor" },
+                        { text: "Auto-translate majority-language text", value: "auto_major" }
                     ],
                     defaultValue: "to_en",
-                    tooltip: "根据个人使用偏好设置混合中英文内容的翻译规则",
+                    tooltip: "Set the translation rule for mixed Chinese/English content based on your preference",
                     onChange: (value) => {
                         FEATURES.mixedLangTranslateRule = value;
                         logger.log(`混合语言翻译规则 - 已设置为:${value}`);

@@ -1,5 +1,5 @@
 {
-  "__config_version": "2.1",
+  "__config_version": "2.2",
   "__comment": "提示词小助手配置文件模板",
   "baidu_translate": {
     "app_id": "",
@@ -85,6 +85,50 @@
       ]
     },
     {
+      "id": "opencode_zen",
+      "type": "openai_compatible",
+      "name": "OpenCode Zen",
+      "description": "API key access to curated models",
+      "base_url": "https://opencode.ai/zen/v1",
+      "api_key": "",
+      "disable_thinking": true,
+      "enable_advanced_params": true,
+      "filter_thinking_output": true,
+      "llm_models": [
+        {
+          "name": "gemini-3-flash",
+          "display_name": "",
+          "is_default": true,
+          "temperature": 0.7,
+          "max_tokens": 4096,
+          "top_p": 0.9
+        }
+      ],
+      "vlm_models": []
+    },
+    {
+      "id": "opencode_go",
+      "type": "openai_compatible",
+      "name": "OpenCode Go",
+      "description": "API key access to open models",
+      "base_url": "https://opencode.ai/zen/go/v1",
+      "api_key": "",
+      "disable_thinking": true,
+      "enable_advanced_params": true,
+      "filter_thinking_output": true,
+      "llm_models": [
+        {
+          "name": "glm-5",
+          "display_name": "",
+          "is_default": true,
+          "temperature": 0.7,
+          "max_tokens": 4096,
+          "top_p": 0.9
+        }
+      ],
+      "vlm_models": []
+    },
+    {
       "id": "ollama",
       "type": "ollama",
       "name": "Ollama",
@@ -101,16 +145,16 @@
   ],
   "current_services": {
     "llm": {
-      "service": "zhipu",
-      "model": "glm-4.5-flash"
+      "service": "opencode_zen",
+      "model": "gemini-3-flash"
     },
     "vlm": {
       "service": "zhipu",
       "model": "glm-4v-flash"
     },
     "translate": {
-      "service": "baidu",
-      "model": ""
+      "service": "opencode_go",
+      "model": "glm-5"
     }
   }
 }

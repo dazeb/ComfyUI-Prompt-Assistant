@@ -1,6 +1,6 @@
 {
-    "常规标签": {
-        "画质": {
+    "General Tags": {
+        "Quality": {
             "杰作": "masterpiece",
             "写实": "realistic",
             "提高质量": "HDR,UHD,8K",
@@ -21,7 +21,7 @@
             "添加鲜艳色彩": "Vivid Colors",
             "扫描": "High resolution scan"
         },
-        "负面标签": {
+        "Negative Tags": {
             "基础负面": "low resolution,worst quality, low quality, normal quality, lowres,jpeg, cropped, bad composition, artifacts bad proportions, error, inaccurate limb, bad anatomy, bad, ugly, terrible, extra fingers, fewer fingers, missing fingers, extra arms, extra legs, inaccurate eyes,extra digit, fewer digits, trademark, artist's name, username, watermarksignature, watermark,text, words",
             "低分辨率": "lowres",
             "NSFW": "nsfw",
@@ -43,7 +43,7 @@
             "身体长": "long body",
             "张嘴": "gape"
         },
-        "摄影": {
+        "Photography": {
             "相机设置": "(EOS R8,50mm,F1.2,8K,RAW photo",
             "散景": "Bokeh",
             "景深": "depth of field",
@@ -51,7 +51,7 @@
             "微距": "macro",
             "大光圈": "wide aperture"
         },
-        "光影": {
+        "Lighting": {
             "演播室灯光": "Studio lighting",
             "电影光效": "cinematic_lighting",
             "镜头光晕": "lens_flare",
@@ -76,7 +76,7 @@
             "背景光": "background light",
             "自然光": "available light"
         },
-        "构图": {
+        "Composition": {
             "全身": "full body",
             "半身像": "portrait",
             "上半身": "upper body",
@@ -103,8 +103,8 @@
             "裙底视角": "phone_screen"
         }
     },
-    "艺术题材": {
-        "表现形式": {
+    "Art Subjects": {
+        "Presentation Styles": {
             "动漫": "Anime",
             "Q版": "Chibi",
             "摄影": "Photographic",
@@ -113,7 +113,7 @@
             "四格漫画": "4koma",
             "幻想艺术": "Fantasy Art"
         },
-        "绘画技法": {
+        "Painting Techniques": {
             "素描": "Sketch",
             "漫画": "Comic",
             "厚涂": "Impasto",
@@ -124,7 +124,7 @@
             "马克笔": "Marker",
             "超写实": "Photorealism"
         },
-        "技术风格": {
+        "Technical Styles": {
             "像素艺术": "Pixel Art",
             "低多边形": "Low Poly",
             "等距艺术": "Isometric",
@@ -135,11 +135,11 @@
             "新拟物风格": "Neumorphism",
             "3D插画": "3D Graphics"
         },
-        "艺术家风格": {
+        "Artist Styles": {
             "宫崎骏风格": "Hayao Miyazaki Style",
             "蒂姆伯顿风格": "Tim Burton Style"
         },
-        "艺术流派": {
+        "Art Movements": {
             "赛博朋克": "Cyberpunk",
             "霓虹朋克": "Neon Punk",
             "蒸汽波": "Vaporwave",
@@ -149,21 +149,21 @@
             "构成主义": "Constructivism",
             "孟菲斯风格": "Memphis"
         },
-        "媒介与效果": {
+        "Medium & Effects": {
             "胶片滤镜": "Analog Film",
             "电影质感": "Cinematic",
             "胶片电影": "Celluloid",
             "复古风格": "Retro Style"
         },
-        "载体与应用": {
+        "Formats & Usage": {
             "杂志封面": "Magazine Cover",
             "海报": "Poster",
             "拍立得": "Polaroid"
         }
     },
-    "人物类": {
-        "人设": {
-            "职业": {
+    "Characters": {
+        "Character Concepts": {
+            "Occupation": {
                 "公主": "princess",
                 "舞者": "dancer",
                 "啦啦队": "cheerleader",
@@ -196,7 +196,7 @@
                 "类人机器人": "humanoid robot",
                 "半机械人": "cyborg"
             },
-            "性别/年龄": {
+            "Gender / Age": {
                 "单人": "solo",
                 "女人": "female",
                 "男人": "male",
@@ -209,7 +209,7 @@
                 "熟女": "mature female",
                 "老年": "old"
             },
-            "胸部": {
+            "Chest": {
                 "胸": "chest",
                 "胸肌": "pectorals",
                 "大胸肌": "large pectorals",
@@ -220,7 +220,7 @@
                 "魔乳(F": "gigantic breasts",
                 "未扣扣子": "unbuttoned clothes"
             },
-            "脸型": {
+            "Face Shape": {
                 "瓜子脸": "heart-shaped face",
                 "鹅蛋脸": "oval face",
                 "国字脸": "square face",
@@ -233,7 +233,7 @@
                 "柔和的脸": "Soft face",
                 "棱角分明的脸": "Angular face"
             },
-            "鼻子": {
+            "Nose": {
                 "蒜头鼻": "pug nose",
                 "肉鼻子": "dumpy nose",
                 "朝天鼻": "upturned nose",
@@ -244,7 +244,7 @@
                 "长鼻": "Long nose",
                 "短鼻": "Short nose"
             },
-            "嘴巴": {
+            "Mouth": {
                 "樱桃小嘴": "Cupid mouth",
                 "心形嘴": "Heart-shaped mouth",
                 "薄唇": "Thin mouth",
@@ -254,7 +254,7 @@
                 "上扬唇": "Up-turned lips",
                 "下撇唇": "Down-turned lips"
             },
-            "皮肤": {
+            "Skin": {
                 "有光泽的皮肤": "shiny skin",
                 "苍白皮肤": "pale skin",
                 "白皙皮肤": "white skin",
@@ -1401,8 +1401,8 @@
             }
         }
     },
-    "场景": {
-        "自然": {
+    "Scenes": {
+        "Nature": {
             "大海": "ocean",
             "海滩": "beach",
             "湖泊": "lake",
@@ -1441,7 +1441,7 @@
             "冬": "winter",
             "夏": "summer"
         },
-        "室外": {
+        "Outdoors": {
             "公园": "park",
             "吊架；秋千": "Trapeze",
             "面包店": "bakery",
@@ -1474,7 +1474,7 @@
             "意大利_威尼斯": "venice",
             "铁路": "railway"
         },
-        "城市": {
+        "Cities": {
             "天际线": "city",
             "城市风景": "cityscape",
             "街道": "street",
@@ -1495,8 +1495,8 @@
             "自动贩卖机": "vending_machine",
             "摩天楼": "Skyscraper"
         },
-        "建筑": {
-            "建筑": "magnificent_architecture",
+        "Architecture": {
+            "Architecture": "magnificent_architecture",
             "摩天楼": "Skyscraper",
             "东亚建筑": "east_asian_architecture",
             "鸟居/牌坊": "torii",
@@ -1514,7 +1514,7 @@
             "废墟堆": "remains",
             "建筑废墟": "rubble_ruins"
         },
-        "室内装饰": {
+        "Interior Decor": {
             "室内泳池": "indoor pool",
             "混合控制台": "mixing_console",
             "汽车驾驶室内": "car_seat,_seatbelt",
@@ -1553,7 +1553,7 @@
             "毛绒兔子": "stuffed_bunny",
             "小熊": "koakuma"
         },
-        "背景": {
+        "Backgrounds": {
             "单色背景": "monochrome_background",
             "简单的背景": "simple_background",
             "无背景|平铺的背景": "flats",
@@ -1578,7 +1578,7 @@
             "格子呢背景": "plaid_background",
             "圆斑背景": "striped_background"
         },
-        "自然景观": {
+        "Natural Landscapes": {
             "黄石国家公园": "yellowstone national park",
             "大峡谷": "grand canyon",
             "珠穆朗玛峰": "mount everest",
@@ -1609,7 +1609,7 @@
             "马丘比丘": "machu picchu",
             "塞尔维亚的德里纳河": "drina river"
         },
-        "人造景观": {
+        "Man-made Landscapes": {
             "万里长城": "great wall of china",
             "自由女神像": "statue of liberty",
             "埃菲尔铁塔": "eiffel tower",
