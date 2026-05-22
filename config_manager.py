@@ -66,7 +66,7 @@ class ConfigManager:
         self.default_user_tags = {"favorites": []}
         
         # Default tag selection
-        self.default_tags_selection = {"selected_file": "用户标签.csv"}
+        self.default_tags_selection = {"selected_file": "user_tags.csv"}
 
 
 
