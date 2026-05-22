@@ -1,8 +1,8 @@
 """
-Data migration tool
+数据迁移工具
 
-Used for migrating old version configuration files to new version
-Called on demand, does not affect normal runtime performance
+用于处理旧版本配置文件到新版本的迁移
+按需调用，不影响正常运行性能
 """
 
 import os
@@ -11,16 +11,16 @@ import csv
 
 
 class MigrationTool:
-    """Data migration tool class"""
+    """数据迁移工具类"""
     
     def __init__(self, plugin_dir, user_base_dir, logger=None):
         """
-        Initialize migration tool
+        初始化迁移工具
         
-        Args:
-            plugin_dir: Plugin directory path
-            user_base_dir: User configuration base directory
-            logger: Log function (optional)
+        参数:
+            plugin_dir: 插件目录路径
+            user_base_dir: 用户配置基础目录
+            logger: 日志函数（可选）
         """
         self.plugin_dir = plugin_dir
         self.user_base_dir = user_base_dir
@@ -32,22 +32,22 @@ class MigrationTool:
                 print(f"\r{_ANSI_CLEAR_EOL}{msg}", flush=True)
             self._log_func = default_logger
             
-        # Define paths
+        # 定义路径
         self.legacy_config_dir = os.path.join(plugin_dir, "config")
         self.config_dir = os.path.join(user_base_dir, "config")
         self.tags_dir = os.path.join(user_base_dir, "tags")
         self.rules_dir = os.path.join(user_base_dir, "rules")
             
     def _log(self, msg: str):
-        """Unified log call layer"""
+        """统一日志调用层"""
         self._log_func(msg)
 
-    # ---Version comparison tool---
+    # ---版本比对工具---
     def _compare_versions(self, v1: str, v2: str) -> int:
         """
-        Compare two version strings
+        比较两个版本号
         
-        Returns:
+        返回:
             1: v1 > v2
             0: v1 == v2
             -1: v1 < v2
@@ -55,7 +55,7 @@ class MigrationTool:
         def parse(v):
             return [int(x) for x in str(v).split('.')]
         p1, p2 = parse(v1), parse(v2)
-        # Pad to equal length
+        # 补齐长度
         max_len = max(len(p1), len(p2))
         p1.extend([0] * (max_len - len(p1)))
         p2.extend([0] * (max_len - len(p2)))
@@ -64,60 +64,60 @@ class MigrationTool:
             if a < b: return -1
         return 0
 
-    # ---config.json specific migration---
+    # ---config.json 专用迁移---
     def ensure_config_json_exists(self, file_path: str, default_data: dict, legacy_path: str = None) -> bool:
         """
-        Ensure config.json exists (specific migration logic)
+        确保 config.json 存在（专用迁移逻辑）
         
-        Logic:
-        1. File exists -> skip
-        2. File does not exist + legacy file exists -> extract API Key and model info, map to new service provider
-        3. File does not exist + no legacy file -> create default config
+        逻辑:
+        1. 文件存在 → 跳过
+        2. 文件不存在 + 旧文件存在 → 提取 API Key 和模型信息，映射到新服务商
+        3. 文件不存在 + 无旧文件 → 创建默认配置
         """
         if os.path.exists(file_path):
             return False
         
         os.makedirs(os.path.dirname(file_path), exist_ok=True)
         
-        # Check legacy version file
+        # 检查旧版本文件
         if legacy_path and os.path.exists(legacy_path):
             try:
                 with open(legacy_path, 'r', encoding='utf-8') as f:
                     legacy_data = json.load(f)
                 
-                # Execute specific migration: extract API Key and model info
+                # 执行专用迁移：提取 API Key 和模型信息
                 migrated_data = self._migrate_config_api_keys_to_services(legacy_data, default_data)
                 self._save_with_version(file_path, migrated_data, default_data)
-                self._log("[config.json] Migration from plugin directory complete (API Key and model info extracted)")
+                self._log("[config.json] 从插件目录迁移旧文件完成（已提取 API Key 和模型信息）")
                 return True
             except Exception as e:
-                self._log(f"[config.json] Migration of legacy file failed: {str(e)}, using default config")
+                self._log(f"[config.json] 迁移旧文件失败: {str(e)}，使用默认配置")
         
-        # Create default config
-        self._log("[config.json] File does not exist, creating default config...")
+        # 创建默认配置
+        self._log("[config.json] 文件不存在，创建默认配置...")
         self._save_with_version(file_path, default_data, default_data)
         return True
 
     def _migrate_config_api_keys_to_services(self, legacy_data: dict, default_data: dict) -> dict:
         """
-        Extract API Key and model info from legacy config, map to new config service providers
+        从旧配置提取 API Key 和模型信息，映射到新配置的服务商
         
-        Logic:
-        1. Iterate through services with API Keys in legacy config
-        2. Find corresponding service provider IDs in new config
-        3. If found, fill in API Key and model info
-        4. If not found, create new service provider
+        逻辑:
+        1. 遍历旧配置中有 API Key 的服务
+        2. 在新配置中查找对应的服务商 ID
+        3. 如果找到，填入 API Key 和模型信息
+        4. 如果找不到，创建新服务商
         """
         import copy
         result = copy.deepcopy(default_data)
         
-        # Extract service info from legacy config
+        # 提取旧配置中的服务信息
         legacy_services = legacy_data.get('model_services', [])
         if not legacy_services:
-            # Compatible with older format (llm/vlm providers)
+            # 兼容更旧的格式（llm/vlm providers）
             legacy_services = self._extract_legacy_providers(legacy_data)
         
-        # Build service ID mapping for new config
+        # 构建新配置服务商的 ID 映射
         new_services = result.get('model_services', [])
         service_id_map = {s.get('id'): i for i, s in enumerate(new_services)}
         
@@ -129,29 +129,29 @@ class MigrationTool:
             service_id = legacy_service.get('id', '')
             
             if service_id in service_id_map:
-                # Service exists, update API Key and model info
+                # 服务商存在，更新 API Key 和模型信息
                 idx = service_id_map[service_id]
                 new_services[idx]['api_key'] = api_key
                 
-                # Migrate model info
+                # 迁移模型信息
                 for model_type in ['llm_models', 'vlm_models']:
                     legacy_models = legacy_service.get(model_type, [])
                     if legacy_models:
                         new_services[idx][model_type] = legacy_models
                 
-                # Migrate other config
+                # 迁移其他配置
                 for key in ['base_url', 'auto_unload', 'disable_thinking', 'enable_advanced_params', 'filter_thinking_output']:
                     if key in legacy_service:
                         new_services[idx][key] = legacy_service[key]
                 
-                self._log(f"[config.json] Migrated service provider: {service_id}")
+                self._log(f"[config.json] 迁移服务商: {service_id}")
             else:
-                # Service does not exist, create new service provider
+                # 服务商不存在，创建新服务商
                 new_service = {
                     'id': service_id,
                     'type': legacy_service.get('type', 'openai_compatible'),
                     'name': legacy_service.get('name', service_id),
-                    'description': legacy_service.get('description', f'{service_id} (migrated from legacy)'),
+                    'description': legacy_service.get('description', f'{service_id}（从旧版迁移）'),
                     'base_url': legacy_service.get('base_url', ''),
                     'api_key': api_key,
                     'disable_thinking': legacy_service.get('disable_thinking', True),
@@ -161,13 +161,13 @@ class MigrationTool:
                     'vlm_models': legacy_service.get('vlm_models', [])
                 }
                 new_services.append(new_service)
-                self._log(f"[config.json] Created new service provider: {service_id}")
+                self._log(f"[config.json] 创建新服务商: {service_id}")
         
-        # Migrate current_services
+        # 迁移 current_services
         if 'current_services' in legacy_data:
             result['current_services'] = legacy_data['current_services']
         
-        # Migrate Baidu Translate config
+        # 迁移百度翻译配置
         if 'baidu_translate' in legacy_data:
             result['baidu_translate'] = legacy_data['baidu_translate']
         
@@ -176,16 +176,16 @@ class MigrationTool:
 
     def _extract_legacy_providers(self, legacy_data: dict) -> list:
         """
-        Extract service info from older config format (llm/vlm providers)
+        从更旧的配置格式（llm/vlm providers）提取服务信息
         
-        Compatible with v1.0 format:
+        兼容 v1.0 格式:
         {
             "llm": {"providers": {"zhipu": {...}, "custom": {...}}},
             "vlm": {"providers": {"zhipu": {...}}}
         }
         """
         services = []
-        provider_map = {}  # Used to merge llm and vlm config for the same provider
+        provider_map = {}  # 用于合并同一个 provider 的 llm 和 vlm 配置
         
         for service_type in ['llm', 'vlm']:
             if service_type not in legacy_data:
@@ -208,7 +208,7 @@ class MigrationTool:
                         'vlm_models': []
                     }
                 
-                # Add model info
+                # 添加模型信息
                 model_name = provider_config.get('model', '')
                 if model_name:
                     models_key = f'{service_type}_models'
@@ -225,21 +225,21 @@ class MigrationTool:
         return services
 
 
-    # ---Unified save method---
+    # ---统一保存方法---
     def _save_with_version(self, file_path: str, data: dict, default_data: dict) -> bool:
         """
-        Save config file, auto-handle version number
+        保存配置文件，自动处理版本号
         
-        Args:
-            file_path: Target file path
-            data: Data to save
-            default_data: Default config (for getting version number)
+        参数:
+            file_path: 目标文件路径
+            data: 要保存的数据
+            default_data: 默认配置（用于获取版本号）
             
-        Returns:
-            bool: True if save succeeded
+        返回:
+            bool: 保存成功返回 True
         """
         try:
-            # Ensure version number exists and is at the beginning
+            # 确保版本号存在且在开头
             version = data.get('__config_version') or default_data.get('__config_version', '2.0')
             data = {'__config_version': version, **{k: v for k, v in data.items() if k != '__config_version'}}
             
@@ -247,18 +247,18 @@ class MigrationTool:
                 json.dump(data, f, ensure_ascii=False, indent=2)
             return True
         except Exception as e:
-            self._log(f"Failed to save file [{os.path.basename(file_path)}]: {str(e)}")
+            self._log(f"保存文件失败 [{os.path.basename(file_path)}]: {str(e)}")
             return False
 
     def _ensure_simple_config(self, file_path: str, default_data: dict, file_desc: str = "config") -> bool:
         """
-        Simply ensure config file exists (no version management or migration)
+        简单确保配置文件存在（不进行版本管理和迁移）
         
-        Logic:
-        - File exists -> skip
-        - File does not exist -> create default config (without version number)
+        逻辑:
+        - 文件存在 → 跳过
+        - 文件不存在 → 创建默认配置（不含版本号）
         
-        Suitable for: active_prompts.json, tags_user.json and other simple config files
+        适用于: active_prompts.json, tags_user.json 等简单配置文件
         """
         if os.path.exists(file_path):
             return False
@@ -266,92 +266,92 @@ class MigrationTool:
         os.makedirs(os.path.dirname(file_path), exist_ok=True)
         
         try:
-            # Remove version number (these files don't need version management)
+            # 移除版本号（这些文件不需要版本管理）
             data_to_save = {k: v for k, v in default_data.items() if not k.startswith('__')}
             
             with open(file_path, 'w', encoding='utf-8') as f:
                 json.dump(data_to_save, f, ensure_ascii=False, indent=2)
-            self._log(f"[{file_desc}] File does not exist, creating default config...")
+            self._log(f"[{file_desc}] 文件不存在，创建默认配置...")
             return True
         except Exception as e:
-            self._log(f"[{file_desc}] Failed to create default config: {str(e)}")
+            self._log(f"[{file_desc}] 创建默认配置失败: {str(e)}")
             return False
 
-    # ---Ensure config file exists---
+    # ---配置文件确保存在---
     def ensure_config_exists(self, file_path: str, default_data: dict, legacy_path: str = None, file_desc: str = "config") -> bool:
         """
-        Ensure a single config file exists
+        确保单个配置文件存在
         
-        Logic:
-        1. File exists -> skip (incremental update handled by migrate_incremental_updates)
-        2. File does not exist + legacy file exists -> migrate legacy file, merge with default config, add version number
-        3. File does not exist + no legacy file -> create default config
+        逻辑:
+        1. 文件存在 → 跳过（增量更新由 migrate_incremental_updates 处理）
+        2. 文件不存在 + 旧文件存在 → 迁移旧文件，与默认配置合并，添加版本号
+        3. 文件不存在 + 无旧文件 → 创建默认配置
         
-        Args:
-            file_path: Target file path
-            default_data: Default config data
-            legacy_path: Legacy version file path (optional)
-            file_desc: File description (for logging)
+        参数:
+            file_path: 目标文件路径
+            default_data: 默认配置数据
+            legacy_path: 旧版本文件路径（可选）
+            file_desc: 文件描述（用于日志）
             
-        Returns:
-            bool: True if a new file was created, False if file already exists
+        返回:
+            bool: True 表示创建了新文件，False 表示文件已存在
         """
         if os.path.exists(file_path):
             return False
         
-        # Ensure directory exists
+        # 确保目录存在
         os.makedirs(os.path.dirname(file_path), exist_ok=True)
         
-        # Check if legacy version file exists
+        # 检查是否有旧版本文件
         if legacy_path and os.path.exists(legacy_path):
             try:
                 with open(legacy_path, 'r', encoding='utf-8') as f:
                     legacy_data = json.load(f)
                 
-                # Merge with default config, fill in missing fields
+                # 与默认配置合并，补全缺失的字段
                 merged_data = self._merge_with_defaults(legacy_data, default_data, file_desc)
                 self._save_with_version(file_path, merged_data, default_data)
-                self._log(f"[{file_desc}] Migration from plugin directory complete")
+                self._log(f"[{file_desc}] 从插件目录迁移旧文件完成")
                 return True
             except Exception as e:
-                self._log(f"[{file_desc}] Migration of legacy file failed: {str(e)}, using default config")
+                self._log(f"[{file_desc}] 迁移旧文件失败: {str(e)}，使用默认配置")
         
-        # Create default config
-        self._log(f"[{file_desc}] File does not exist, creating default config...")
+        # 创建默认配置
+        self._log(f"[{file_desc}] 文件不存在，创建默认配置...")
         self._save_with_version(file_path, default_data, default_data)
         return True
 
     def _merge_with_defaults(self, user_data: dict, default_data: dict, file_desc: str = "") -> dict:
         """
-        Merge user data with default config, fill in missing fields
+        将用户数据与默认配置合并，补全缺失的字段
         
-        Args:
-            user_data: User data (legacy version)
-            default_data: Default config
-            file_desc: File description (for logging)
+        参数:
+            user_data: 用户数据（旧版本）
+            default_data: 默认配置
+            file_desc: 文件描述（用于日志）
             
-        Returns:
-            Merged data
+        返回:
+            合并后的数据
         """
         import copy
         result = copy.deepcopy(default_data)
         
-        # Recursively merge user data into result (user data takes precedence)
+        # 递归合并用户数据到结果中（用户数据优先）
         self._recursive_merge(result, user_data, file_desc)
         
         return result
 
     def _recursive_merge(self, base: dict, overlay: dict, file_desc: str = "", path: str = ""):
         """
-        Recursively merge: overlay values overwrite base values (preserve base structure)
+        递归合并：将 overlay 的值覆盖到 base 中（保留 base 的结构）
         
-        Strategy:
-        - Keys present in overlay overwrite values in base
-        - If both are dicts, recurse
-        - Skip version fields (handled by _save_with_version)
+        策略:
+        - overlay 中存在的键覆盖 base 中的值
+        - 如果都是 dict，递归合并
+        - 跳过版本字段（由 _save_with_version 处理）
         """
         for key, value in overlay.items():
-            # Skip version fields
+            # 跳过版本字段
             if key.startswith("__"):
                 continue
                 
@@ -359,24 +359,24 @@ class MigrationTool:
             
             if key in base:
                 if isinstance(base[key], dict) and isinstance(value, dict):
-                    # Recursively merge nested dicts
+                    # 递归合并嵌套字典
                     self._recursive_merge(base[key], value, file_desc, current_path)
                 else:
-                    # Direct overwrite (user value takes precedence)
+                    # 直接覆盖（用户值优先）
                     base[key] = value
             else:
-                # Keys present in overlay but not in base, add directly (user custom content)
+                # overlay 中有但 base 中没有的键，直接添加（用户自定义内容）
                 base[key] = value
 
     def ensure_all_configs_exist(self, default_configs: dict, legacy_dir: str):
         """
-        Ensure all config files exist
+        确保所有配置文件存在
         
-        Args:
-            default_configs: Default config dict
-            legacy_dir: Legacy version file directory
+        参数:
+            default_configs: 默认配置字典
+            legacy_dir: 旧版本文件目录
         """
-        # config.json (using specific migration method)
+        # config.json（使用专用迁移方法）
         if 'config' in default_configs:
             self.ensure_config_json_exists(
                 os.path.join(self.config_dir, "config.json"),
@@ -393,8 +393,8 @@ class MigrationTool:
                 "system_prompts.json"
             )
         
-        # active_prompts.json and tags_user.json do not need version management and migration,
-        # just create default config when file does not exist
+        # active_prompts.json 和 tags_user.json 不需要版本管理和迁移，
+        # 直接在文件不存在时创建默认配置
         self._ensure_simple_config(
             os.path.join(self.config_dir, "active_prompts.json"),
             default_configs.get('active_prompts', {}),
@@ -418,10 +418,10 @@ class MigrationTool:
 
     def migrate_incremental_updates(self, default_configs):
         """
-        Execute incremental update: add new fields from default config to user config
+        执行增量更新：将默认配置中的新字段添加到用户配置中
         
-        Args:
-            default_configs: Dict containing various default configs
+        参数:
+            default_configs: 包含各类默认配置的字典
                 {
                     'config': ...,
                     'system_prompts': ...,
@@ -431,11 +431,11 @@ class MigrationTool:
         try:
             results = {}
             
-            # 1. Update config.json
+            # 1. 更新 config.json
             if 'config' in default_configs:
                 results['config_update'] = self._update_config_json(default_configs['config'])
                 
-            # 2. Update system_prompts.json
+            # 2. 更新 system_prompts.json
             if 'system_prompts' in default_configs:
                 results['system_prompts_update'] = self._update_json_file(
                     os.path.join(self.rules_dir, "system_prompts.json"),
@@ -443,10 +443,10 @@ class MigrationTool:
                     "system_prompts"
                 )
                 
-            # active_prompts.json and tags_user.json do not need incremental updates
-            # (simple structure, no version management requirements)
+            # active_prompts.json 和 tags_user.json 不需要增量更新
+            # （结构简单，没有版本管理需求）
                  
-            # 5. Update kontext_presets.json
+            # 5. 更新 kontext_presets.json
             if 'kontext_presets' in default_configs:
                 results['kontext_presets_update'] = self._update_json_file(
                     os.path.join(self.rules_dir, "kontext_presets.json"),
@@ -457,18 +457,18 @@ class MigrationTool:
             return results
             
         except Exception as e:
-            self._log(f"Incremental update failed: {str(e)}")
+            self._log(f"增量更新失败: {str(e)}")
             return {}
 
     def _update_config_json(self, default_config):
         """
-        Handle incremental update of config.json (with version check)
+        处理 config.json 的增量更新 (带版本检查)
         
-        Merge strategy (consistent with other config files):
-        1. Version comparison
-        2. Root-level fields: use generic _deep_merge_defaults to complete
-        3. model_services: match by id, only fill in missing fields of user's existing services (do not add new services)
-        4. After completion, sync version number
+        合并策略（与其他配置文件统一）:
+        1. 版本比对
+        2. 根级字段: 使用通用的 _deep_merge_defaults 补全
+        3. model_services: 按 id 匹配，只补全用户已有服务的缺失字段（不追加新服务）
+        4. 完成后同步版本号
         """
         user_config_path = os.path.join(self.config_dir, "config.json")
         if not os.path.exists(user_config_path):
@@ -478,58 +478,58 @@ class MigrationTool:
             with open(user_config_path, 'r', encoding='utf-8') as f:
                 user_config = json.load(f)
             
-            # Get version numbers
+            # 获取版本号
             template_version = default_config.get('__config_version', '2.0')
-            user_version = user_config.get('__config_version')  # No default
+            user_version = user_config.get('__config_version')  # 不设默认值
             
-            # If user file has no version number, just add the version (silently skip)
+            # 如果用户文件没有版本号，只补上版本号（静默跳过）
             if user_version is None:
                 user_config = {'__config_version': template_version, **user_config}
                 with open(user_config_path, 'w', encoding='utf-8') as f:
                     json.dump(user_config, f, ensure_ascii=False, indent=2)
                 return True
             
-            # Version comparison: skip if template version <= user version
+            # 版本比对：模板版本 <= 用户版本时跳过
             cmp_result = self._compare_versions(template_version, user_version)
             if cmp_result <= 0:
                 return False
             
             import copy
             
-            # 1. Root-level field completion (exclude model_services, handled separately)
+            # 1. 根级字段补全（排除 model_services，单独处理）
             for key, value in default_config.items():
                 if key == "model_services":
-                    continue  # model_services handled separately
+                    continue  # model_services 单独处理
                 if key not in user_config:
                     user_config[key] = copy.deepcopy(value)
-                    self._log(f"[config.json] Completed root field: {key}")
+                    self._log(f"[config.json] 补全根字段: {key}")
                 elif isinstance(value, dict) and isinstance(user_config[key], dict):
-                    # Recursively merge nested dicts (e.g., baidu_translate, current_services)
+                    # 递归合并嵌套字典（如 baidu_translate、current_services）
                     self._deep_merge_defaults(user_config[key], value)
             
-            # 2. model_services merge by id
+            # 2. model_services 按 id 匹配合并
             self._merge_model_services(user_config, default_config)
             
-            # Update version number (reconstruct dict to ensure version number at start)
+            # 更新版本号（重构字典确保版本号在开头）
             user_config = {'__config_version': template_version, **{k: v for k, v in user_config.items() if k != '__config_version'}}
             
             with open(user_config_path, 'w', encoding='utf-8') as f:
                 json.dump(user_config, f, ensure_ascii=False, indent=2)
-            self._log(f"[config.json] Incremental update completed (v{user_version} -> v{template_version})")
+            self._log(f"[config.json] 增量更新已完成 (v{user_version} -> v{template_version})")
             return True
             
         except Exception as e:
-            self._log(f"[config.json] Update check error: {str(e)}")
+            self._log(f"[config.json] 更新检查出错: {str(e)}")
             return False
 
     def _merge_model_services(self, user_config, default_config):
         """
-        Merge model_services by id (complete strategy)
+        按 id 匹配合并 model_services（完整策略）
         
-        Strategy:
-        - Complete missing fields for user's existing services
-        - Add services from template that user doesn't have (new services from version update)
-        - Do not overwrite llm_models/vlm_models (user-customized model lists)
+        策略:
+        - 补全用户已有服务的缺失字段
+        - 追加模板中用户不存在的服务商（版本更新时的新服务商）
+        - 不覆盖 llm_models/vlm_models（用户自定义的模型列表）
         """
         if 'model_services' not in default_config:
             return
@@ -537,12 +537,12 @@ class MigrationTool:
         if 'model_services' not in user_config:
             user_config['model_services'] = []
         
-        # Build set of user service ids
+        # 构建用户服务的 id 集合
         user_service_ids = {s.get('id') for s in user_config['model_services'] if s.get('id')}
         
         import copy
         
-        # 1. Complete missing fields for user's existing services
+        # 1. 补全用户已有服务的缺失字段
         template_services_map = {
             s.get('id'): s for s in default_config['model_services'] if s.get('id')
         }
@@ -555,36 +555,36 @@ class MigrationTool:
             template_service = template_services_map[service_id]
             service_name = user_service.get('name', service_id)
             
-            # Complete missing service-level fields
+            # 补全服务级别的缺失字段
             for key, value in template_service.items():
                 if key in ['llm_models', 'vlm_models']:
-                    # Model lists are not completed (user-defined)
+                    # 模型列表不补全（用户自定义）
                     continue
                 if key not in user_service:
                     user_service[key] = copy.deepcopy(value)
-                    self._log(f"[config.json] Completed field '{key}' for service '{service_name}'")
+                    self._log(f"[config.json] 补全服务 '{service_name}' 字段: {key}")
         
-        # 2. Add services from template that user doesn't have
+        # 2. 追加模板中用户不存在的服务商
         for template_service in default_config['model_services']:
             service_id = template_service.get('id')
             if not service_id or service_id in user_service_ids:
                 continue
             
-            # Add new service
+            # 追加新服务商
             new_service = copy.deepcopy(template_service)
             user_config['model_services'].append(new_service)
-            self._log(f"[config.json] Added new service: {new_service.get('name', service_id)}")
+            self._log(f"[config.json] 追加新服务商: {new_service.get('name', service_id)}")
 
     def _update_json_file(self, file_path, default_data, file_desc):
         """
-        Generic JSON file incremental update (with version check)
+        通用的 JSON 文件增量更新 (带版本检查)
         
-        Logic:
-        1. Check if user file has a version number
-        2. If no version number, just add the current template version number (skip incremental update)
-        3. If version number exists, compare template version and user version
-        4. Only execute incremental update when template version > user version
-        5. After incremental update, sync user version number
+        逻辑:
+        1. 检查用户文件是否有版本号
+        2. 如果没有版本号，只补上当前模板版本号（跳过增量更新）
+        3. 如果有版本号，比对模板版本和用户版本
+        4. 仅当模板版本 > 用户版本时执行增量
+        5. 增量完成后同步用户版本号
         """
         if not os.path.exists(file_path):
             return False
@@ -593,57 +593,57 @@ class MigrationTool:
             with open(file_path, 'r', encoding='utf-8') as f:
                 user_data = json.load(f)
             
-            # Get version numbers
+            # 获取版本号
             template_version = default_data.get('__config_version', '2.0')
-            user_version = user_data.get('__config_version')  # No default
+            user_version = user_data.get('__config_version')  # 不设默认值
             
-            # If user file has no version number, just add the version (silently handled)
+            # 如果用户文件没有版本号，只补上版本号（静默处理）
             if user_version is None:
                 user_data = {'__config_version': template_version, **user_data}
                 self._save_with_version(file_path, user_data, default_data)
                 return True
             
-            # Version comparison: skip if template version <= user version
+            # 版本比对：模板版本 <= 用户版本时跳过
             cmp_result = self._compare_versions(template_version, user_version)
             if cmp_result <= 0:
                 return False
             
-            # Execute deep merge
+            # 执行深度合并
             modified = self._deep_merge_defaults(user_data, default_data)
             
-            # ---Special handling: system_prompts rule content overwrite---
+            # ---特殊处理：system_prompts 规则内容覆盖---
             if file_desc == "system_prompts":
                 modified = self._overwrite_prompts_from_template(user_data, default_data) or modified
             
-            # ---Special handling: complete category and showIn fields for all rules in system_prompts---
+            # ---特殊处理：为 system_prompts 中的所有规则补全 category 和 showIn 字段---
             if file_desc == "system_prompts":
                 modified = self._ensure_prompts_have_category(user_data) or modified
                 modified = self._ensure_prompts_have_show_in(user_data) or modified
             
-            # Whether fields changed or not, update version number (reconstruct dict to ensure version number at start)
+            # 无论是否有字段变更，都需要更新版本号（重构字典确保版本号在开头）
             user_data = {'__config_version': template_version, **{k: v for k, v in user_data.items() if k != '__config_version'}}
             
             with open(file_path, 'w', encoding='utf-8') as f:
                 json.dump(user_data, f, ensure_ascii=False, indent=2)
-            self._log(f"[{file_desc}.json] Incremental update completed (v{user_version} -> v{template_version})")
+            self._log(f"[{file_desc}.json] 增量更新已完成 (v{user_version} -> v{template_version})")
             return True
                 
         except Exception as e:
-            self._log(f"[{file_desc}.json] Update check error: {str(e)}")
+            self._log(f"[{file_desc}.json] 更新检查出错: {str(e)}")
             return False
     
     def _ensure_prompts_have_category(self, system_prompts_data):
         """
-        Ensure all rules in system_prompts have a category field
+        确保 system_prompts 中的所有规则都有 category 字段
         
-        For each rule in all rule types (expand_prompts, vision_prompts, video_prompts)
-        complete the category field (default value is empty string)
+        为所有规则类型（expand_prompts、vision_prompts、video_prompts）中的每个规则
+        补全 category 字段（默认值为空字符串）
         
-        Returns whether a modification occurred
+        返回是否发生了修改
         """
         modified = False
         
-        # Rule types to process
+        # 需要处理的规则类型
         prompt_types = ['expand_prompts', 'vision_prompts', 'video_prompts']
         
         for prompt_type in prompt_types:
@@ -658,7 +658,7 @@ class MigrationTool:
                 if not isinstance(prompt_data, dict):
                     continue
                     
-                # Complete category field for rule
+                # 为规则补全 category 字段
                 if 'category' not in prompt_data:
                     prompt_data['category'] = ''
                     modified = True
@@ -667,16 +667,16 @@ class MigrationTool:
 
     def _ensure_prompts_have_show_in(self, system_prompts_data):
         """
-        Ensure all rules in system_prompts have a showIn field
+        确保 system_prompts 中的所有规则都有 showIn 字段
         
-        For each rule in all rule types (expand_prompts, vision_prompts, video_prompts)
-        complete the showIn field (default value is ["frontend", "node"])
+        为所有规则类型（expand_prompts、vision_prompts、video_prompts）中的每个规则
+        补全 showIn 字段（默认值为 ["frontend", "node"]）
         
-        Returns whether a modification occurred
+        返回是否发生了修改
         """
         modified = False
         
-        # Rule types to process
+        # 需要处理的规则类型
         prompt_types = ['expand_prompts', 'vision_prompts', 'video_prompts']
         
         for prompt_type in prompt_types:
@@ -691,7 +691,7 @@ class MigrationTool:
                 if not isinstance(prompt_data, dict):
                     continue
                     
-                # Complete showIn field for rule
+                # 为规则补全 showIn 字段
                 if 'showIn' not in prompt_data:
                     prompt_data['showIn'] = ["frontend", "node"]
                     modified = True
@@ -700,27 +700,26 @@ class MigrationTool:
 
     def _overwrite_prompts_from_template(self, user_data, template_data):
         """
-        Overwrite user config rules with template rule content for rules with matching names
+        用模板中的规则内容覆盖用户配置中的同名规则
         
-        When version updates (template version > user version), completely overwrite
-        the corresponding rules in user config with template rule content, ensuring
-        built-in rules stay up to date.
+        当版本更新时（模板版本 > 用户版本），将模板中的规则内容
+        完整覆盖到用户配置中的对应规则，确保内置规则保持最新。
         
-        Overwrite strategy:
-        - Only overwrite rules with matching names in both template and user config
-        - User-defined rules (not in template) remain unchanged
-        - New rules in template are handled by _deep_merge_defaults
+        覆盖策略:
+        - 仅覆盖模板和用户配置中都存在的同名规则
+        - 用户自定义的规则（模板中不存在）保持不变
+        - 模板中新增的规则由 _deep_merge_defaults 处理
         
-        Returns whether a modification occurred
+        返回是否发生了修改
         """
         import copy
         modified = False
         
-        # Rule types to process
+        # 需要处理的规则类型
         prompt_types = ['expand_prompts', 'vision_prompts', 'video_prompts', 'translate_prompts']
         
         for prompt_type in prompt_types:
-            # Check if template has this type
+            # 检查模板中是否有该类型
             if prompt_type not in template_data:
                 continue
             
@@ -728,7 +727,7 @@ class MigrationTool:
             if not isinstance(template_prompts, dict):
                 continue
             
-            # Check if user config has this type
+            # 检查用户配置中是否有该类型
             if prompt_type not in user_data:
                 continue
             
@@ -736,48 +735,48 @@ class MigrationTool:
             if not isinstance(user_prompts, dict):
                 continue
             
-            # Iterate through each rule in template
+            # 遍历模板中的每个规则
             for prompt_id, template_prompt in template_prompts.items():
                 if not isinstance(template_prompt, dict):
                     continue
                 
-                # Check if user config has a rule with the same id
+                # 检查用户配置中是否存在同名规则
                 if prompt_id in user_prompts:
-                    # Completely overwrite user rule with template content
+                    # 用模板内容完整覆盖用户规则
                     user_prompts[prompt_id] = copy.deepcopy(template_prompt)
                     modified = True
-                    self._log(f"[system_prompts] Overwritten rule: {template_prompt.get('name', prompt_id)}")
+                    self._log(f"[system_prompts] 覆盖规则: {template_prompt.get('name', prompt_id)}")
         
         return modified
 
     def _deep_merge_defaults(self, user_data, default_data):
         """
-        Recursively merge missing fields from default_data into user_data
+        递归将 default_data 中的缺失字段合并到 user_data
         
-        Merge strategy:
-        - dict: Recursively merge, complete missing keys
-        - list: Append new template elements not present in user list to the end
+        合并策略:
+        - dict: 递归合并，补全缺失的键
+        - list: 将模板中不存在于用户列表的新元素追加到末尾
         
-        Returns whether a modification occurred
+        返回是否发生了修改
         """
         modified = False
         import copy
         
-        # ---Handle dict type---
+        # ---处理字典类型---
         if isinstance(user_data, dict) and isinstance(default_data, dict):
             for key, value in default_data.items():
                 if key not in user_data:
-                    # Field does not exist, add directly
+                    # 字段不存在，直接添加
                     user_data[key] = copy.deepcopy(value)
                     modified = True
                 else:
-                    # Field exists, check recursively
+                    # 字段存在，递归检查
                     if self._deep_merge_defaults(user_data[key], value):
                         modified = True
         
-        # ---Handle array type---
+        # ---处理数组类型---
         elif isinstance(user_data, list) and isinstance(default_data, list):
-            # Append template array elements not in user array to the end
+            # 将模板数组中不存在于用户数组的元素追加到末尾
             for item in default_data:
                 if item not in user_data:
                     user_data.append(copy.deepcopy(item))
@@ -787,27 +786,27 @@ class MigrationTool:
     
     def migrate_tags_json_to_csv(self):
         """
-        Migrate legacy JSON tags to CSV format
+        迁移旧版 JSON 标签到 CSV 格式
         
-        Migration logic:
-        1. Check if tags directory is empty
-        2. If empty, read tags.json and tags_user.json from plugin config directory
-        3. tags.json -> convert to "default_tags.csv"
-        4. tags_user.json -> convert to "user_tags.csv"
+        迁移逻辑:
+        1. 检查 tags 目录是否为空
+        2. 如果为空，读取插件 config 目录下的 tags.json 和 tags_user.json
+        3. tags.json → 转换为 "default_tags.csv"
+        4. tags_user.json → 转换为 "user_tags.csv"
         
-        CSV format: tag_name\\ttag_value\\tcategory1\\tcategory2\\tcategory3\\tcategory4
+        CSV 格式: 标签名\t标签值\t一级分类\t二级分类\t三级分类\t四级分类
         """
         try:
-            # 1. Check if migration is needed
+            # 1. 检查是否需要迁移
             if not self._should_migrate_tags():
                 return False
             
-            # 2. Read JSON files
+            # 2. 读取 JSON 文件
             tags_data, user_tags_data = self._load_legacy_tags_json()
             
             migrated_count = 0
             
-            # ---Process tags.json -> default_tags.csv---
+            # ---处理 tags.json → 默认标签.csv---
             if tags_data:
                 csv_rows = []
                 self._extract_tags_recursive(tags_data, [], csv_rows)
@@ -815,36 +814,36 @@ class MigrationTool:
                 if csv_rows:
                     csv_filename = "default_tags.csv"
                     self._write_tags_csv(csv_rows, csv_filename)
-                    self._log(f"[tags.json] ✅ Successfully migrated {len(csv_rows)} tags to {csv_filename}")
+                    self._log(f"[tags.json] ✅ 成功迁移 {len(csv_rows)} 个标签到 {csv_filename}")
                     migrated_count += len(csv_rows)
             
-            # ---Process tags_user.json -> user_tags.csv---
+            # ---处理 tags_user.json → 用户标签.csv---
             if user_tags_data:
                 csv_rows = []
-                # tags_user.json is 2-layer structure: {category: {tag_name: tag_value}}
+                # tags_user.json 是2层结构: {分类: {标签名: 标签值}}
                 for category, tags in user_tags_data.items():
                     if not isinstance(tags, dict):
                         continue
                     
                     for tag_name, tag_value in tags.items():
-                        # CSV row: [tag_name, tag_value, category1, category2, category3, category4]
+                        # CSV 行: [标签名, 标签值, 一级分类, 二级分类, 三级分类, 四级分类]
                         row = [
                             tag_name,
                             tag_value,
                             category,
-                            "",  # category2 (empty)
-                            "",  # category3 (empty)
-                            ""   # category4 (empty)
+                            "",  # 二级分类（空）
+                            "",  # 三级分类（空）
+                            ""   # 四级分类（空）
                         ]
                         csv_rows.append(row)
                 
                 if csv_rows:
                     csv_filename = "user_tags.csv"
                     self._write_tags_csv(csv_rows, csv_filename)
-                    self._log(f"[tags_user.json] ✅ Successfully migrated {len(csv_rows)} tags to {csv_filename}")
+                    self._log(f"[tags_user.json] ✅ 成功迁移 {len(csv_rows)} 个标签到 {csv_filename}")
                     migrated_count += len(csv_rows)
             
-            # ---If both files don't exist, try to create default tags from template---
+            # ---如果两个文件都不存在，尝试从模板创建默认标签---
             if not tags_data and not user_tags_data:
                 template_path = os.path.join(self.plugin_dir, "config", "tags_template.json")
                 if os.path.exists(template_path):
@@ -858,31 +857,31 @@ class MigrationTool:
                         if csv_rows:
                             csv_filename = "default_tags.csv"
                             self._write_tags_csv(csv_rows, csv_filename)
-                            self._log(f"✨ Detected fresh environment, created initial tags file from template: {csv_filename}")
+                            self._log(f"✨ 检测到全新环境，已基于模板创建初始标签文件: {csv_filename}")
                             return True
                     except Exception as e:
-                        self._log(f"❗ Failed to create initial tags from template: {str(e)}")
+                        self._log(f"❗ 从模板创建初始标签失败: {str(e)}")
                 
-                # Last resort when template fails or doesn't exist
-                csv_rows = [["Welcome to Prompt Assistant", "", "Guide", "Start", "", ""]]
+                # 模板读取失败或不存在时的最后保底
+                csv_rows = [["欢迎使用提示词小助手", "", "指南", "开始", "", ""]]
                 csv_filename = "default_tags.csv"
                 self._write_tags_csv(csv_rows, csv_filename)
-                self._log(f"✨ Created simple initial tags file: {csv_filename}")
+                self._log(f"✨ 已创建简易初始标签文件: {csv_filename}")
                 return True
             
             return migrated_count > 0
             
         except Exception as e:
-            self._log(f"[tags] ❗ Tags migration failed: {str(e)}")
+            self._log(f"[tags] ❗ 标签迁移失败: {str(e)}")
             return False
     
     def _should_migrate_tags(self):
-        """Check if tag migration is needed"""
-        # Check if tags directory exists
+        """检查是否需要迁移标签"""
+        # 检查 tags 目录是否存在
         if not os.path.exists(self.tags_dir):
             return True
         
-        # Check if there are CSV files
+        # 检查是否有 CSV 文件
         try:
             csv_files = [f for f in os.listdir(self.tags_dir) if f.endswith('.csv')]
             return len(csv_files) == 0
@@ -891,54 +890,54 @@ class MigrationTool:
     
     def _load_legacy_tags_json(self):
         """
-        Load legacy JSON tag files
+        加载旧版 JSON 标签文件
         
-        Returns:
-            (tags_data, user_tags_data) tuple
+        返回:
+            (tags_data, user_tags_data) 元组
         """
         tags_data = None
         user_tags_data = None
         
-        # Read tags.json
+        # 读取 tags.json
         legacy_tags_path = os.path.join(self.legacy_config_dir, "tags.json")
         if os.path.exists(legacy_tags_path):
             try:
                 with open(legacy_tags_path, 'r', encoding='utf-8') as f:
                     tags_data = json.load(f)
             except Exception as e:
-                self._log(f"❗ Failed to read tags.json: {str(e)}")
+                self._log(f"❗ 读取 tags.json 失败: {str(e)}")
         
-        # Read tags_user.json
+        # 读取 tags_user.json
         legacy_user_tags_path = os.path.join(self.legacy_config_dir, "tags_user.json")
         if os.path.exists(legacy_user_tags_path):
             try:
                 with open(legacy_user_tags_path, 'r', encoding='utf-8') as f:
                     user_tags_data = json.load(f)
             except Exception as e:
-                self._log(f"❗ Failed to read tags_user.json: {str(e)}")
+                self._log(f"❗ 读取 tags_user.json 失败: {str(e)}")
         
         return tags_data, user_tags_data
     
     def _extract_tags_recursive(self, data, categories, csv_rows):
         """
-        Recursively extract tag data
+        递归提取标签数据
         
-        Determines whether a key is a category or tag by nesting depth:
-        - If value is a string, it's a tag (key=tag_name, value=tag_value)
-        - If value is a dict, it's a category, recurse
+        根据嵌套深度判断是分类还是标签：
+        - 如果值是字符串，则为标签（键=标签名，值=标签值）
+        - 如果值是字典，则为分类，继续递归
         
-        Args:
-            data: Data dict at current level
-            categories: List of categories on the current path (max 4 levels)
-            csv_rows: Result list for collecting CSV rows
+        参数:
+            data: 当前层级的数据字典
+            categories: 当前路径上的分类列表（最多4级）
+            csv_rows: 结果列表，用于收集CSV行
         """
         for key, value in data.items():
             if isinstance(value, str):
-                # Value is string, so key is tag name, value is tag value
-                # Build CSV row: [tag_name, tag_value, category1, category2, category3, category4]
+                # 值是字符串，说明当前键是标签名，值是标签值
+                # 构建CSV行：[标签名, 标签值, 一级分类, 二级分类, 三级分类, 四级分类]
                 row = [key, value]
                 
-                # Fill categories (4 levels total, fill with empty string for missing levels)
+                # 填充分类（共4级，不足的补空字符串）
                 for i in range(4):
                     if i < len(categories):
                         row.append(categories[i])
@@ -948,78 +947,170 @@ class MigrationTool:
                 csv_rows.append(row)
             
             elif isinstance(value, dict):
-                # Value is dict, so key is category name, recurse
-                # Limit to max 4 levels, skip deeper levels
+                # 值是字典，说明当前键是分类名，继续递归
+                # 限制最多4级分类，超过则忽略更深层级
                 if len(categories) < 4:
                     new_categories = categories + [key]
                     self._extract_tags_recursive(value, new_categories, csv_rows)
                 else:
-                    # Exceeded 4 levels, log warning and skip
-                    self._log(f"⚠️ Category depth exceeds 4 levels, skipped: {' → '.join(categories)} → {key}")
+                    # 超过4级分类，记录警告并跳过
+                    self._log(f"⚠️ 分类层级超过4级，已忽略: {' → '.join(categories)} → {key}")
     
     def _write_tags_csv(self, csv_rows, filename):
         """
-        Write CSV file
+        写入 CSV 文件
         
-        Args:
-            csv_rows: CSV row data
-            filename: File name
+        参数:
+            csv_rows: CSV 行数据
+            filename: 文件名
         """
         csv_path = os.path.join(self.tags_dir, filename)
         
-        # Ensure directory exists
+        # 确保目录存在
         os.makedirs(self.tags_dir, exist_ok=True)
         
-        # Write CSV file (using utf-8-sig encoding, compatible with Excel)
+        # 写入 CSV 文件（使用 utf-8-sig 编码，兼容 Excel）
         with open(csv_path, 'w', newline='', encoding='utf-8-sig') as f:
             writer = csv.writer(f)
-            # Write header
-            writer.writerow(['tag_name', 'tag_value', 'category1', 'category2', 'category3', 'category4'])
-            # Write data
+            # 写入表头
+            writer.writerow(['标签名', '标签值', '一级分类', '二级分类', '三级分类', '四级分类'])
+            # 写入数据
             writer.writerows(csv_rows)
     
-    # --- Config.json migration ---
+    # --- Config.json 迁移 ---
     
     def migrate_config_api_keys(self):
         """
-        Migrate API Keys from legacy config.json to new config
+        迁移旧版 config.json 中的 API Key 到新版配置
         
-        Migration logic:
-        1. Check if user config directory's config.json exists
-        2. If not, read config.json from plugin config directory
-        3. Extract API Keys and migrate to new config (v2.0 model_services format)
+        迁移逻辑:
+        1. 检查用户配置目录的 config.json 是否存在
+        2. 如果不存在，读取插件 config 目录下的 config.json
+        3. 提取 API Key 并迁移到新版配置（v2.0 model_services 格式）
         
-        Extracted API Keys:
+        提取的 API Key:
         - baidu_translate: app_id, secret_key
-        - llm.providers: zhipu, siliconflow, custom api_key
-        - vlm.providers: zhipu, siliconflow, custom api_key
+        - llm.providers: zhipu, siliconflow, custom 的 api_key
+        - vlm.providers: zhipu, siliconflow, custom 的 api_key
         """
         try:
-            # 1. Check if migration is needed
+            # 1. 检查是否需要迁移
             user_config_path = os.path.join(self.config_dir, "config.json")
             if os.path.exists(user_config_path):
                 return False
             
-            # 2. Read legacy config from plugin directory
-            legacy_config_path = os.path.join(self.plugin_dir, "config", "config.json")
+            # 2. 读取旧版 config.json
+            legacy_config_path = os.path.join(self.legacy_config_dir, "config.json")
             if not os.path.exists(legacy_config_path):
-                self._log("[config.json] No legacy config found, skipping API key migration")
                 return False
             
+            # 3. 加载旧版配置
             with open(legacy_config_path, 'r', encoding='utf-8') as f:
-                legacy_data = json.load(f)
+                legacy_config = json.load(f)
             
-            # 3. Extract and migrate API keys
-            from ..config_manager import config_manager
-            default_config = config_manager.get_default_config()
+            self._log(f"[config.json] 找到旧版配置，准备迁移到 v2.0 格式")
             
-            migrated_data = self._migrate_config_api_keys_to_services(legacy_data, default_config)
+            # 4. 将完整的旧版配置保存到临时文件，供 config_manager 转换
+            migration_data_path = os.path.join(self.config_dir, ".migration_legacy_config.json")
+            os.makedirs(self.config_dir, exist_ok=True)
             
-            # 4. Save new config
-            self._save_with_version(user_config_path, migrated_data, default_config)
-            self._log("[config.json] API Key migration completed")
+            with open(migration_data_path, 'w', encoding='utf-8') as f:
+                json.dump(legacy_config, f, ensure_ascii=False, indent=2)
+            
             return True
             
         except Exception as e:
-            self._log(f"[config.json] API Key migration failed: {str(e)}")
+            self._log(f"❗ config.json 迁移失败: {str(e)}")
             return False
+    
+    def _extract_api_keys_from_legacy_config(self, legacy_config):
+        """
+        从旧版 config.json 提取 API Key
+        
+        参数:
+            legacy_config: 旧版配置字典
+        
+        返回:
+            提取的 API Key 字典
+        """
+        api_keys = {}
+        
+        # 提取百度翻译配置
+        if 'baidu_translate' in legacy_config:
+            baidu = legacy_config['baidu_translate']
+            if baidu.get('app_id') or baidu.get('secret_key'):
+                api_keys['baidu_translate'] = {
+                    'app_id': baidu.get('app_id', ''),
+                    'secret_key': baidu.get('secret_key', '')
+                }
+                self._log("提取百度翻译配置")
+        
+        # 提取 LLM API Key
+        if 'llm' in legacy_config and 'providers' in legacy_config['llm']:
+            llm_providers = legacy_config['llm']['providers']
+            api_keys['llm'] = {}
+            
+            for provider_name in ['zhipu', 'siliconflow', 'custom']:
+                if provider_name in llm_providers:
+                    api_key = llm_providers[provider_name].get('api_key', '')
+                    if api_key:
+                        api_keys['llm'][provider_name] = api_key
+                        self._log(f"提取 LLM {provider_name} API Key")
+        
+        # 提取 VLM API Key
+        if 'vlm' in legacy_config and 'providers' in legacy_config['vlm']:
+            vlm_providers = legacy_config['vlm']['providers']
+            api_keys['vlm'] = {}
+            
+            for provider_name in ['zhipu', 'siliconflow', 'custom']:
+                if provider_name in vlm_providers:
+                    api_key = vlm_providers[provider_name].get('api_key', '')
+                    if api_key:
+                        api_keys['vlm'][provider_name] = api_key
+                        self._log(f"提取 VLM {provider_name} API Key")
+        
+        return api_keys
+
+
+def run_migrations(plugin_dir, user_base_dir, logger=None, default_configs=None):
+    """
+    运行所有迁移任务
+    
+    执行顺序:
+    1. 确保所有配置文件存在（缺则创建/迁移）
+    2. 执行旧版 API Key 迁移
+    3. 执行增量更新（版本比对后按需执行）
+    
+    参数:
+        plugin_dir: 插件目录路径
+        user_base_dir: 用户配置基础目录
+        logger: 日志函数（可选）
+        default_configs: 默认配置字典（用于创建默认文件和增量更新）
+    
+    返回:
+        迁移结果字典
+    """
+    tool = MigrationTool(plugin_dir, user_base_dir, logger)
+    legacy_dir = os.path.join(plugin_dir, "config")
+    
+    results = {
+        'configs_created': False,
+        'tags_migration': False,
+        'config_migration': False,
+        'incremental_updates': {}
+    }
+    
+    # 1. 确保所有配置文件存在
+    if default_configs:
+        tool.ensure_all_configs_exist(default_configs, legacy_dir)
+        results['configs_created'] = True
+    
+    # 2. 执行旧版 API Key 迁移
+    results['config_migration'] = tool.migrate_config_api_keys()
+    results['tags_migration'] = tool.migrate_tags_json_to_csv()
+    
+    # 3. 执行增量更新（版本比对后按需执行）
+    if default_configs:
+        results['incremental_updates'] = tool.migrate_incremental_updates(default_configs)
+    
+    return results

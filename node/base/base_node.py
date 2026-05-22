@@ -1,9 +1,9 @@
 """
-Node abstract base class
-Provides common base capabilities for all nodes, including thread management, interrupt detection, Provider config, etc.
+节点抽象基类
+提供所有节点的通用基础能力，包括线程管理、中断检测、Provider 配置等
 
-V3 migration notes:
-    All original instance methods (self) have been converted to class methods (cls) to meet V3's requirement that execute must be @classmethod.
+V3 迁移说明：
+    所有原实例方法（self）均已转换为类方法（cls），以适配 V3 execute 必须为 @classmethod 的要求。
 """
 
 import asyncio
@@ -18,17 +18,17 @@ from ...utils.common import PREFIX as LOG_PREFIX, REQUEST_PREFIX, PROCESS_PREFIX
 
 class BaseNode:
     """
-    Abstract base class for all nodes (V3 Mixin version)
+    所有节点的抽象基类（V3 Mixin 版本）
 
-    Provides common functionality:
-    - Thread execution and interrupt management
-    - Provider config override
-    - Rule template retrieval
+    提供通用功能：
+    - 线程执行与中断管理
+    - Provider 配置覆盖
+    - 规则模板获取
 
-    V3 note: All methods are @classmethod, callable as cls.method() directly in V3's execute(cls, ...).
+    V3 注意：所有方法均为 @classmethod，可在 V3 的 execute(cls, ...) 中直接以 cls.method() 调用。
     """
 
-    # Subclasses can override these constants as needed
+    # 子类可根据需要覆盖这些常量
     LOG_PREFIX = LOG_PREFIX
     REQUEST_PREFIX = REQUEST_PREFIX
     PROCESS_PREFIX = PROCESS_PREFIX
@@ -38,35 +38,35 @@ class BaseNode:
         cls,
         target_func: Callable,
         args: Tuple,
-        task_name: str = "Task"
+        task_name: str = "任务"
     ) -> Dict[str, Any]:
         """
-        Run a task in a separate thread with interrupt detection support
+        在独立线程中运行任务，并支持中断检测
 
-        Parameters:
-            target_func: Function to execute in the thread
-            args: Tuple of arguments to pass to the function
-            task_name: Task name (deprecated, kept for backward compatibility)
+        参数：
+            target_func: 要在线程中执行的函数
+            args: 传递给函数的参数元组
+            task_name: 任务名称（已废弃，保留参数以兼容旧代码）
 
-        Returns:
-            The 'result' field content from result_container
+        返回：
+            result_container 中的 'result' 字段内容
 
-        Raises:
-            InterruptProcessingException: When user interrupt is detected
+        异常：
+            InterruptProcessingException: 当检测到用户中断时
         """
         result_container = {}
 
-        # Start thread
+        # 启动线程
         thread = threading.Thread(target=target_func, args=args)
         thread.start()
 
-        # Wait for completion while checking for interrupts
+        # 等待完成，同时检查中断
         while thread.is_alive():
             try:
                 import nodes
                 nodes.before_node_execution()
             except Exception:
-                # Interrupt detected, throw immediately
+                # 检测到中断，立即抛出异常
                 raise InterruptProcessingException()
             time.sleep(0.1)
 
@@ -81,21 +81,21 @@ class BaseNode:
         **kwargs
     ) -> None:
         """
-        Helper method to run async tasks in a separate thread
+        在独立线程中运行异步任务的辅助方法
 
-        This method:
-        1. Creates a new event loop
-        2. Runs the async function
-        3. Stores result in result_container
-        4. Properly handles interrupt exceptions
+        这个方法会：
+        1. 创建新的事件循环
+        2. 运行异步函数
+        3. 将结果存入 result_container
+        4. 正确处理中断异常
 
-        Parameters:
-            async_func: Async function
-            result_container: Result container dictionary
-            *args, **kwargs: Arguments passed to async_func
+        参数：
+            async_func: 异步函数
+            result_container: 结果容器字典
+            *args, **kwargs: 传递给 async_func 的参数
 
-        Result:
-            result_container['result'] = function return value or error message
+        结果：
+            result_container['result'] = 函数返回值或错误信息
         """
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
@@ -103,11 +103,11 @@ class BaseNode:
             result = loop.run_until_complete(async_func(*args, **kwargs))
             result_container['result'] = result
         except (asyncio.CancelledError, KeyboardInterrupt):
-            # Capture interrupt exception, do not format error
-            print(f"{cls.LOG_PREFIX} Async task cancelled detected")
-            result_container['result'] = {"success": False, "error": "Task interrupted"}
+            # 捕获中断异常，不格式化错误
+            print(f"{cls.LOG_PREFIX} 检测到异步任务被取消")
+            result_container['result'] = {"success": False, "error": "任务被中断"}
         except Exception as e:
-            # Capture other exceptions, let subclass handle formatting
+            # 捕获其他异常，让子类处理格式化
             result_container['result'] = {"success": False, "error": str(e)}
         finally:
             loop.close()
@@ -120,22 +120,22 @@ class BaseNode:
         cancel_event: Optional[Any] = None
     ) -> Any:
         """
-        Execute a thread task with interrupt detection (general wrapper)
+        执行带中断检测的线程任务（通用封装）
 
-        Parameters:
-            thread_func: Function to run in thread (usually contains async logic)
-            thread_args: Arguments passed to thread_func
-            cancel_event: Optional cancel event to notify async task of interrupt
+        参数：
+            thread_func: 线程中执行的函数（通常是包含异步逻辑的函数）
+            thread_args: 传递给 thread_func 的参数
+            cancel_event: 可选的取消事件，用于通知异步任务中断
 
-        Returns:
-            Content of result_container['result']
+        返回：
+            result_container['result'] 的内容
 
-        Raises:
-            InterruptProcessingException: When user interrupt is detected
+        异常：
+            InterruptProcessingException: 当检测到用户中断时
         """
         result_container = {}
 
-        # If cancel_event is provided, pass it to thread_func
+        # 如果提供了 cancel_event，将其传递给 thread_func
         if cancel_event is not None:
             thread = threading.Thread(
                 target=thread_func,
@@ -148,15 +148,15 @@ class BaseNode:
             )
         thread.start()
 
-        # Wait for completion while checking for interrupts
+        # 等待完成，同时检查中断
         while thread.is_alive():
             is_interrupted = False
             try:
                 import nodes
                 nodes.before_node_execution()
 
-                # Double check: also check PromptServer's global interrupt status
-                # In some cases nodes.before_node_execution() may not throw an exception
+                # 双重检查：额外检查 PromptServer 的全局中断状态
+                # 某些情况下 nodes.before_node_execution() 可能不会抛出异常
                 from server import PromptServer
                 if (hasattr(PromptServer.instance, 'execution_interrupted')
                         and PromptServer.instance.execution_interrupted):
@@ -165,7 +165,7 @@ class BaseNode:
                 is_interrupted = True
 
             if is_interrupted:
-                # Interrupt detected, set cancel event if provided
+                # 检测到中断，设置取消事件（如果提供）
                 if cancel_event is not None:
                     try:
                         cancel_event.set()
@@ -183,14 +183,14 @@ class BaseNode:
         auto_unload: bool
     ) -> Dict[str, Any]:
         """
-        Override the auto_unload parameter in Ollama config
+        覆盖 Ollama 配置中的 auto_unload 参数
 
-        Parameters:
-            provider_config: Original Provider config
-            auto_unload: Node-level auto-unload setting
+        参数：
+            provider_config: 原始 Provider 配置
+            auto_unload: 节点级别的自动释放设置
 
-        Returns:
-            New config dictionary (does not modify original)
+        返回：
+            新的配置字典（不修改原始配置）
         """
         config_copy = provider_config.copy()
         config_copy['auto_unload'] = auto_unload
@@ -230,46 +230,46 @@ class BaseNode:
         default_content: str
     ) -> Tuple[str, str]:
         """
-        Get prompt template content
+        获取提示词模板内容
 
-        Parameters:
-            template_name: Template name
-            prompt_type: Template type ('expand_prompts', 'vision_prompts', etc.)
-            use_temp_rule: Whether to use temporary rule
-            temp_rule_content: Temporary rule content
-            default_content: Default prompt content
+        参数：
+            template_name: 模板名称
+            prompt_type: 模板类型（'expand_prompts', 'vision_prompts' 等）
+            use_temp_rule: 是否使用临时规则
+            temp_rule_content: 临时规则内容
+            default_content: 默认提示词内容
 
-        Returns:
-            Tuple of (prompt_content, rule_name)
+        返回：
+            (prompt_content, rule_name) 元组
         """
-        # Use temporary rule
+        # 使用临时规则
         if use_temp_rule and temp_rule_content:
-            return temp_rule_content, "Temporary Rule"
+            return temp_rule_content, "临时规则"
 
-        # Get template from config
+        # 从配置获取模板
         from ...config_manager import config_manager
         system_prompts = config_manager.get_system_prompts()
 
         if not system_prompts:
-            return default_content, "Default Rule"
+            return default_content, "默认规则"
 
         prompts = system_prompts.get(prompt_type, {})
         if not prompts:
-            return default_content, "Default Rule"
+            return default_content, "默认规则"
 
-        # Match by display name
+        # 按显示名称匹配
         for key, value in prompts.items():
             if value.get('name') == template_name:
                 content = value.get('content', '')
                 if content:
                     return content, template_name
 
-        # Match by key name
+        # 按键名匹配
         for key, value in prompts.items():
             if key == template_name:
                 content = value.get('content', '')
                 if content:
                     return content, template_name
 
-        # Not found, use default
-        return default_content, "Default Rule"
+        # 未找到，使用默认
+        return default_content, "默认规则"

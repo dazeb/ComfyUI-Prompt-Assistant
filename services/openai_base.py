@@ -1,6 +1,6 @@
 """
-OpenAI compatible service base class
-Provides unified OpenAI compatible API handling logic for LLM and VLM services
+OpenAI兼容服务基类
+为LLM和VLM服务提供统一的OpenAI兼容API处理逻辑
 """
 
 import json
@@ -20,77 +20,78 @@ from .thinking_control import build_thinking_suppression
 
 class OpenAICompatibleService(BaseAPIService):
     """
-    OpenAI compatible API service base class
-    Handles all OpenAI format API requests (Zhipu, SiliconFlow, 302.ai, Ollama, etc.)
+    OpenAI兼容API服务基类
+    处理所有OpenAI格式的API请求（智谱、硅基流动、302.ai、Ollama等）
     """
     
-    # --- Known API endpoint paths (for smart detection) ---
+    # ---已知的API端点路径（用于智能检测）---
     _known_endpoints = ['/chat/completions', '/v1/messages', '/completions']
     
     @staticmethod
     def parse_api_url(raw_url: str) -> str:
         """
-        Smart parse base_url, generate the final request URL
-
-        Rules:
-        1. '#' suffix -> force use the full address (remove #)
-        2. Already contains known endpoint path -> use directly, no further concatenation
-        3. Otherwise -> append /chat/completions normally
-
-        Args:
-            raw_url: The raw URL entered by the user
-
-        Returns:
-            str: The final request URL
+        智能解析 base_url，生成最终请求地址
+        
+        规则：
+        1. '#' 结尾 → 强制使用完整地址（移除#）
+        2. 已包含已知端点路径 → 直接使用，不再拼接
+        3. 其他 → 正常拼接 /chat/completions
+        
+        参数:
+            raw_url: 用户输入的原始URL
+            
+        返回:
+            str: 最终请求地址
         """
         if not raw_url:
             return ''
         
         url = raw_url.strip()
         
-        # Rule 1: Hash force mode - user explicitly wants to use the full address
+        # 规则1：井号强制模式 - 用户明确要求使用完整地址
         if url.endswith('#'):
             return url[:-1].rstrip('/')
-
-        # Rule 2: Smart detection - check if URL already contains a known API endpoint
+        
+        # 规则2：智能检测 - 检查URL中是否已包含已知的API端点
         for endpoint in OpenAICompatibleService._known_endpoints:
             if endpoint in url:
-                # Already contains the full endpoint, return directly (remove trailing slash)
+                # 已包含完整端点，直接返回（移除末尾斜杠）
                 return url.rstrip('/')
-
+        
         if 'api.openai.com' in url and '/v1' not in url:
             url = url.rstrip('/') + '/v1'
-
-        # Rule 3: Normal mode - need to append /chat/completions
+        
+        # 规则3：常规模式 - 需要拼接 /chat/completions
         return url.rstrip('/') + '/chat/completions'
     
-    # _provider_base_urls and _provider_display_names removed, related logic now managed by config_manager
+    # _provider_base_urls 和 _provider_display_names 已移除，相关逻辑改由 config_manager 统一管理
     
     @staticmethod
     def _filter_payload(payload: Dict[str, Any], level: int) -> Dict[str, Any]:
         """
-        Clean the request body based on retry level (simplified 3-level degradation strategy)
-
-        Level 0: Full request (send as configured by user)
-        Level 1: Remove thinking chain parameters (thinking, enable_thinking, reasoning_effort, etc.)
-        Level 2: Minimal usable set (only model, messages, stream)
+        根据重试级别清洗请求体 (简化的三级降级策略)
+        
+        Level 0: 完整请求 (按用户设置发送)
+        Level 1: 移除思维链参数 (thinking, enable_thinking, reasoning_effort, 等)
+        Level 2: 最小可用集 (仅 model, messages, stream)
         """
         if level <= 0:
             return payload.copy()
             
         filtered = payload.copy()
         
-        # Note: response_format on strict providers like Zhipu GLM-4V triggers 400 error, Level-1 also removes it
+        # Level 1: 移除思维链参数 + response_format
+        # 注：response_format 在 Zhipu GLM-4V 等严格服务商上会触发 400，Level-1 同步移除
         thinking_keys = [
             "thinking", "enable_thinking", "reasoning_effort", 
             "reasoning", "thinking_level", "think",
-            "response_format",  # BUG-02 fix: Level-1 also removes it to prevent some providers from rejecting this field
+            "response_format",  # BUG-02 修复：Level-1 一并移除，防止部分服务商拒绝该字段
         ]
         for k in thinking_keys:
             filtered.pop(k, None)
-
+            
         if level >= 2:
-            # Level 2: Minimal usable set - keep only required parameters
+            # Level 2: 最小可用集 - 仅保留必选参数
             core_keys = ["model", "messages", "stream"]
             filtered = {k: filtered[k] for k in core_keys if k in filtered}
             
@@ -99,9 +100,9 @@ class OpenAICompatibleService(BaseAPIService):
     @staticmethod
     def _merge_system_prompts(messages: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         """
-        Merge multiple System Messages into a single entry
-        Place the System Message at the beginning of the list
-        Fix the issue where some providers do not support multiple System Messages
+        合并多条System Message为单一条目
+        并将System Message置于列表首位
+        解决部分服务商不支持多条System Message的问题
         """
         system_contents = []
         other_messages = []
@@ -117,10 +118,10 @@ class OpenAICompatibleService(BaseAPIService):
         if not system_contents:
             return messages
             
-        # Merge content
+        # 合并内容
         merged_system = "\n\n".join(system_contents)
-
-        # Build new list: System first + other messages
+        
+        # 构建新列表：System在首位 + 其他消息
         return [{"role": "system", "content": merged_system}] + other_messages
 
     @classmethod
@@ -137,67 +138,66 @@ class OpenAICompatibleService(BaseAPIService):
         enable_advanced_params: bool = False,
         stream_callback: Optional[Callable[[str], None]] = None,
         request_id: Optional[str] = None,
-        provider_display_name: str = "unknown service",
+        provider_display_name: str = "未知服务",
         cancel_event: Optional[Any] = None,
         task_type: str = None,
         source: str = None,
         filter_thinking_output: bool = True
     ) -> Dict[str, Any]:
         """
-        Use HTTP direct connection to call /chat/completions endpoint
-        Unified handling of all OpenAI-compatible providers (supports 3-level degradation retry)
-
-        Args:
-            enable_advanced_params: Whether to send advanced parameters (temperature/top_p/max_tokens)
+        使用HTTP直连调用/chat/completions接口
+        统一处理所有OpenAI兼容的服务商 (支持三级降级重试)
+        
+        参数:
+            enable_advanced_params: 是否发送高级参数(temperature/top_p/max_tokens)
         """
         from ..server import is_streaming_progress_enabled
         
         try:
-            # Clean input params
+            # 清理输入参数
             base_url = cls._sanitize_config_str(base_url)
             api_key = cls._sanitize_config_str(api_key)
-
-            # Build request URL
+            
+            # 构建请求URL
             url = cls.parse_api_url(base_url)
-
-            # Pre-process: Merge System Prompts (Level 0 applies by default)
+            
+            # 预处理：合并System Prompts (Level 0 默认应用)
             merged_messages = cls._merge_system_prompts(messages)
-
-            # Build base request body (only required params)
+            
+            # 构建基础请求体 (仅必选参数)
             initial_payload = {
                 "model": model,
                 "messages": merged_messages,
                 "stream": True
             }
             
-            # For vision tasks (image/video captioning), certain models strictly require max_tokens,
-            # otherwise it triggers openai_error, compatible V1
+            # 视觉任务(图像/视频反推)对于某些模型严格要求带有 max_tokens，否则会触发 openai_error，兼容 V1
             is_vision_task = task_type in [TASK_IMAGE_CAPTION, TASK_VIDEO_CAPTION] if task_type else False
-
-            # Only send temperature, top_p, max_tokens when user enables "Advanced Parameters" (vision tasks force sending)
+            
+            # 仅在用户开启"启用高级参数"时才发送 temperature、top_p、max_tokens（视觉任务强制发送）
             if enable_advanced_params or is_vision_task:
                 initial_payload["temperature"] = temperature
                 initial_payload["top_p"] = top_p
                 if is_vision_task and not enable_advanced_params:
-                    # BUG-07 fix: When vision tasks force send max_tokens, use a conservative upper bound
-                    # Some relay providers (e.g., Gemini Flash via proxy) have max_tokens cap at 1024-1500
-                    # Use min(max_tokens, 1500) as fallback to reduce compatibility issues
+                    # BUG-07 修复：视觉任务强制发送 max_tokens 时，使用保守上限
+                    # 部分中转站（如 Gemini Flash via 代理）的 max_tokens 上限为 1024-1500
+                    # 采用 min(max_tokens, 1500) 作为兜底，降低兼容性问题
                     initial_payload["max_tokens"] = min(max_tokens, 1500)
                 else:
                     initial_payload["max_tokens"] = max_tokens
 
-            # Add thinking chain control parameters
+            
 
-            # Add thinking chain control parameters
+            # 添加思维链控制参数
             if thinking_extra:
                 initial_payload.update(thinking_extra)
             
-            # Build request headers
+            # 构建请求头
             headers = {"Content-Type": "application/json"}
             if api_key and api_key.strip():
                 headers["Authorization"] = f"Bearer {api_key}"
             
-            # Get HTTP client
+            # 获取HTTP客户端
             request_timeout = 180.0
             if task_type in (TASK_IMAGE_CAPTION, TASK_VIDEO_CAPTION):
                 request_timeout = 300.0
@@ -207,12 +207,12 @@ class OpenAICompatibleService(BaseAPIService):
                 timeout=request_timeout
             )
 
-            # Pre-execution interrupt check: don't start request if ComfyUI already interrupted
+            # 前置中断检查：如果 ComfyUI 已经中断了，不启动请求
             from server import PromptServer
             if hasattr(PromptServer.instance, 'execution_interrupted') and PromptServer.instance.execution_interrupted:
-                return {"success": False, "error": "Task interrupted", "interrupted": True}
+                return {"success": False, "error": "任务被中断", "interrupted": True}
             
-            # Create unified progress bar (automatically handles wait -> generate -> complete lifecycle)
+            # 创建统一进度条（自动处理等待→生成→完成的完整生命周期）
             pbar = ProgressBar(
                 request_id=request_id,
                 service_name=provider_display_name,
@@ -224,25 +224,25 @@ class OpenAICompatibleService(BaseAPIService):
             start_time = time.perf_counter()
             last_error_msg = ""
             
-            # 3-level degradation retry loop (Level 0 -> Level 2)
+            # 三级降级重试循环 (Level 0 -> Level 2)
             for retry_level in range(3):
                 current_payload = cls._filter_payload(initial_payload, retry_level)
-
-                # If not Level 0, print degradation retry warning
+                
+                # 如果不是Level 0，打印降级重试警告（换行输出）
                 if retry_level > 0:
                     removed_keys = set(initial_payload.keys()) - set(current_payload.keys())
-                    removed_str = ", ".join(removed_keys) if removed_keys else "no param changes"
-                    print(f"\\n{WARN_PREFIX} HTTP 400 error, triggering Level-{retry_level} degradation retry | Service:{provider_display_name} | Removed params:[{removed_str}]", flush=True)
-
-                    # Key fix: Stop the old progress bar before creating a new one, prevent thread leak
+                    removed_str = ", ".join(removed_keys) if removed_keys else "无参数变动"
+                    print(f"\n{WARN_PREFIX} ⚠️ HTTP 400错误, 触发Level-{retry_level}降级重试 | 服务:{provider_display_name} | 移除参数:[{removed_str}]", flush=True)
+                    
+                    # 关键修复：停止旧的进度条后再创建新的，防止线程泄漏
                     if pbar:
                         try:
-                            pbar.error(f"Retry Level {retry_level}...") # Mark previous progress bar as error/retry state
+                            pbar.error(f"Retry Level {retry_level}...") # 标记前一个进度条为错误/重试状态
                         except:
                             pbar._stop_timer()
 
-                    # Recreate progress bar for the new retry round
-                    # Recreate progress bar for the new retry round
+                    
+                    # 重新创建进度条用于新一轮重试
                     pbar = ProgressBar(
                         request_id=request_id,
                         service_name=provider_display_name,
@@ -254,8 +254,8 @@ class OpenAICompatibleService(BaseAPIService):
                 
                 async def _do_stream_request():
                     nonlocal pbar
-
-                    # Define request core logic
+                    
+                    # 定义请求核心逻辑
                     async def _request_core():
                         async with client.stream('POST', url, headers=headers, json=current_payload, follow_redirects=True) as response:
                             if response.status_code != 200:
@@ -266,10 +266,10 @@ class OpenAICompatibleService(BaseAPIService):
                                 except:
                                     msg = f'HTTP {response.status_code}: {error_text.decode("utf-8", errors="ignore")[:200]}'
                                 
-                                # Smart recognize authentication errors
+                                # 智能识别认证错误
                                 from ..utils.common import _is_auth_error
                                 if response.status_code == 401 or _is_auth_error(msg.lower()):
-                                    msg = "Invalid or missing API Key"
+                                    msg = "API Key无效或缺失"
                                 
                                 return {
                                     "success": False, 
@@ -280,40 +280,40 @@ class OpenAICompatibleService(BaseAPIService):
                             
                             full_content = ""
                             reasoning_content = ""
-                            stream_error = None  # Capture in-stream errors
-
+                            stream_error = None  # 用于捕获流内错误
+                            
                             async for line in response.aiter_lines():
-                                # Keep the loop check here as an extra safety measure
+                                # 此处的循环检查依然保留，作为双重保险
                                 if cancel_event is not None and cancel_event.is_set():
                                     raise asyncio.CancelledError()
-
+                                
                                 if not line or line == "data: [DONE]" or line == "data:[DONE]": continue
                                 if line.startswith("data: "): line = line[6:]
                                 elif line.startswith("data:"): line = line[5:]
-
+                                
                                 try:
                                     chunk = json.loads(line)
-                                    # --- Debug log (level 2): output raw streaming data ---
+                                    # --- 调试日志 (2级): 输出原始流式数据 ---
                                     # print(f"[DEBUG-2] Chunk: {line[:200]}...", flush=True)
-
-                                    # Key fix: Detect in-stream errors (some proxies return errors via HTTP 200 + SSE)
+                                    
+                                    # 关键修复：检测流内错误（部分代理以HTTP 200+SSE方式返回错误）
                                     if chunk.get('error'):
                                         err = chunk['error']
                                         if isinstance(err, dict):
                                             stream_error = err.get('message', str(err))
                                         else:
                                             stream_error = str(err)
-                                        break  # Immediately abort stream reading
-
+                                        break  # 立即中止流读取
+                                    
                                     if chunk.get('choices'):
                                         delta = chunk['choices'][0].get('delta', {})
                                         content = delta.get('content', '') or ''
-                                        # Broad-spectrum capture of reasoning fields from different providers
+                                        # 针对不同厂商的推理字段进行广谱捕获
                                         reasoning = (
                                             delta.get('reasoning_content', '') or 
                                             delta.get('reasoning', '') or 
                                             delta.get('thinking', '') or 
-                                            delta.get('thinking_process', '') or  # fallback
+                                            delta.get('thinking_process', '') or  # 备选
                                             ''
                                         )
                                         if reasoning:
@@ -328,18 +328,18 @@ class OpenAICompatibleService(BaseAPIService):
                                             pbar.set_generating(progress_count)
                                             pbar.update(progress_count)
                                 except json.JSONDecodeError:
-                                    continue  # Non-JSON lines (e.g. comments, empty lines), skip normally
+                                    continue  # 非 JSON 行（如注释、空行），正常跳过
                                 except asyncio.CancelledError:
-                                    raise  # Must re-raise, cannot be swallowed
+                                    raise  # 必须重新抛出，不能被吐掉
                                 except Exception as chunk_err:
-                                    # Other exceptions: log warning and continue, avoid interrupting the entire stream due to a single chunk error
-                                    print(f"\\n{WARN_PREFIX} SSE chunk parse error: {chunk_err}", flush=True)
+                                    # 其他异常：记录警告后继续，避免因单块错误中断整个流
+                                    print(f"\n{WARN_PREFIX} SSE 块解析异常: {chunk_err}", flush=True)
                                     continue
-
-                            # If an error was detected in the stream, dynamically determine if degradation retry should be triggered
+                            
+                            # 如果流中检测到错误，动态判断是否应该触发降级重试
                             if stream_error:
-                                # BUG-05 fix: Some proxies (xFlow/Grok etc.) return parameter errors via HTTP 200 + SSE error
-                                # Should trigger degradation retry, not permanent failure
+                                # BUG-05 修复: 部分代理（xFlow/Grok等）以 HTTP 200+SSE error 返回参数错误时
+                                # 应当触发降级重试，而非直接永久失败
                                 _RETRYABLE_STREAM_ERROR_KEYWORDS = [
                                     "unsupported", "invalid parameter", "invalid_request",
                                     "unknown field", "extra inputs", "not supported",
@@ -354,20 +354,20 @@ class OpenAICompatibleService(BaseAPIService):
                                 return {
                                     "success": False,
                                     "error": stream_error,
-                                    "status_code": 200,  # HTTP level success, business level failure
-                                    "should_retry": is_retryable_stream_error  # Dynamically determine if degradation retry should be triggered
+                                    "status_code": 200,  # HTTP层面成功，业务层面失败
+                                    "should_retry": is_retryable_stream_error  # 动态判断是否应该降级重试
                                 }
-
+                            
                             final_content = full_content
-                            # Only prepend reasoning_content back when the user has NOT enabled "filter thinking output"
+                            # 只有当用户没有开启“过滤思维链”时，才手动把 reasoning_content 拼回去
                             if reasoning_content and not filter_thinking_output:
                                 final_content = f"<think>{reasoning_content}</think>\n{full_content}"
-
+                            
                             elapsed_ms = int((time.perf_counter() - start_time) * 1000)
                             if not final_content.strip():
-                                pbar.error("Response content is empty")
-                                # --- Debug log (level 1): warn that response content is empty ---
-                                print(f"\n{WARN_PREFIX} [API Response Debug] Model:{model} | Status:success | But final content is empty string, triggering degradation retry", flush=True)
+                                pbar.error("响应内容为空")
+                                # --- 调试日志 (1级): 警告响应内容为空 ---
+                                print(f"\n{WARN_PREFIX} [API响应调试] 模型:{model} | 状态:成功 | 但最终内容为空字符串，触发降级重试", flush=True)
                                 return {
                                     "success": False,
                                     "error": "API returned empty content",
@@ -379,7 +379,7 @@ class OpenAICompatibleService(BaseAPIService):
                             
                             return {"success": True, "content": final_content}
 
-                    # Define monitor logic: check interrupt signal every 100ms
+                    # 定义监视器逻辑：每100ms检查一次中断信号
                     async def _monitor_interrupts(target_task):
                         while not target_task.done():
                             is_interrupted = False
@@ -399,74 +399,74 @@ class OpenAICompatibleService(BaseAPIService):
                             await asyncio.sleep(0.1)
                         return False
 
-                    # Run request and monitor concurrently
+                    # 并发运行请求和监视器
                     req_task = asyncio.create_task(_request_core())
                     monitor_task = asyncio.create_task(_monitor_interrupts(req_task))
                     
                     try:
                         result = await req_task
-                        # Key fix: When API returns error, ensure progress bar is stopped
+                        # 关键修复：API 返回错误时，确保进度条被停止
                         if not result.get("success") and not result.get("interrupted"):
                             if not getattr(pbar, '_closed', False):
-                                pbar.error(result.get("error", "API error"))
+                                pbar.error(result.get("error", "API 错误"))
                         return result
                     except asyncio.CancelledError:
-                        pbar.cancel(f"{WARN_PREFIX} Task interrupted | Service:{provider_display_name}")
-                        return {"success": False, "error": "Task interrupted", "interrupted": True}
+                        pbar.cancel(f"{WARN_PREFIX} 任务被中断 | 服务:{provider_display_name}")
+                        return {"success": False, "error": "中断", "interrupted": True}
                     finally:
                         if not monitor_task.done():
                             monitor_task.cancel()
 
-                # Execute request
+                # 执行请求
                 try:
                     result = await _do_stream_request()
                 except Exception as req_err:
-                    # Network-level exceptions (non-HTTP response)
-
-                    # Special handling for encoding errors (UnicodeEncodeError)
+                    # 网络层面的异常（非HTTP响应）
+                    
+                    # 特别处理编码错误 (UnicodeEncodeError)
                     if isinstance(req_err, UnicodeEncodeError):
-                        error_detail = "Network request encoding error: detected invalid characters (\u2026 or other non-ASCII chars). Please check if the API Key or URL in provider config contains extra ellipsis, quotes, or spaces."
+                        error_detail = "网络请求编码异常: 检测到非法字符 (\u2026 或其他非 ASCII 字符)。请检查服务商配置中的 API Key 或 URL 是否包含多余的省略号、引号或空格。"
                         if 'pbar' in locals() and pbar:
                             pbar.error(error_detail)
                         return {"success": False, "error": error_detail}
-
+                    
                     if 'pbar' in locals() and pbar:
-                        pbar.error(f"Network request error: {req_err}")
-                    return {"success": False, "error": f"Network request error: {req_err}"}
+                        pbar.error(f"网络请求异常: {req_err}")
+                    return {"success": False, "error": f"网络请求异常: {req_err}"}
 
-                # Check result
+                # 检查结果
                 if result["success"]:
-                    # After Ollama service succeeds, try to unload model
+                    # Ollama 服务成功后尝试卸载模型
                     if provider_display_name.lower().find("ollama") != -1:
                         try:
                             from ..config_manager import config_manager
                             service_config = config_manager.get_service(provider_display_name) or {}
-                            # Inject the actual base_url used, prevent fallback to localhost causing VRAM cleanup failure
+                            # 注入当前实际使用的 base_url，防止回退到 localhost 导致清理显存失败
                             service_config['base_url'] = base_url
                             await cls._unload_ollama_model(model, service_config)
                         except:
                             pass
                     return result
-
+                
                 if result.get("interrupted"):
                     return result
 
                 last_error_msg = result["error"]
-
-                # Only continue looping when should_retry is True (HTTP 400) and retries remain
+                
+                # 只有 should_retry 为 True (HTTP 400) 且还有重试机会时，才继续循环
                 if not result.get("should_retry"):
-                    break # Non-400 errors (401, 500, etc.), do not perform degradation retry, return error directly
-
-            # All retries exhausted or non-retryable error
+                    break # 非400错误（如401, 500等），不进行降级重试，直接返回错误
+            
+            # 所有重试耗尽或非可重试错误
             if 'pbar' in locals() and pbar:
                 pbar.error(last_error_msg)
             return {"success": False, "error": last_error_msg}
         
-        # Critical fix: separately catch CancelledError to ensure progress bar stops correctly
+        # 关键修复：单独捕获 CancelledError，确保进度条被正确停止
         except asyncio.CancelledError:
             if 'pbar' in locals() and pbar:
-                pbar.cancel(f"{WARN_PREFIX} Task interrupted | Service:{provider_display_name}")
-            return {"success": False, "error": "Task interrupted", "interrupted": True}
+                pbar.cancel(f"{WARN_PREFIX} 任务被外部取消 | 服务:{provider_display_name}")
+            return {"success": False, "error": "任务被取消", "interrupted": True}
                     
         except Exception as e:
             if 'pbar' in locals() and pbar:
@@ -476,52 +476,52 @@ class OpenAICompatibleService(BaseAPIService):
     @staticmethod
     async def _unload_ollama_model(model: str, provider_config: Dict[str, Any]):
         """
-        Unload Ollama model to free VRAM and memory
-
-        Args:
-            model: Model name
-            provider_config: Provider config dictionary
+        卸载Ollama模型以释放显存和内存
+        
+        参数:
+            model: 模型名称
+            provider_config: 提供商配置字典
         """
         try:
-            # Check if auto-unload is enabled
+            # 检查是否启用自动释放
             auto_unload = provider_config.get('auto_unload', True)
             if not auto_unload:
                 from ..utils.common import PROCESS_PREFIX
-                print(f"{PROCESS_PREFIX} Ollama model kept | Model:{model}")
+                print(f"{PROCESS_PREFIX} Ollama模型已保留 | 模型:{model}")
                 return
-
+            
             await wait_before_ollama_unload()
-
-            # Get base_url
+            
+            # 获取base_url
             base_url = provider_config.get('base_url', 'http://localhost:11434')
             if base_url.endswith('/v1'):
                 base_url = base_url[:-3]
-
-            # Call Ollama API to unload model
+            
+            # 调用Ollama API卸载模型
             url = f"{base_url}/api/generate"
             payload = {
                 "model": model,
                 "keep_alive": 0
             }
             
-            # Create temporary client (unload operation doesn't need reuse, disable proxy to prevent localhost requests from being intercepted)
+            # 创建临时客户端（卸载操作不需要复用，禁用代理避免localhost请求被拦截）
             async with httpx.AsyncClient(timeout=5.0, trust_env=False) as client:
                 response = await client.post(url, json=payload)
                 if response.status_code == 200:
                     from ..utils.common import PROCESS_PREFIX
-                    print(f"{PROCESS_PREFIX} Ollama model unloaded | Model:{model}")
-
+                    print(f"{PROCESS_PREFIX} Ollama模型已释放 | 模型:{model}")
+                
         except Exception as e:
             from ..utils.common import WARN_PREFIX
-            print(f"{WARN_PREFIX} Ollama model unload failed (does not affect results) | Model:{model} | Error:{str(e)[:50]}")
+            print(f"{WARN_PREFIX} Ollama模型释放失败（不影响结果） | 模型:{model} | 错误:{str(e)[:50]}")
     
     @classmethod
     def get_provider_display_name(cls, provider: str) -> str:
         """
-        Get provider display name
-        Prefer getting the real service name from config_manager, fallback to provider key
+        获取提供商显示名称
+        优先从config_manager获取服务的真实名称，兜底使用provider key
         """
-        # Prefer trying to get service name from config_manager
+        # 优先尝试从config_manager获取服务名称
         try:
             from ..config_manager import config_manager
             service = config_manager.get_service(provider)
@@ -529,41 +529,41 @@ class OpenAICompatibleService(BaseAPIService):
                 return service['name']
         except Exception:
             pass
-
-        # Fallback to returning the key directly
+        
+        # 兜底直接返回key
         return provider
     
     @classmethod
     def get_provider_base_url(cls, provider: str, config: Optional[Dict[str, Any]] = None) -> Optional[str]:
         """
-        Get the base_url for a provider
-        Only used for custom provider logic, other cases should get directly from config
+        获取提供商的base_url
+        仅用于custom provider的逻辑，其他情况应直接从config获取
         """
         if provider == 'custom' and config:
             base_url = config.get('base_url')
-            # Ensure base_url does not end with /chat/completions
+            # 确保base_url不以/chat/completions结尾
             if base_url and base_url.endswith('/chat/completions'):
                 base_url = base_url[:-len('/chat/completions')]
             return base_url
-
+        
         return None
 
     @staticmethod
     def _sanitize_config_str(s: str) -> str:
         """
-        Clean illegal characters in config strings (e.g. spaces, quotes, invisible characters, etc.)
-        Prevent request failures caused by copy-paste issues.
-
-        Key fix: Return empty string "" when None or non-string is passed,
-        avoid generating invalid auth headers like "Bearer None".
+        清理配置字符串中的非法字符（如空格、引号、不可见字符等）
+        防止因复制粘贴导致的请求失败。
+        
+        关键修复：传入 None 或非字符串时统一返回空字符串 ""，
+        避免后续拼接产生 "Bearer None" 等无效认证头。
         """
         if not s or not isinstance(s, str):
-            return ""  # Always return empty string, not None
-        # 1. Remove leading/trailing spaces and common quotes
+            return ""  # 统一返回空字符串，不返回 None
+        # 1. 移除两端空格和常见引号
         s = s.strip().strip('"').strip("'")
-        # 2. Remove common Unicode interfering characters (e.g., \u2026 ellipsis)
-        # Note: We replace with empty string here because API Keys should not contain these characters
-        s = s.replace('\u2026', '')
-        # 3. Remove invisible tabs and newlines
+        # 2. 移除常见的 Unicode 干扰字符（如 \u2026 省略号）
+        # 注意：这里我们选择将其替换为空，因为 API Key 中不应包含这些字符
+        s = s.replace('\u2026', '') 
+        # 3. 移除不可见的制表符和换行符
         s = s.replace('\t', '').replace('\n', '').replace('\r', '')
         return s

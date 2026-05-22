@@ -1,18 +1,18 @@
 """
-Model List Service
-Supports dynamic API fetching and predefined model lists
+模型列表服务
+支持动态API获取和预定义模型列表
 """
 import httpx
 from typing import Dict, List
 
-# Import unified log prefix
+# 导入统一的日志前缀
 try:
     from ..utils.common import ERROR_PREFIX
 except ImportError:
-    # If import fails, use default value
-    ERROR_PREFIX = "✨-Error"
+    # 如果导入失败,使用默认值
+    ERROR_PREFIX = "✨-错误"
 
-# --- ZhipuAI predefined model list ---
+# --- 智谱AI预定义模型列表 ---
 ZHIPU_MODELS = [
     "glm-5.1",
     "glm-5",
@@ -48,54 +48,54 @@ ZHIPU_MODELS = [
 def get_models_from_service(base_url: str, api_key: str, service_type: str) -> Dict:
 
     """
-    Fetch model list from service provider
+    从服务提供商动态获取模型列表
     
-    Args:
-        base_url: API base URL
-        api_key: API key
-        service_type: Service type ('openai_compatible', 'ollama', 'zhipu')
+    参数:
+        base_url: API基础URL
+        api_key: API密钥
+        service_type: 服务类型 ('openai_compatible', 'ollama', 'zhipu')
     
-    Returns:
+    返回:
         Dict: {
             "success": bool,
-            "models": {"llm": [...], "vlm": [...]},  # when success=True
-            "error": str  # error message when success=False
+            "models": {"llm": [...], "vlm": [...]},  # success=True时
+            "error": str  # success=False时的错误信息
         }
     """
     try:
-        # Check required parameters
+        # 检查必需参数
         if not base_url:
             return {
                 "success": False,
-                "error": "Please fill in the Base URL"
+                "error": "请填写Base URL"
             }
         
-        # Zhipu uses predefined list, no API Key verification needed
+        # 智谱使用预定义列表,不需要API Key验证
         if service_type == 'zhipu':
             return _get_zhipu_models()
         
         if service_type == 'openai_compatible' and not api_key:
             return {
                 "success": False,
-                "error": "Please fill in the API Key"
+                "error": "请填写API Key"
             }
         
-        # Call different fetch methods based on service type
+        # 根据服务类型调用不同的获取方法
         if service_type == 'ollama':
             return _fetch_ollama_models(base_url)
         else:  # openai_compatible
             return _fetch_openai_compatible_models(base_url, api_key)
             
     except Exception as e:
-        print(f"{ERROR_PREFIX} Exception fetching model list: {str(e)}")
+        print(f"{ERROR_PREFIX} 获取模型列表异常: {str(e)}")
         return {
             "success": False,
-            "error": f"Fetch failed: {str(e)}"
+            "error": f"获取失败: {str(e)}"
         }
 
 
 def _fetch_openai_compatible_models(base_url: str, api_key: str) -> Dict:
-    """Fetch model list from OpenAI-compatible API"""
+    """获取OpenAI兼容API的模型列表"""
     try:
         url = f"{base_url.rstrip('/')}/models"
         headers = {
@@ -109,17 +109,17 @@ def _fetch_openai_compatible_models(base_url: str, api_key: str) -> Dict:
         if response.status_code == 401:
             return {
                 "success": False,
-                "error": "API Key error, authentication failed"
+                "error": "API Key错误,认证失败"
             }
         elif response.status_code == 404:
             return {
                 "success": False,
-                "error": "API address error, model endpoint not found"
+                "error": "API地址错误,未找到模型接口"
             }
         elif response.status_code != 200:
             return {
                 "success": False,
-                "error": f"API returned error (HTTP {response.status_code})"
+                "error": f"API返回错误 (HTTP {response.status_code})"
             }
         
         data = response.json()
@@ -128,10 +128,10 @@ def _fetch_openai_compatible_models(base_url: str, api_key: str) -> Dict:
         if not models:
             return {
                 "success": False,
-                "error": "No available models found"
+                "error": "未找到任何可用模型"
             }
         
-        # Extract model IDs and return (same list for LLM and VLM)
+        # 提取模型ID并返回(LLM和VLM返回相同列表)
         model_ids = [m['id'] for m in models if 'id' in m]
         
         return {
@@ -145,32 +145,32 @@ def _fetch_openai_compatible_models(base_url: str, api_key: str) -> Dict:
     except httpx.TimeoutException:
         return {
             "success": False,
-            "error": "Request timed out, please check network connection"
+            "error": "请求超时,请检查网络连接"
         }
     except httpx.ConnectError:
         return {
             "success": False,
-            "error": "Unable to connect to service, please check the Base URL"
+            "error": "无法连接到服务,请检查Base URL"
         }
     except Exception as e:
-        print(f"{ERROR_PREFIX} Failed to fetch OpenAI-compatible models: {str(e)}")
+        print(f"{ERROR_PREFIX} 获取OpenAI兼容模型失败: {str(e)}")
         return {
             "success": False,
-            "error": f"Failed to fetch model list: {str(e)}"
+            "error": f"获取模型列表失败: {str(e)}"
         }
 
 
 def _fetch_ollama_models(base_url: str) -> Dict:
-    """Fetch Ollama model list"""
+    """获取Ollama的模型列表"""
     try:
-        # Ollama native API is at root path, need to remove possible /v1 suffix
+        # Ollama 原生 API 在根路径,需要移除可能存在的 /v1 后缀
         clean_url = base_url.rstrip('/')
         if clean_url.endswith('/v1'):
             clean_url = clean_url[:-3]
         
         url = f"{clean_url}/api/tags"
         
-        # Add required request headers (referencing ollama-python SDK)
+        # 添加必需的请求头(参考 ollama-python SDK)
         import platform
         headers = {
             'Accept': 'application/json',
@@ -178,31 +178,31 @@ def _fetch_ollama_models(base_url: str) -> Dict:
             'User-Agent': f'comfyui-prompt-assistant/1.0 ({platform.machine()} {platform.system().lower()}) Python/{platform.python_version()}'
         }
         
-        # Create a client with proxy disabled to avoid system proxy interfering with localhost requests
-        # This is a common cause of 502 errors: system proxy cannot correctly forward localhost requests
+        # 创建禁用代理的客户端，避免系统代理干扰localhost请求
+        # 这是502错误的常见原因：系统代理无法正确转发localhost请求
         with httpx.Client(proxy=None, trust_env=False) as client:
             response = client.get(url, headers=headers, timeout=10.0)
         
         if response.status_code == 404:
             return {
                 "success": False,
-                "error": "Ollama service not started or Base URL is incorrect"
+                "error": "Ollama服务未启动或Base URL错误"
             }
         elif response.status_code == 400:
-            error_detail = response.text[:500] if response.text else "No response body"
+            error_detail = response.text[:500] if response.text else "无响应体"
             return {
                 "success": False,
-                "error": f"Ollama returned a 400 error. Details: {error_detail}"
+                "error": f"Ollama返回400错误。详情: {error_detail}"
             }
         elif response.status_code == 502:
             return {
                 "success": False,
-                "error": f"Ollama returned error (HTTP 502): Bad gateway, please check if Ollama service is running correctly"
+                "error": f"Ollama返回错误 (HTTP 502): 网关错误，请检查Ollama服务是否正常运行"
             }
         elif response.status_code != 200:
             return {
                 "success": False,
-                "error": f"Ollama returned error (HTTP {response.status_code}): {response.text[:200]}"
+                "error": f"Ollama返回错误 (HTTP {response.status_code}): {response.text[:200]}"
             }
         
         data = response.json()
@@ -211,10 +211,10 @@ def _fetch_ollama_models(base_url: str) -> Dict:
         if not models:
             return {
                 "success": False,
-                "error": "No Ollama models found"
+                "error": "未找到任何Ollama模型"
             }
         
-        # Extract model names and return (same list for LLM and VLM)
+        # 提取模型名称并返回(LLM和VLM返回相同列表)
         model_names = [m['name'] for m in models if 'name' in m]
         
         return {
@@ -228,28 +228,28 @@ def _fetch_ollama_models(base_url: str) -> Dict:
     except httpx.TimeoutException:
         return {
             "success": False,
-            "error": "Request timed out, Ollama may not be started"
+            "error": "请求超时,Ollama可能未启动"
         }
     except httpx.ConnectError as e:
-        print(f"{ERROR_PREFIX} Unable to connect to Ollama service: {str(e)}")
+        print(f"{ERROR_PREFIX} 无法连接到Ollama服务: {str(e)}")
         return {
             "success": False,
-            "error": "Unable to connect to Ollama service"
+            "error": "无法连接到Ollama服务"
         }
     except Exception as e:
-        print(f"{ERROR_PREFIX} Failed to fetch Ollama models: {str(e)}")
+        print(f"{ERROR_PREFIX} 获取Ollama模型失败: {str(e)}")
         import traceback
         traceback.print_exc()
         return {
             "success": False,
-            "error": f"Failed to fetch Ollama models: {str(e)}"
+            "error": f"获取Ollama模型失败: {str(e)}"
         }
 
 
 def _get_zhipu_models() -> Dict:
     """
-    Get ZhipuAI's predefined model list
-    ZhipuAI currently does not provide a public model list API, using a predefined list
+    获取智谱AI的预定义模型列表
+    智谱AI暂不提供公开的模型列表API,使用预定义列表
     """
     return {
         "success": True,

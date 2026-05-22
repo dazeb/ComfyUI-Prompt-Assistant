@@ -3,13 +3,13 @@ import { EventManager } from "../utils/eventManager.js";
 import "../lib/Sortable.min.js";
 
 /**
- * Debug toggle: disable auto-collapse
- * Enter window.PA_DEBUG_NO_COLLAPSE = true in the console to disable auto-collapse
- * Enter window.PA_DEBUG_NO_COLLAPSE = false to restore auto-collapse
+ * 调试开关：禁止自动折叠
+ * 在控制台输入 window.PA_DEBUG_NO_COLLAPSE = true 可禁止自动折叠
+ * 输入 window.PA_DEBUG_NO_COLLAPSE = false 可恢复自动折叠
  */
 window.PA_DEBUG_NO_COLLAPSE = window.PA_DEBUG_NO_COLLAPSE || false;
 
-// Anchor position enum
+// 锚点位置枚举
 export const ANCHOR_POSITION = {
     TOP_LEFT_H: 'top-left-h',
     TOP_LEFT_V: 'top-left-v',
@@ -33,11 +33,11 @@ export class AssistantContainer {
         this.offset = options.offset || { x: 0, y: 0 };
         this.enableDragSort = options.enableDragSort !== false;
 
-        // Callbacks
+        // 回调函数
         this.onButtonOrderChange = options.onButtonOrderChange;
         this.shouldCollapse = options.shouldCollapse;
 
-        // State
+        // 状态
         this.isCollapsed = true;
         this.isTransitioning = false;
         this.isDestroyed = false;
@@ -48,56 +48,56 @@ export class AssistantContainer {
         this.indicator = null;
         this.content = null;
 
-        // Timers
+        // 定时器
         this._collapseTimer = null;
         this._expandTimer = null;
 
-        // Event cleanup functions
+        // 事件清理函数
         this._cleanupFunctions = [];
 
-        // Sortable instance
+        // Sortable 实例
         this._sortable = null;
     }
 
     render() {
-        // Check if already destroyed
+        // 检查是否已销毁
         if (this.isDestroyed) return null;
 
-        // Main container
+        // 主容器
         this.element = document.createElement('div');
         this.element.className = `assistant-container-common ${this.type}-assistant-container`;
 
-        // Hover area (invisible, used to detect mouse enter/leave)
+        // 悬停区域（不可见，用于检测鼠标进入/离开）
         this.hoverArea = document.createElement('div');
         this.hoverArea.className = 'assistant-hover-area';
         this.element.appendChild(this.hoverArea);
 
-        // Indicator (icon)
+        // 指示器（图标）
         this.indicator = document.createElement('div');
         this.indicator.className = `assistant-indicator ${this.type}-assistant-indicator`;
 
-        // Add entrance animation class
+        // 添加入场动画类
         this.indicator.classList.add('indicator-init');
 
-        // Remove initialization class after animation ends
+        // 动画结束后移除初始化类
         this.indicator.addEventListener('animationend', () => {
             this.indicator.classList.remove('indicator-init');
         }, { once: true });
 
         this.element.appendChild(this.indicator);
 
-        // Button content container
+        // 按钮内容容器
         this.content = document.createElement('div');
         this.content.className = 'assistant-content';
         this.element.appendChild(this.content);
 
-        // Initial style based on anchor point
+        // 基于锚点的初始样式
         this.updatePosition();
 
-        // Bind events
+        // 绑定事件
         this._bindEvents();
 
-        // Setup Sortable
+        // 设置 Sortable
         if (this.enableDragSort) {
             this._setupSortable();
         }
@@ -108,7 +108,7 @@ export class AssistantContainer {
     mount(parentElement) {
         if (parentElement) {
             parentElement.appendChild(this.element);
-            // Force reflow/update dimensions after mounting
+            // 挂载后强制回流/更新尺寸
             requestAnimationFrame(() => this.updateDimensions());
         }
     }
@@ -121,16 +121,16 @@ export class AssistantContainer {
 
     addButton(buttonElement, id) {
         if (!buttonElement) return;
-        buttonElement.dataset.id = id; // For Sortable
+        buttonElement.dataset.id = id; // 用于 Sortable
 
-        // Set button index for progressive animation delay
+        // 设置按钮索引，用于递进动画延迟
         const buttonIndex = this.buttons.length;
         buttonElement.style.setProperty('--button-index', buttonIndex);
 
         this.content.appendChild(buttonElement);
         this.buttons.push({ id, element: buttonElement });
 
-        // If it's a divider, set class name based on current layout direction
+        // 如果是分割线，根据当前布局方向设置类名
         if (buttonElement.classList.contains('prompt-assistant-divider') ||
             buttonElement.classList.contains('image-assistant-divider')) {
             const isVertical = this.anchorPosition.endsWith('-v');
@@ -142,15 +142,15 @@ export class AssistantContainer {
         this.updateDimensions();
     }
 
-    // Batch add buttons. If Sortable already exists, it will follow Sortable's logic (usually append)
-    // If specific order is needed, sort before adding.
+    // 批量添加按钮，如果已存在Sortable，则会遵循Sortable的逻辑（通常append）
+    // 如果需要特定顺序，应该在添加前排好序
     addButtons(buttonElementsWithIds) {
         buttonElementsWithIds.forEach(({ element, id }) => {
             this.addButton(element, id);
         });
     }
 
-    // Clear buttons
+    // 清空按钮
     clearButtons() {
         this.content.innerHTML = '';
         this.buttons = [];
@@ -166,17 +166,17 @@ export class AssistantContainer {
     updatePosition() {
         if (!this.element) return;
 
-        // Save current expanded/collapsed state
+        // 保存当前展开/折叠状态
         const wasExpanded = !this.isCollapsed;
 
-        // Reset class names, keep current state
+        // 重置类名，保持当前状态
         const stateClass = wasExpanded ? 'expanded' : 'collapsed';
         this.element.className = `assistant-container-common ${this.type}-assistant-container ${stateClass}`;
 
-        // Add layout class name
+        // 添加布局类名
         this.element.classList.add(`layout-${this.anchorPosition}`);
 
-        // Ensure content container's Flex direction is correct
+        // 确保内容容器的 Flex 方向正确
         const isVertical = this.anchorPosition.endsWith('-v');
         if (isVertical) {
             this.content.classList.add('flex-col');
@@ -186,14 +186,14 @@ export class AssistantContainer {
             this.content.classList.remove('flex-col');
         }
 
-        // Update divider class names: add divider-horizontal class for vertical layout
+        // 更新分割线类名：垂直布局时添加 divider-horizontal 类
         this._updateDividerOrientation(isVertical);
 
-        // Trigger dimension recalculation
+        // 触发尺寸重新计算
         this.updateDimensions();
     }
 
-    // Update divider orientation class names
+    // 更新分割线方向类名
     _updateDividerOrientation(isVertical) {
         if (!this.content) return;
         const dividers = this.content.querySelectorAll('.prompt-assistant-divider, .image-assistant-divider');
@@ -207,13 +207,13 @@ export class AssistantContainer {
     }
 
     /**
-     * Update container dimensions (optimized version: constant layout mode)
-     * Directly calculate dimensions based on currently enabled button combination, avoiding overhead of DOM clone measurement
+     * 更新容器尺寸 (优化版：常量布局模式)
+     * 根据当前启用的按钮组合直接计算尺寸，避免 DOM 克隆测量带来的开销
      */
     updateDimensions() {
         if (!this.element || !this.content) return;
 
-        // --- 1. Get current state statistics ---
+        // --- 1. 获取当前状态统计 ---
         const buttons = Array.from(this.content.children).filter(el =>
             el.style.display !== 'none' &&
             !el.classList.contains('assistant-indicator')
@@ -222,56 +222,56 @@ export class AssistantContainer {
         const totalCount = buttons.length;
         if (totalCount === 0) return;
 
-        // Count feature groups
+        // 统计功能组
         const hasHistoryGroup = buttons.some(el => el.dataset.id === 'history' || el.dataset.id === 'undo' || el.dataset.id === 'redo');
         const hasDivider = buttons.some(el => el.classList.contains('prompt-assistant-divider') || el.classList.contains('image-assistant-divider'));
 
-        // Count valid feature buttons excluding history and dividers
+        // 计算非历史且非分隔线的有效功能按钮数量
         const otherFeaturesCount = buttons.filter(el =>
             !['history', 'undo', 'redo'].includes(el.dataset.id) &&
             !el.classList.contains('prompt-assistant-divider') &&
             !el.classList.contains('image-assistant-divider')
         ).length;
 
-        // --- 2. Dimension mapping based on preset constants ---
-        let finalDimension = 28; // Default single button width (or collapsed size)
+        // --- 2. 基于预设常量的尺寸映射 ---
+        let finalDimension = 28; // 默认单个按钮宽度 (或折叠尺寸)
 
-        // Logical rule matching (based on precise measurements provided by user)
+        // 逻辑规则匹配 (根据用户提供的精确测量值)
         if (hasHistoryGroup && otherFeaturesCount === 3) {
-            finalDimension = 143; // All features enabled (history 3 + divider 1 + other 3)
+            finalDimension = 143; // 所有功能全开 (历史3 + 分隔线1 + 其它3)
         } else if (hasHistoryGroup && otherFeaturesCount === 2) {
-            finalDimension = 121; // History + two others
+            finalDimension = 121; // 历史 + 两个其它
         } else if (hasHistoryGroup && otherFeaturesCount === 1) {
-            finalDimension = 99;  // History + one other
+            finalDimension = 99;  // 历史 + 一个其它
         } else if (hasHistoryGroup && otherFeaturesCount === 0) {
-            finalDimension = 77;  // Only history features
+            finalDimension = 77;  // 只有历史功能
         } else if (!hasHistoryGroup && otherFeaturesCount === 3) {
-            finalDimension = 72;  // Three features without history
+            finalDimension = 72;  // 关闭历史的三个功能
         } else if (!hasHistoryGroup && otherFeaturesCount === 2) {
-            finalDimension = 50;  // Only two buttons
+            finalDimension = 50;  // 只有两个按钮
         } else if (!hasHistoryGroup && otherFeaturesCount === 1) {
-            finalDimension = 28;  // Only one button
+            finalDimension = 28;  // 只有一个按钮
         } else {
-            // Fallback dynamic calculation: base 28 + (extra buttons * 22) + (has divider ? 5 : 0)
+            // 兜底动态计算逻辑: 基础28 + (额外按钮 * 22) + (如果有分隔线 ? 5 : 0)
             const extraCount = totalCount - 1;
             finalDimension = 28 + (extraCount * 22);
             if (hasDivider) finalDimension += 5;
         }
 
-        // --- 3. Apply dimensions ---
+        // --- 3. 应用尺寸 ---
         const isVertical = this.anchorPosition.endsWith('-v');
         if (isVertical) {
-            // Vertical layout: fixed width, dynamic height
+            // 竖向布局：宽度固定，高度动态
             this.element.style.setProperty('--expanded-width', `28px`);
             this.element.style.setProperty('--expanded-height', `${finalDimension}px`);
         } else {
-            // Horizontal layout: fixed height, dynamic width
+            // 横向布局：高度固定，宽度动态
             this.element.style.setProperty('--expanded-width', `${finalDimension}px`);
             this.element.style.setProperty('--expanded-height', `28px`);
         }
 
         /* 
-        // --- Original automatic measurement code (commented out, backup) ---
+        // --- 原有自动测量代码 (已注释，备用) ---
         const clone = this.content.cloneNode(true);
         clone.style.cssText = `
             position: absolute; 
@@ -311,59 +311,59 @@ export class AssistantContainer {
     }
 
     _bindEvents() {
-        // Hover handling with interrupt logic
+        // 带中断逻辑的悬停处理
         const onMouseEnter = () => this.expand();
         const onMouseLeave = () => this.collapse();
 
-        // Bind to hover area and element itself
-        // Use EventManager to bind for easy cleanup
+        // 绑定到悬停区域和元素本身
+        // 使用 EventManager 来绑定，以便于清理
         this._cleanupFunctions.push(EventManager.addDOMListener(this.element, 'mouseenter', onMouseEnter));
         this._cleanupFunctions.push(EventManager.addDOMListener(this.element, 'mouseleave', onMouseLeave));
     }
 
     expand() {
-        // Check if already destroyed
+        // 检查是否已销毁
         if (this.isDestroyed) return;
 
-        // Clear any pending collapse timer
+        // 清除任何挂起的折叠定时器
         if (this._collapseTimer) {
             clearTimeout(this._collapseTimer);
             this._collapseTimer = null;
         }
 
-        // First update dimensions to ensure CSS variables are set before expanding
+        // 先更新尺寸，确保 CSS 变量在展开前就设置好
         this.updateDimensions();
 
-        // Adjust button progressive animation index based on anchor position
+        // 根据锚点位置调整按钮递进动画索引
         this._updateButtonStaggerIndex();
 
-        // Expand immediately
+        // 立即展开
         this.isCollapsed = false;
         this.element.classList.remove('collapsed');
         this.element.classList.add('expanded');
 
-        // Hide indicator
+        // 隐藏指示器
         if (this.indicator) {
             this.indicator.style.opacity = '0';
             this.indicator.style.pointerEvents = 'none';
         }
 
-        // Show content
+        // 显示内容
         if (this.content) {
             this.content.style.opacity = '1';
             this.content.style.pointerEvents = 'auto';
         }
     }
 
-    // Adjust button progressive animation index based on anchor position
+    // 根据锚点位置调整按钮递进动画索引
     _updateButtonStaggerIndex() {
         if (!this.content) return;
 
         const children = Array.from(this.content.children);
         const totalButtons = children.length;
 
-        // Determine whether reverse index is needed
-        // When right layout expands leftwards or bottom layout expands upwards, reverse is needed (last button shows first)
+        // 判断是否需要反向索引
+        // 右侧布局向左展开、底部布局向上展开时，需要反向（最后的按钮先显示）
         const needReverse = this._isReverseStaggerDirection();
 
         children.forEach((child, index) => {
@@ -372,18 +372,18 @@ export class AssistantContainer {
         });
     }
 
-    // Determine whether progressive animation needs reversal
+    // 判断递进动画是否需要反向
     _isReverseStaggerDirection() {
-        // Layouts that expand from right/bottom need reversal
-        // Right layout: expands leftwards, the rightmost button shows first
-        // Bottom-v layout: expands upwards, the bottommost button shows first
+        // 从右侧/底部展开的布局需要反向
+        // right 布局：从右向左展开，最右边的按钮先显示
+        // bottom-v 布局：从下向上展开，最下面的按钮先显示
         const pos = this.anchorPosition;
 
-        // Horizontal layout: right side needs reversal
+        // 横向布局：右侧的需要反向
         if (pos.includes('right') && pos.endsWith('-h')) {
             return true;
         }
-        // Vertical layout: bottom needs reversal (column-reverse)
+        // 竖向布局：底部的需要反向（column-reverse）
         if (pos.includes('bottom') && pos.endsWith('-v')) {
             return true;
         }
@@ -392,21 +392,21 @@ export class AssistantContainer {
     }
 
     collapse() {
-        // Check if already destroyed
+        // 检查是否已销毁
         if (this.isDestroyed) return;
 
-        // Debug mode: disable auto-collapse
+        // 调试模式：禁止自动折叠
         if (window.PA_DEBUG_NO_COLLAPSE) return;
 
-        // Check if collapse should be prevented (e.g., active menu)
+        // 检查是否应阻止折叠（例如：激活的菜单）
         if (this.shouldCollapse && !this.shouldCollapse()) {
             return;
         }
 
-        // Set short delay before collapse to allow mouse to move between gaps/buttons
-        // But if the user moves back, expand() will cancel this operation.
+        // 折叠前设置短暂延迟，允许鼠标在间隙/按钮之间移动
+        // 但如果用户移回，expand() 会取消此操作。
         this._collapseTimer = setTimeout(() => {
-            // Check again because state may have changed during the delay
+            // 再次检查，因为在延迟期间状态可能已改变
             if (this.shouldCollapse && !this.shouldCollapse()) {
                 return;
             }
@@ -415,34 +415,34 @@ export class AssistantContainer {
             this.element.classList.remove('expanded');
             this.element.classList.add('collapsed');
 
-            // Show indicator (clear inline styles to let CSS variable --assistant-icon-opacity take effect)
+            // 显示指示器（清除内联样式，让 CSS 变量 --assistant-icon-opacity 生效）
             if (this.indicator) {
                 this.indicator.style.opacity = '';
                 this.indicator.style.pointerEvents = '';
             }
 
-            // Hide content
+            // 隐藏内容
             if (this.content) {
                 this.content.style.opacity = '0';
                 this.content.style.pointerEvents = 'none';
             }
 
-            // After collapse, detect if mouse is still in the hot zone
-            // Fix issue where mouse is still in hot zone after auto-collapse but needs to move out and back in to expand
+            // 折叠完成后，检测鼠标是否仍在热区内
+            // 解决自动折叠后鼠标仍在热区，但需要移出再移入才能展开的问题
             this._checkMouseStillInHoverArea();
-        }, 150); // Small delay set for ease of use
+        }, 150); // 为了易用性设置的小延迟
     }
 
-    // --- Check if mouse is still in hot zone ---
+    // ---检测鼠标是否仍在热区内---
     _checkMouseStillInHoverArea() {
         if (!this.element) return;
 
-        // Use requestAnimationFrame to ensure DOM has updated
+        // 使用 requestAnimationFrame 确保 DOM 已更新
         requestAnimationFrame(() => {
-            // Get elements under current mouse position
+            // 获取当前鼠标位置下的元素
             const hoveredElements = document.querySelectorAll(':hover');
 
-            // Check if assistant container or its children are hovered
+            // 检查小助手容器或其子元素是否被悬停
             let isMouseInside = false;
             for (const el of hoveredElements) {
                 if (this.element.contains(el) || el === this.element) {
@@ -451,7 +451,7 @@ export class AssistantContainer {
                 }
             }
 
-            // If mouse is still in hot zone and currently collapsed, trigger expand
+            // 如果鼠标仍在热区内，且当前是折叠状态，则触发展开
             if (isMouseInside && this.isCollapsed) {
                 this.expand();
             }
@@ -469,12 +469,12 @@ export class AssistantContainer {
                     .map(el => el.dataset.id)
                     .filter(Boolean);
 
-                // Save order
+                // 保存排序
                 if (this.onButtonOrderChange) {
                     this.onButtonOrderChange(newOrder);
                 }
 
-                // Persist to settings
+                // 持久化到 settings
                 this._saveOrderToSettings(newOrder);
             }
         });
@@ -482,8 +482,8 @@ export class AssistantContainer {
 
     _saveOrderToSettings(order) {
         const settingKey = `PromptAssistant.ButtonOrder.${this.type}`;
-        // Save using app.ui.settings
-        // ComfyUI settings are usually set via app.ui.settings.setSettingValue(id, value)
+        // 使用 app.ui.settings 保存
+        // ComfyUI 设置通常通过 app.ui.settings.setSettingValue(id, value) 设置
         if (app.ui && app.ui.settings) {
             app.ui.settings.setSettingValue(settingKey, JSON.stringify(order));
         }
@@ -500,7 +500,7 @@ export class AssistantContainer {
             const order = JSON.parse(orderStr);
             if (!Array.isArray(order) || order.length === 0) return;
 
-            // Create mapping of existing buttons by ID
+            // 按ID创建现有按钮的映射
             const buttonMap = new Map();
             Array.from(this.content.children).forEach(el => {
                 if (el.dataset.id) {
@@ -508,11 +508,11 @@ export class AssistantContainer {
                 }
             });
 
-            // Restore button positions in saved order, new buttons placed at end
+            // 按保存的顺序恢复按钮位置,新增按钮放在末尾
             const existingButtons = Array.from(this.content.children);
             const orderedIds = new Set(order);
 
-            // First append sorted items
+            // 首先追加排序后的项
             order.forEach(id => {
                 const el = buttonMap.get(id);
                 if (el) {
@@ -520,7 +520,7 @@ export class AssistantContainer {
                 }
             });
 
-            // Then append any remaining items if they are not in the order list
+            // 然后追加任何剩余项，如果它们不在顺序列表中
             existingButtons.forEach(el => {
                 if (el.dataset.id && !orderedIds.has(el.dataset.id)) {
                     this.content.appendChild(el);
@@ -529,16 +529,16 @@ export class AssistantContainer {
 
             this.updateDimensions();
         } catch (e) {
-            logger.warn("[PromptAssistant] Failed to restore button order:", e);
+            logger.warn("[PromptAssistant] 恢复按钮顺序失败:", e);
         }
     }
 
     destroy() {
-        // Prevent duplicate destruction
+        // 防止重复销毁
         if (this.isDestroyed) return;
         this.isDestroyed = true;
 
-        // Clean up timers
+        // 清理定时器
         if (this._collapseTimer) {
             clearTimeout(this._collapseTimer);
             this._collapseTimer = null;
@@ -548,22 +548,22 @@ export class AssistantContainer {
             this._expandTimer = null;
         }
 
-        // Clean up listeners
+        // 清理监听器
         this._cleanupFunctions.forEach(fn => fn && fn());
         this._cleanupFunctions = [];
 
-        // Destroy Sortable
+        // 销毁 Sortable
         if (this._sortable) {
             this._sortable.destroy();
             this._sortable = null;
         }
 
-        // Remove element
+        // 移除元素
         if (this.element && this.element.parentNode) {
             this.element.parentNode.removeChild(this.element);
         }
 
-        // Clear all references
+        // 清空所有引用
         this.element = null;
         this.container = null;
         this.content = null;

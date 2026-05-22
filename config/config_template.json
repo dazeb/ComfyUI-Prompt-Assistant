@@ -1,272 +1,116 @@
 {
-    "__config_version": "2.1",
-    "__comment": "Prompt Assistant Configuration File Template",
-    "baidu_translate": {
-        "app_id": "",
-        "secret_key": ""
+  "__config_version": "2.1",
+  "__comment": "提示词小助手配置文件模板",
+  "baidu_translate": {
+    "app_id": "",
+    "secret_key": ""
+  },
+  "model_services": [
+    {
+      "id": "zhipu",
+      "type": "openai_compatible",
+      "name": "Zhipu",
+      "description": "Free GLM-series models",
+      "base_url": "https://open.bigmodel.cn/api/paas/v4",
+      "api_key": "",
+      "disable_thinking": true,
+      "enable_advanced_params": true,
+      "filter_thinking_output": true,
+      "llm_models": [
+        {
+          "name": "glm-4-flash-250414",
+          "display_name": "",
+          "is_default": true,
+          "temperature": 0.7,
+          "max_tokens": 4096,
+          "top_p": 0.9
+        },
+        {
+          "name": "glm-4.5-flash",
+          "display_name": "",
+          "is_default": false,
+          "temperature": 0.7,
+          "max_tokens": 4096,
+          "top_p": 0.9
+        }
+      ],
+      "vlm_models": [
+        {
+          "name": "glm-4.6V-Flash",
+          "display_name": "",
+          "is_default": true,
+          "temperature": 0.7,
+          "max_tokens": 4096,
+          "top_p": 0.9
+        },
+        {
+          "name": "glm-4v-flash",
+          "display_name": "",
+          "is_default": false,
+          "temperature": 0.7,
+          "max_tokens": 4096,
+          "top_p": 0.9
+        }
+      ]
     },
-    "model_services": [
+    {
+      "id": "xFlow",
+      "type": "openai_compatible",
+      "name": "xFlow API Aggregator",
+      "description": "Gemini, Grok, ChatGPT, and more",
+      "base_url": "https://api.xflow.cc/v1",
+      "api_key": "",
+      "disable_thinking": true,
+      "enable_advanced_params": true,
+      "filter_thinking_output": true,
+      "llm_models": [
         {
-            "id": "openai",
-            "type": "openai_compatible",
-            "name": "OpenAI",
-            "description": "ChatGPT, GPT-4, Codex models",
-            "base_url": "https://api.openai.com/v1",
-            "api_key": "",
-            "disable_thinking": true,
-            "enable_advanced_params": true,
-            "filter_thinking_output": true,
-            "llm_models": [
-                {
-                    "name": "gpt-4o",
-                    "display_name": "",
-                    "is_default": true,
-                    "temperature": 0.7,
-                    "max_tokens": 4096,
-                    "top_p": 0.9
-                },
-                {
-                    "name": "gpt-4o-mini",
-                    "display_name": "",
-                    "is_default": false,
-                    "temperature": 0.7,
-                    "max_tokens": 4096,
-                    "top_p": 0.9
-                },
-                {
-                    "name": "o3-mini",
-                    "display_name": "",
-                    "is_default": false,
-                    "temperature": 0.7,
-                    "max_tokens": 4096,
-                    "top_p": 0.9
-                }
-            ],
-            "vlm_models": [
-                {
-                    "name": "gpt-4o",
-                    "display_name": "",
-                    "is_default": true,
-                    "temperature": 0.7,
-                    "max_tokens": 4096,
-                    "top_p": 0.9
-                },
-                {
-                    "name": "gpt-4o-mini",
-                    "display_name": "",
-                    "is_default": false,
-                    "temperature": 0.7,
-                    "max_tokens": 4096,
-                    "top_p": 0.9
-                }
-            ]
-        },
-        {
-            "id": "claude",
-            "type": "openai_compatible",
-            "name": "Anthropic Claude",
-            "description": "Claude 3.5/4 models (requires proxy or OpenRouter)",
-            "base_url": "",
-            "api_key": "",
-            "disable_thinking": true,
-            "enable_advanced_params": true,
-            "filter_thinking_output": true,
-            "llm_models": [
-                {
-                    "name": "claude-sonnet-4",
-                    "display_name": "",
-                    "is_default": true,
-                    "temperature": 0.7,
-                    "max_tokens": 4096,
-                    "top_p": 0.9
-                },
-                {
-                    "name": "claude-sonnet-4-20250514",
-                    "display_name": "",
-                    "is_default": false,
-                    "temperature": 0.7,
-                    "max_tokens": 4096,
-                    "top_p": 0.9
-                }
-            ],
-            "vlm_models": []
-        },
-        {
-            "id": "openrouter",
-            "type": "openai_compatible",
-            "name": "OpenRouter",
-            "description": "Access 200+ models through one API",
-            "base_url": "https://openrouter.ai/api/v1",
-            "api_key": "",
-            "disable_thinking": true,
-            "enable_advanced_params": true,
-            "filter_thinking_output": true,
-            "llm_models": [
-                {
-                    "name": "anthropic/claude-sonnet-4",
-                    "display_name": "",
-                    "is_default": true,
-                    "temperature": 0.7,
-                    "max_tokens": 4096,
-                    "top_p": 0.9
-                },
-                {
-                    "name": "openai/gpt-4o",
-                    "display_name": "",
-                    "is_default": false,
-                    "temperature": 0.7,
-                    "max_tokens": 4096,
-                    "top_p": 0.9
-                },
-                {
-                    "name": "google/gemini-2.5-flash",
-                    "display_name": "",
-                    "is_default": false,
-                    "temperature": 0.7,
-                    "max_tokens": 4096,
-                    "top_p": 0.9
-                },
-                {
-                    "name": "deepseek/deepseek-v4-flash",
-                    "display_name": "",
-                    "is_default": false,
-                    "temperature": 0.7,
-                    "max_tokens": 4096,
-                    "top_p": 0.9
-                }
-            ],
-            "vlm_models": [
-                {
-                    "name": "openai/gpt-4o",
-                    "display_name": "",
-                    "is_default": true,
-                    "temperature": 0.7,
-                    "max_tokens": 4096,
-                    "top_p": 0.9
-                },
-                {
-                    "name": "google/gemini-2.5-flash",
-                    "display_name": "",
-                    "is_default": false,
-                    "temperature": 0.7,
-                    "max_tokens": 4096,
-                    "top_p": 0.9
-                }
-            ]
-        },
-        {
-            "id": "opencode-go",
-            "type": "openai_compatible",
-            "name": "OpenCode Go",
-            "description": "Free high-speed inference via OpenCode",
-            "base_url": "https://opencode.ai/go/v1",
-            "api_key": "",
-            "disable_thinking": true,
-            "enable_advanced_params": true,
-            "filter_thinking_output": true,
-            "llm_models": [
-                {
-                    "name": "qwen3.6-plus",
-                    "display_name": "",
-                    "is_default": true,
-                    "temperature": 0.7,
-                    "max_tokens": 8192,
-                    "top_p": 0.9
-                },
-                {
-                    "name": "deepseek-v4-flash",
-                    "display_name": "",
-                    "is_default": false,
-                    "temperature": 0.7,
-                    "max_tokens": 8192,
-                    "top_p": 0.9
-                },
-                {
-                    "name": "mimo-v2-pro",
-                    "display_name": "",
-                    "is_default": false,
-                    "temperature": 0.7,
-                    "max_tokens": 8192,
-                    "top_p": 0.9
-                }
-            ],
-            "vlm_models": [
-                {
-                    "name": "qwen3.6-plus",
-                    "display_name": "",
-                    "is_default": true,
-                    "temperature": 0.7,
-                    "max_tokens": 8192,
-                    "top_p": 0.9
-                }
-            ]
-        },
-        {
-            "id": "opencode-zen",
-            "type": "openai_compatible",
-            "name": "OpenCode Zen",
-            "description": "Free high-speed inference via OpenCode Zen tier",
-            "base_url": "https://opencode.ai/zen/v1",
-            "api_key": "",
-            "disable_thinking": true,
-            "enable_advanced_params": true,
-            "filter_thinking_output": true,
-            "llm_models": [
-                {
-                    "name": "big-pickle",
-                    "display_name": "",
-                    "is_default": true,
-                    "temperature": 0.7,
-                    "max_tokens": 8192,
-                    "top_p": 0.9
-                },
-                {
-                    "name": "qwen3.6-plus",
-                    "display_name": "",
-                    "is_default": false,
-                    "temperature": 0.7,
-                    "max_tokens": 8192,
-                    "top_p": 0.9
-                }
-            ],
-            "vlm_models": [
-                {
-                    "name": "big-pickle",
-                    "display_name": "",
-                    "is_default": true,
-                    "temperature": 0.7,
-                    "max_tokens": 8192,
-                    "top_p": 0.9
-                }
-            ]
-        },
-        {
-            "id": "ollama",
-            "type": "ollama",
-            "name": "Ollama",
-            "description": "Use local models",
-            "base_url": "http://localhost:11434/",
-            "api_key": "ollama",
-            "auto_unload": true,
-            "disable_thinking": true,
-            "enable_advanced_params": true,
-            "filter_thinking_output": true,
-            "llm_models": [],
-            "vlm_models": []
+          "name": "gemini-3-flash-preview-nothinking",
+          "display_name": "",
+          "is_default": true,
+          "temperature": 0.7,
+          "max_tokens": 4096,
+          "top_p": 0.9
         }
-    ],
-    "current_services": {
-        "llm": {
-            "service": "opencode-go",
-            "model": "qwen3.6-plus"
-        },
-        "vlm": {
-            "service": "opencode-go",
-            "model": "qwen3.6-plus"
-        },
-        "translate": {
-            "service": "opencode-go",
-            "model": "qwen3.6-plus"
+      ],
+      "vlm_models": [
+        {
+          "name": "grok-4-1-fast-non-reasoning",
+          "display_name": "",
+          "is_default": true,
+          "temperature": 0.7,
+          "max_tokens": 4096,
+          "top_p": 0.9
         }
+      ]
+    },
+    {
+      "id": "ollama",
+      "type": "ollama",
+      "name": "Ollama",
+      "description": "Use local models",
+      "base_url": "http://localhost:11434/",
+      "api_key": "ollama",
+      "auto_unload": true,
+      "disable_thinking": true,
+      "enable_advanced_params": true,
+      "filter_thinking_output": true,
+      "llm_models": [],
+      "vlm_models": []
     }
+  ],
+  "current_services": {
+    "llm": {
+      "service": "zhipu",
+      "model": "glm-4.5-flash"
+    },
+    "vlm": {
+      "service": "zhipu",
+      "model": "glm-4v-flash"
+    },
+    "translate": {
+      "service": "baidu",
+      "model": ""
+    }
+  }
 }

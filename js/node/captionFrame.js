@@ -1,6 +1,6 @@
 /**
- * Video frame extraction tool node extension
- * Provides manual video frame extraction, preview, and frame index generation
+ * 视频抽帧工具节点扩展
+ * 提供视频手动抽帧、预览和帧索引生成功能
  */
 
 import { app } from "../../../../scripts/app.js";
@@ -8,29 +8,29 @@ import { api } from "../../../../scripts/api.js";
 import { createSettingsDialog, createInputGroup, createTooltip, createConfirmPopup } from "../modules/uiComponents.js";
 import { APIService } from "../services/api.js";
 
-// Import dedicated stylesheet (retained for video player specific layout styles)
+// 引入专用样式文件（保留用于视频播放器特定的布局样式）
 const link = document.createElement("link");
 link.rel = "stylesheet";
 link.type = "text/css";
 link.href = new URL("../css/captionFrame.css", import.meta.url).href;
 document.head.appendChild(link);
 
-// Popup state tracking (prevent duplicate opening)
+// 弹窗状态跟踪（防止重复打开）
 let isDialogOpen = false;
 
 app.registerExtension({
     name: "ComfyUI.PromptAssistant.CaptionFrame",
 
     /**
-     * Hook before node definition registration
-     * @param {Object} nodeType Node type definition
-     * @param {Object} nodeData Node data
+     * 节点定义注册前的钩子
+     * @param {Object} nodeType 节点类型定义
+     * @param {Object} nodeData 节点数据
      */
     async beforeRegisterNodeDef(nodeType, nodeData) {
         if (nodeData.name === "VideoCaptionNode") {
             const onNodeCreated = nodeType.prototype.onNodeCreated;
 
-            // --- Override node creation logic ---
+            // --- 重写节点创建逻辑 ---
             nodeType.prototype.onNodeCreated = function () {
                 if (onNodeCreated) {
                     onNodeCreated.apply(this, arguments);
@@ -38,21 +38,21 @@ app.registerExtension({
 
                 const node = this;
 
-                // Add "Select Reverse Inferred Frames" button
-                // Initially button may be hidden, depending on "frame extraction strategy"
-                const btnWidget = this.addWidget("button", "🎬Select Reverse Inferred Frames", null, () => {
+                // 添加"选取反推帧"按钮
+                // 初始状态下按钮可能隐藏，取决于"抽帧策略"
+                const btnWidget = this.addWidget("button", "🎬选取反推帧", null, () => {
                     showFrameExtractionModal(node);
                 });
 
-                // Save original computeSize function for dynamic hide/show size calculation
+                // 保存原始 computeSize 函数，用于动态隐藏/显示时的尺寸计算
                 const origComputeSize = btnWidget.computeSize?.bind(btnWidget);
 
-                // Ensure button is always visible
+                // 确保按钮始终显示
                 btnWidget.type = "button";
                 btnWidget.computeSize = origComputeSize || (() => [0, 26]);
                 btnWidget.hidden = false;
 
-                // Only redraw canvas, do not change node size
+                // 仅重绘画布，不改变节点大小
                 app.graph.setDirtyCanvas(true, false);
             };
         }
@@ -60,22 +60,22 @@ app.registerExtension({
 });
 
 /**
- * Show video frame extraction tool popup
- * @param {Object} node Current node instance
+ * 显示视频抽帧工具弹窗
+ * @param {Object} node 当前节点实例
  */
 async function showFrameExtractionModal(node) {
-    // Prevent duplicate opening
+    // 防止重复打开
     if (isDialogOpen) {
         return;
     }
     isDialogOpen = true;
 
-    // 1. Get connected video information
+    // 1. 获取连接的视频信息
     const videoInfo = await findConnectedVideo(node);
 
     if (!videoInfo) {
         isDialogOpen = false;
-        alert("No valid video input connection detected. Please ensure the node is connected to a Load Video node.");
+        alert("未检测到有效的视频输入连接。请确保节点已连接到 Load Video 节点。");
         return;
     }
 
@@ -85,7 +85,7 @@ async function showFrameExtractionModal(node) {
         return;
     }
 
-    // 2. Get video metadata (FPS, duration, total frames)
+    // 2. 获取视频元数据（FPS、时长、总帧数）
     let initialFps = 30;
     let originalDuration = 0;
     let originalTotalFrames = 0;
@@ -103,36 +103,36 @@ async function showFrameExtractionModal(node) {
             originalDuration = data.duration || 0;
             originalTotalFrames = data.total_frames || 0;
 
-            // If total_frames is 0 (some video formats cannot directly read frame count), calculate using fps * duration
+            // 如果 total_frames 为 0（某些视频格式无法直接读取帧数），使用 fps * duration 计算
             if (originalTotalFrames === 0 && originalDuration > 0 && initialFps > 0) {
                 originalTotalFrames = Math.floor(initialFps * originalDuration);
             }
         }
     } catch (e) {
-        console.warn("[PromptAssistant] Failed to get video info, will use default values:", e);
+        console.warn("[PromptAssistant] 获取视频信息失败, 将使用默认值:", e);
     }
 
-    // 3. Calculate actual FPS used (consider force_rate parameter)
-    // When force_rate > 0, use forced FPS, otherwise use original FPS
+    // 3. 计算实际使用的FPS（考虑force_rate参数）
+    // force_rate > 0 时使用强制FPS，否则使用原始FPS
     const actualFps = (videoInfo.forceRate && videoInfo.forceRate > 0) ? videoInfo.forceRate : initialFps;
 
-    // 4. Calculate actual total frames and duration after frame extraction
-    // If force_rate is used, actual frames = original total frames * (force_rate / original_fps)
+    // 4. 计算抽帧后的实际总帧数和持续时间
+    // 如果使用了 force_rate，实际帧数 = 原始总帧数 * (force_rate / original_fps)
     let actualTotalFrames = originalTotalFrames;
     let actualDuration = originalDuration;
 
-    // Validity check: ensure frame count is a valid positive integer
+    // 有效性检查：确保帧数是有效的正整数
     if (!Number.isFinite(originalTotalFrames) || originalTotalFrames <= 0 || originalTotalFrames > 1e9) {
-        // If frame count is invalid, try using duration * fps to calculate
+        // 如果帧数无效，尝试使用 duration * fps 计算
         if (originalDuration > 0 && initialFps > 0) {
             originalTotalFrames = Math.floor(originalDuration * initialFps);
             actualTotalFrames = originalTotalFrames;
         } else {
-            // Final fallback value
+            // 最后的兜底值
             originalTotalFrames = 100;
             actualTotalFrames = 100;
         }
-        console.warn('[PromptAssistant-CaptionFrame] Invalid frame count, using calculated value:', originalTotalFrames);
+        console.warn('[PromptAssistant-CaptionFrame] 帧数无效，使用计算值:', originalTotalFrames);
     }
 
     if (videoInfo.forceRate && videoInfo.forceRate > 0 && initialFps > 0) {
@@ -140,13 +140,13 @@ async function showFrameExtractionModal(node) {
         actualDuration = actualTotalFrames / actualFps;
     }
 
-    // Ensure at least 1 frame
+    // 确保至少有1帧
     if (actualTotalFrames <= 0) {
         actualTotalFrames = 1;
     }
 
     /*
-    console.log('[PromptAssistant-CaptionFrame] Video metadata:', {
+    console.log('[PromptAssistant-CaptionFrame] 视频元数据:', {
         originalFps: initialFps,
         originalDuration,
         originalTotalFrames,
@@ -157,28 +157,28 @@ async function showFrameExtractionModal(node) {
     });
     */
 
-    // State container, used to share data between renderContent and onSave
+    // 状态容器，用于在 renderContent 和 onSave 之间共享数据
     const state = {
         fps: actualFps,
-        originalFps: initialFps,  // Save original FPS for calculation
-        forceRate: videoInfo.forceRate || 0,  // Save force_rate for frame extraction
-        totalFrames: actualTotalFrames,  // Actual total frames
-        duration: actualDuration,  // Actual duration
+        originalFps: initialFps,  // 保存原始FPS用于计算
+        forceRate: videoInfo.forceRate || 0,  // 保存 force_rate 用于帧提取
+        totalFrames: actualTotalFrames,  // 实际总帧数
+        duration: actualDuration,  // 实际持续时间
         selectedFrames: new Set(),
         rangeStart: null,
-        // Frame index driven related state
-        currentFrameIndex: 0,  // Current frame index
-        isLoading: false,  // Frame loading flag
-        frameCache: new Map(),  // Frame cache (frameIndex -> base64)
-        filename: videoInfo.filename,  // Video filename
+        // 帧索引驱动相关状态
+        currentFrameIndex: 0,  // 当前帧索引
+        isLoading: false,  // 帧加载中标志
+        frameCache: new Map(),  // 帧缓存 (frameIndex -> base64)
+        filename: videoInfo.filename,  // 视频文件名
         widgets: {
-            // Use English widget names defined in backend
+            // 使用后端定义的英文 widget 名称
             manualIndex: node.widgets.find(w => w.name === "manual_indices"),
             strategy: node.widgets.find(w => w.name === "sampling_mode")
         }
     };
 
-    // Initialize selected frame state
+    // 初始化已选帧状态
     if (state.widgets.manualIndex?.value) {
         state.widgets.manualIndex.value.split(',').forEach(p => {
             p = p.trim();
@@ -191,27 +191,27 @@ async function showFrameExtractionModal(node) {
         });
     }
 
-    // 3. Create generic settings dialog
+    // 3. 创建通用设置弹窗
     createSettingsDialog({
-        title: '🎬 Video Manual Frame Extraction Tool',
-        saveButtonText: 'Confirm and Apply',
-        cancelButtonText: 'Cancel',
+        title: '🎬 视频手动抽帧工具',
+        saveButtonText: '确认应用',
+        cancelButtonText: '取消',
         saveButtonIcon: 'pi-check',
-        disableBackdropAndCloseOnClickOutside: true, // No modal overlay needed, allow interaction
-        dialogClassName: 'caption-frame-dialog', // Custom class name
+        disableBackdropAndCloseOnClickOutside: true, // 不需要模态遮罩层，允许交互
+        dialogClassName: 'caption-frame-dialog', // 自定义类名
 
-        // Cancel callback (skip second confirmation, close directly)
+        // 取消回调（跳过二次确认，直接关闭）
         onCancel: () => { },
 
-        // Render dialog content
+        // 渲染弹窗内容
         renderContent: (contentContainer, header) => {
-            // Note: Specific flex layout and height control are now mainly handled by CSS (.caption-frame-dialog .p-dialog-content)
+            // 注意：具体的 flex 布局和高度控制现在主要由 CSS 处理 (.caption-frame-dialog .p-dialog-content)
 
-            // Build interface
+            // 构建界面
             renderVideoInterface(contentContainer, state, videoInfo, header);
         },
 
-        // Save callback
+        // 保存回调
         onSave: () => {
             const sorted = Array.from(state.selectedFrames).sort((a, b) => {
                 const getStart = v => typeof v === 'string' ? parseInt(v.split('-')[0]) : v;
@@ -222,31 +222,31 @@ async function showFrameExtractionModal(node) {
                 const newValue = sorted.join(",");
                 state.widgets.manualIndex.value = newValue;
 
-                // Trigger widget callback to ensure value synced to node
+                // 触发 widget callback 确保值同步到节点
                 if (state.widgets.manualIndex.callback) {
                     state.widgets.manualIndex.callback(newValue, app.graph, node, state.widgets.manualIndex);
                 }
 
-                // [Debug] Output saved value
-                // console.log('[PromptAssistant-CaptionFrame] Saved frame indices:', newValue);
+                // [Debug] 输出保存的值
+                // console.log('[PromptAssistant-CaptionFrame] 保存帧索引:', newValue);
 
-                // Automatically switch strategy to manual
+                // 自动切换策略为手动
                 if (state.widgets.strategy) {
                     state.widgets.strategy.value = "Manual (Indices)";
 
-                    // Also trigger strategy widget callback
+                    // 同样触发策略 widget 的 callback
                     if (state.widgets.strategy.callback) {
                         state.widgets.strategy.callback("Manual (Indices)", app.graph, node, state.widgets.strategy);
                     }
                 }
 
-                // Mark node for re-execution
+                // 标记节点需要重新执行
                 node.setDirtyCanvas(true, true);
                 app.graph.setDirtyCanvas(true, true);
             }
         },
 
-        // Close callback: clean up resources
+        // 关闭回调：清理资源
         onClose: () => {
             isDialogOpen = false;
             if (state.frameCache) {
@@ -257,36 +257,36 @@ async function showFrameExtractionModal(node) {
 }
 
 /**
- * Render video operation interface
- * @param {HTMLElement} container Container element
- * @param {Object} state State object
- * @param {Object} videoInfo Video information object
+ * 渲染视频操作界面
+ * @param {HTMLElement} container 容器元素
+ * @param {Object} state 状态对象
+ * @param {Object} videoInfo 视频信息对象
  */
 /**
- * Render video operation interface
- * @param {HTMLElement} container Container element
- * @param {Object} state State object
- * @param {Object} videoInfo Video information object
- * @param {HTMLElement} [headerElement] Dialog header element (optional)
+ * 渲染视频操作界面
+ * @param {HTMLElement} container 容器元素
+ * @param {Object} state 状态对象
+ * @param {Object} videoInfo 视频信息对象
+ * @param {HTMLElement} [headerElement] 弹窗头部元素（可选）
  */
 function renderVideoInterface(container, state, videoInfo, headerElement) {
-    // --- Display area (hybrid mode: img for precise positioning, video for smooth playback) ---
+    // --- 显示区域（混合模式：img 用于精确定位，video 用于流畅播放）---
     const frameContainer = document.createElement("div");
     frameContainer.className = "video-container frame-display-container";
 
-    // Create frame image element (for precise positioning mode)
+    // 创建帧图片元素（用于精确定位模式）
     const frameImg = document.createElement("img");
     frameImg.id = "caption-frame-display";
     frameImg.className = "frame-display-img";
-    frameImg.alt = "Video frame preview";
+    frameImg.alt = "视频帧预览";
 
-    // Create video element (for smooth playback mode, hidden by default)
+    // 创建视频元素（用于流畅播放模式，默认隐藏）
     const videoElement = document.createElement("video");
     videoElement.className = "frame-video-player";
-    // Optimize buffer settings
-    videoElement.preload = "auto";  // Preload as much video as possible
+    // 优化缓冲设置
+    videoElement.preload = "auto";  // 尽可能多地预加载视频
 
-    // Set video source
+    // 设置视频源
     if (videoInfo.fromLoadNode && state.fps !== state.originalFps) {
         const params = {
             filename: videoInfo.filename,
@@ -302,13 +302,13 @@ function renderVideoInterface(container, state, videoInfo, headerElement) {
         videoElement.src = videoInfo.url;
     }
 
-    // Create loading indicator
+    // 创建加载指示器
     const loadingIndicator = document.createElement("div");
     loadingIndicator.className = "frame-loading-indicator";
     loadingIndicator.innerHTML = '<span class="pi pi-spin pi-spinner"></span>';
     loadingIndicator.style.display = "none";
 
-    // Buffer status event listener - show loading indicator when dragging to unbuffered position
+    // 缓冲状态事件监听 - 拖动到未缓冲位置时显示加载指示器
     videoElement.addEventListener("waiting", () => {
         loadingIndicator.style.display = "flex";
     });
@@ -323,20 +323,20 @@ function renderVideoInterface(container, state, videoInfo, headerElement) {
     frameContainer.appendChild(videoElement);
     frameContainer.appendChild(loadingIndicator);
 
-    // Initial state: show video, hide image (video preview mode)
+    // 初始状态：显示视频，隐藏图片（video 预览模式）
     frameImg.style.display = "none";
     videoElement.style.display = "block";
 
-    // Switch to image mode
+    // 切换到图片模式
     const switchToImageMode = async (frameIndex) => {
         videoElement.style.display = "none";
         frameImg.style.display = "block";
         await loadFrame(frameIndex);
     };
 
-    // Switch to video playback mode
+    // 切换到视频播放模式
     const switchToVideoMode = (startFromFrame) => {
-        // Sync video progress to current frame position
+        // 同步视频进度到当前帧位置
         const targetTime = startFromFrame / state.fps;
         videoElement.currentTime = targetTime;
         frameImg.style.display = "none";
@@ -344,22 +344,22 @@ function renderVideoInterface(container, state, videoInfo, headerElement) {
         videoElement.play();
     };
 
-    // --- Frame loading function ---
+    // --- 帧加载函数 ---
     const loadFrame = async (frameIndex) => {
         if (state.isLoading) return;
 
-        // Boundary check
+        // 边界检查
         frameIndex = Math.max(0, Math.min(state.totalFrames - 1, frameIndex));
         state.currentFrameIndex = frameIndex;
 
-        // Check cache
+        // 检查缓存
         if (state.frameCache.has(frameIndex)) {
             frameImg.src = `data:image/jpeg;base64,${state.frameCache.get(frameIndex)}`;
             updateDisplay();
             return;
         }
 
-        // Show loading indicator
+        // 显示加载指示器
         state.isLoading = true;
         loadingIndicator.style.display = "flex";
 
@@ -375,17 +375,17 @@ function renderVideoInterface(container, state, videoInfo, headerElement) {
             const data = await response.json();
 
             if (data.success && data.data) {
-                // Cache frame data
+                // 缓存帧数据
                 state.frameCache.set(frameIndex, data.data);
                 frameImg.src = `data:image/jpeg;base64,${data.data}`;
 
-                // Preload adjacent frames (improve experience)
+                // 预加载相邻帧（提升体验）
                 preloadAdjacentFrames(frameIndex);
             } else {
-                console.error("[PromptAssistant-CaptionFrame] Frame load failed:", data.error);
+                console.error("[PromptAssistant-CaptionFrame] 帧加载失败:", data.error);
             }
         } catch (e) {
-            console.error("[PromptAssistant-CaptionFrame] Frame load exception:", e);
+            console.error("[PromptAssistant-CaptionFrame] 帧加载异常:", e);
         } finally {
             state.isLoading = false;
             loadingIndicator.style.display = "none";
@@ -393,14 +393,14 @@ function renderVideoInterface(container, state, videoInfo, headerElement) {
         }
     };
 
-    // --- Preload adjacent frames (improve experience) ---
+    // --- 预加载相邻帧（提升体验）---
     const preloadAdjacentFrames = async (centerIndex) => {
-        const preloadRange = 2; // Preload 2 frames before and after
+        const preloadRange = 2; // 预加载前后2帧
         for (let offset = 1; offset <= preloadRange; offset++) {
             const indices = [centerIndex - offset, centerIndex + offset];
             for (const idx of indices) {
                 if (idx >= 0 && idx < state.totalFrames && !state.frameCache.has(idx)) {
-                    // Asynchronous preload, non-blocking
+                    // 异步预加载，不阻塞
                     api.fetchApi(APIService.getDynamicApiBase() + '/video/frame', {
                         method: "POST",
                         body: JSON.stringify({
@@ -412,28 +412,28 @@ function renderVideoInterface(container, state, videoInfo, headerElement) {
                         if (data.success && data.data) {
                             state.frameCache.set(idx, data.data);
                         }
-                    }).catch(() => { }); // Silently ignore preload failure
+                    }).catch(() => { }); // 静默忽略预加载失败
                 }
             }
         }
     };
 
-    // --- Move info to header bar ---
+    // --- 信息移动到标题栏 ---
     let headerTimeSpan = null;
     let headerFrameSpan = null;
 
     if (headerElement) {
-        // Create header info container (style defined in captionFrame.css)
+        // 创建标题栏信息容器（样式在 captionFrame.css 中定义）
         const infoContainer = document.createElement("div");
         infoContainer.className = "video-header-info";
 
-        // Build two-line info HTML
+        // 构建两行信息HTML
         infoContainer.innerHTML = `
             <div class="info-row"><span id="header-time">00:00.00/00:00.00</span></div>
             <div class="info-row"><span id="header-frame">0/${state.totalFrames}</span>&nbsp;${state.fps}fps</div>
         `;
 
-        // Insert before close button
+        // 插入到关闭按钮之前
         const icons = headerElement.querySelector('.p-dialog-header-icons');
         if (icons) {
             headerElement.insertBefore(infoContainer, icons);
@@ -447,38 +447,38 @@ function renderVideoInterface(container, state, videoInfo, headerElement) {
 
     container.appendChild(frameContainer);
 
-    // --- Unified timeline component (combine progress bar slider and marker track) ---
+    // --- 统一时间轴组件（合并进度条滑块和标记轨道）---
     const timelineContainer = document.createElement("div");
     timelineContainer.className = "unified-timeline-container";
 
-    // Marker track layer (bottom layer, for displaying frame markers)
+    // 标记轨道层（底层，用于显示帧标记）
     const markerTrack = document.createElement("div");
     markerTrack.className = "frame-marker-track";
     timelineContainer.appendChild(markerTrack);
 
-    // Custom slider layer (top layer)
+    // 自定义滑块层（顶层）
     const sliderThumb = document.createElement("div");
     sliderThumb.className = "timeline-slider-thumb";
     timelineContainer.appendChild(sliderThumb);
 
     container.appendChild(timelineContainer);
 
-    // Switch to video preview mode when dragging (smooth), precise frame load on release
+    // 拖动时切换到 video 预览模式（流畅），松开后精确加载帧
     let isDraggingSlider = false;
 
-    // Unified frame index to percentage conversion function (ensure slider and markers use same calculation)
+    // 统一的帧索引到百分比转换函数（确保滑块和标记使用相同的计算方式）
     const frameToPercent = (frameIndex) => {
         const maxFrame = state.totalFrames - 1;
         if (maxFrame <= 0) return 0;
         return (frameIndex / maxFrame) * 100;
     };
 
-    // Helper function to update slider position
+    // 更新滑块位置的辅助函数
     const updateSliderPosition = (frameIndex) => {
         sliderThumb.style.left = `${frameToPercent(frameIndex)}%`;
     };
 
-    // Calculate frame index from mouse position
+    // 根据鼠标位置计算帧索引
     const getFrameFromMousePosition = (clientX) => {
         const rect = timelineContainer.getBoundingClientRect();
         const offsetX = clientX - rect.left;
@@ -486,12 +486,12 @@ function renderVideoInterface(container, state, videoInfo, headerElement) {
         return Math.round(percent * (state.totalFrames - 1));
     };
 
-    // Slider drag event
+    // 滑块拖动事件
     sliderThumb.addEventListener("mousedown", (e) => {
         e.preventDefault();
         isDraggingSlider = true;
         sliderThumb.classList.add("dragging");
-        // Switch to video preview mode
+        // 切换到 video 预览模式
         frameImg.style.display = "none";
         videoElement.style.display = "block";
         loadingIndicator.style.display = "none";
@@ -516,9 +516,9 @@ function renderVideoInterface(container, state, videoInfo, headerElement) {
         document.addEventListener("mouseup", onMouseUp);
     });
 
-    // Timeline click jump
+    // 时间轴点击跳转
     timelineContainer.addEventListener("click", (e) => {
-        // If clicked on slider itself or marker elements, do nothing
+        // 如果点击的是滑块本身或标记元素，不处理
         if (e.target === sliderThumb || e.target.closest('.frame-marker, .frame-marker-range, .frame-marker-temp')) {
             return;
         }
@@ -529,19 +529,19 @@ function renderVideoInterface(container, state, videoInfo, headerElement) {
         updateDisplay();
     });
 
-    // --- Controls area ---
+    // --- 控制区域 ---
     const controlsContainer = document.createElement("div");
     controlsContainer.className = "controls-container";
     container.appendChild(controlsContainer);
 
-    // Helper function: create button
-    // Returns { btn: HTMLElement, iconSpan: HTMLElement }
+    // 辅助函数：创建按钮
+    // 返回 { btn: HTMLElement, iconSpan: HTMLElement }
     const createBtn = (text, iconClass, onClick, type = 'secondary', iconPos = 'left') => {
         const btn = document.createElement("button");
-        // Reuse PrimeVue button styles
+        // 复用 PrimeVue 按钮样式
         btn.className = `p-button p-component p-button-${type} p-button-sm`;
 
-        // Icon-only button handling
+        // 仅图标按钮处理
         const isIconOnly = !text && iconClass;
         if (isIconOnly) {
             btn.classList.add("p-button-icon-only");
@@ -550,21 +550,21 @@ function renderVideoInterface(container, state, videoInfo, headerElement) {
         let iconSpan = null;
         if (iconClass) {
             iconSpan = document.createElement("span");
-            // Icon-only does not need left/right positioning class
+            // 仅图标时不需要 left/right 定位类
             iconSpan.className = isIconOnly
                 ? `p-button-icon pi ${iconClass}`
                 : `p-button-icon-${iconPos} pi ${iconClass}`;
             btn.appendChild(iconSpan);
         }
 
-        // Add label only when there is text
+        // 有文字时才添加 label
         if (text) {
             const labelSpan = document.createElement("span");
             labelSpan.className = "p-button-label";
             labelSpan.textContent = text;
 
             if (iconPos === 'right' && iconSpan) {
-                // When icon is on the right, need to remove and reorder
+                // 图标在右时，需要先移除再重新排列
                 btn.removeChild(iconSpan);
                 btn.appendChild(labelSpan);
                 btn.appendChild(iconSpan);
@@ -578,28 +578,28 @@ function renderVideoInterface(container, state, videoInfo, headerElement) {
         return { btn, iconSpan };
     };
 
-    // 2. Playback control buttons (left side)
+    // 2. 播放控制按钮组 (左侧)
     const playbackControls = document.createElement("div");
     playbackControls.className = "playback-controls";
     playbackControls.style.marginTop = "0";
 
-    // Long press continuous frame skip helper function
-    // @param {HTMLElement} btn Button element
-    // @param {Function} action Frame skip operation function
+    // 长按连续跳帧辅助函数
+    // @param {HTMLElement} btn 按钮元素
+    // @param {Function} action 跳帧操作函数
     const setupLongPressFrame = (btn, action) => {
-        let pressTimer = null; // Long press delay timer
-        let intervalTimer = null; // Continuous trigger timer
+        let pressTimer = null; // 长按延迟定时器
+        let intervalTimer = null; // 连续触发定时器
 
         const startPress = () => {
-            // Execute one frame skip immediately
+            // 立即执行一次跳帧
             action();
 
-            // Start continuous frame skip after delay
+            // 设置延迟后开始连续跳帧
             pressTimer = setTimeout(() => {
                 intervalTimer = setInterval(() => {
                     action();
-                }, 50); // Jump one frame every 50ms
-            }, 500); // Start continuous frame skip after 500ms
+                }, 50); // 每200ms跳一帧
+            }, 500); // 500ms后开始连续跳帧
         };
 
         const endPress = () => {
@@ -618,10 +618,10 @@ function renderVideoInterface(container, state, videoInfo, headerElement) {
         btn.addEventListener('mouseleave', endPress);
     };
 
-    // Previous frame button (use video.currentTime for quick preview)
-    const prevFrameBtn = createBtn("Previous Frame", "pi-caret-left", null).btn;
+    // 上一帧按钮（使用 video.currentTime 快速预览）
+    const prevFrameBtn = createBtn("上一帧", "pi-caret-left", null).btn;
     setupLongPressFrame(prevFrameBtn, () => {
-        stopPlayback(); // Stop playback
+        stopPlayback(); // 停止播放
         if (state.currentFrameIndex > 0) {
             state.currentFrameIndex--;
             videoElement.currentTime = state.currentFrameIndex / state.fps;
@@ -630,11 +630,11 @@ function renderVideoInterface(container, state, videoInfo, headerElement) {
     });
     playbackControls.appendChild(prevFrameBtn);
 
-    // --- Play/Pause function (smooth playback using video element) ---
+    // --- 播放/暂停功能（使用 video 元素流畅播放）---
     let isPlaying = false;
-    let animationFrameId = null;  // Used to cancel animation frame
+    let animationFrameId = null;  // 用于取消动画帧
 
-    const playBtnObj = createBtn("Play", "pi-play", () => {
+    const playBtnObj = createBtn("播放", "pi-play", () => {
         if (isPlaying) {
             stopPlayback();
         } else {
@@ -643,25 +643,25 @@ function renderVideoInterface(container, state, videoInfo, headerElement) {
     });
     playbackControls.appendChild(playBtnObj.btn);
 
-    // Use requestAnimationFrame for smooth slider update
+    // 使用 requestAnimationFrame 实现流畅的滑块更新
     const updatePlaybackProgress = () => {
         if (!isPlaying) return;
 
-        // Use video.currentTime to calculate continuous progress (instead of discrete frame index)
+        // 使用 video.currentTime 计算连续的进度（而非离散帧索引）
         const currentTime = videoElement.currentTime;
         const duration = state.duration;
 
-        // Directly use time ratio to calculate slider position for smooth movement
+        // 直接使用时间比例计算滑块位置，实现平滑移动
         if (duration > 0) {
             const percent = Math.min(100, (currentTime / duration) * 100);
             sliderThumb.style.left = `${percent}%`;
         }
 
-        // Also update frame index for display
+        // 同时更新帧索引（用于显示）
         const currentFrame = Math.floor(currentTime * state.fps);
         state.currentFrameIndex = Math.max(0, Math.min(state.totalFrames - 1, currentFrame));
 
-        // Update header info display
+        // 更新头部信息显示
         const formatTime = (s) => {
             const m = Math.floor(s / 60);
             const sec = Math.floor(s % 60);
@@ -671,7 +671,7 @@ function renderVideoInterface(container, state, videoInfo, headerElement) {
         if (headerTimeSpan) headerTimeSpan.textContent = `${formatTime(currentTime)} / ${formatTime(duration)}`;
         if (headerFrameSpan) headerFrameSpan.textContent = `${state.currentFrameIndex} / ${state.totalFrames}`;
 
-        // Continue next frame animation
+        // 继续下一帧动画
         animationFrameId = requestAnimationFrame(updatePlaybackProgress);
     };
 
@@ -679,13 +679,13 @@ function renderVideoInterface(container, state, videoInfo, headerElement) {
         if (isPlaying) return;
         isPlaying = true;
 
-        // Switch to video playback mode
+        // 切换到视频播放模式
         switchToVideoMode(state.currentFrameIndex);
 
-        // Start smooth animation update
+        // 启动流畅动画更新
         animationFrameId = requestAnimationFrame(updatePlaybackProgress);
 
-        // Update button icon
+        // 更新按钮图标
         if (playBtnObj.iconSpan) {
             playBtnObj.iconSpan.classList.remove("pi-play");
             playBtnObj.iconSpan.classList.add("pi-pause");
@@ -696,28 +696,28 @@ function renderVideoInterface(container, state, videoInfo, headerElement) {
         if (!isPlaying) return;
         isPlaying = false;
 
-        // Cancel animation frame
+        // 取消动画帧
         if (animationFrameId) {
             cancelAnimationFrame(animationFrameId);
             animationFrameId = null;
         }
 
-        // Pause video (do not automatically capture precise frame, continue showing video)
+        // 暂停视频(不自动抓取精确帧，继续显示 video)
         videoElement.pause();
 
-        // Sync frame index and update display
+        // 同步帧索引并更新显示
         const currentFrameFromVideo = Math.floor(videoElement.currentTime * state.fps);
         state.currentFrameIndex = Math.max(0, Math.min(state.totalFrames - 1, currentFrameFromVideo));
         updateDisplay();
 
-        // Update button icon
+        // 更新按钮图标
         if (playBtnObj.iconSpan) {
             playBtnObj.iconSpan.classList.remove("pi-pause");
             playBtnObj.iconSpan.classList.add("pi-play");
         }
     };
 
-    // Automatically stop when video playback ends (keep video display, don't switch to img)
+    // 视频播放结束时自动停止(保持 video 显示，不切换到 img)
     videoElement.addEventListener("ended", () => {
         isPlaying = false;
         if (animationFrameId) {
@@ -732,10 +732,10 @@ function renderVideoInterface(container, state, videoInfo, headerElement) {
         }
     });
 
-    // Next frame button (use video.currentTime for quick preview)
-    const nextFrameBtn = createBtn("Next Frame", "pi-caret-right", null).btn;
+    // 下一帧按钮（使用 video.currentTime 快速预览）
+    const nextFrameBtn = createBtn("下一帧", "pi-caret-right", null).btn;
     setupLongPressFrame(nextFrameBtn, () => {
-        stopPlayback(); // Stop playback
+        stopPlayback(); // 停止播放
         if (state.currentFrameIndex < state.totalFrames - 1) {
             state.currentFrameIndex++;
             videoElement.currentTime = state.currentFrameIndex / state.fps;
@@ -744,10 +744,10 @@ function renderVideoInterface(container, state, videoInfo, headerElement) {
     });
     playbackControls.appendChild(nextFrameBtn);
 
-    // Mute toggle button
+    // 静音切换按钮
     const muteBtnObj = createBtn("", "pi-volume-up", () => {
         videoElement.muted = !videoElement.muted;
-        // Toggle icon
+        // 切换图标
         if (muteBtnObj.iconSpan) {
             if (videoElement.muted) {
                 muteBtnObj.iconSpan.classList.remove("pi-volume-up");
@@ -760,34 +760,34 @@ function renderVideoInterface(container, state, videoInfo, headerElement) {
     });
     playbackControls.appendChild(muteBtnObj.btn);
 
-    // 3. Marker control buttons (right side)
+    // 3. 标记控制按钮组 (右侧)
     const markerControls = document.createElement("div");
     markerControls.className = "playback-controls";
     markerControls.style.marginTop = "0";
     markerControls.style.display = "flex";
     markerControls.style.gap = "8px";
 
-    markerControls.appendChild(createBtn("Mark Current Frame", "pi-thumbtack", () => {
+    markerControls.appendChild(createBtn("标记当前帧", "pi-thumbtack", () => {
         state.selectedFrames.add(state.currentFrameIndex);
         renderTags();
     }, "primary").btn);
 
-    markerControls.appendChild(createBtn("Range Start", "pi-step-backward-alt", () => {
+    markerControls.appendChild(createBtn("范围", "pi-step-backward-alt", () => {
         state.rangeStart = state.currentFrameIndex;
-        // Show temporary blinking marker on track
+        // 在轨道上显示临时闪烁标记
         renderRangeStartMarker();
     }, "success").btn);
 
-    markerControls.appendChild(createBtn("Range End", "pi-step-forward-alt", (e) => {
+    markerControls.appendChild(createBtn("范围", "pi-step-forward-alt", (e) => {
         if (state.rangeStart === null) {
-            // Use popup dialog to notify user
+            // 使用气泡对话框提示用户
             const button = e.target.closest('button');
             createConfirmPopup({
                 target: button,
-                message: 'Please set the start point first',
+                message: '请先设置起点',
                 icon: 'pi-info-circle',
                 singleButton: true,
-                confirmLabel: 'OK',
+                confirmLabel: '确定',
                 position: 'top',
                 onConfirm: () => { }
             });
@@ -795,14 +795,14 @@ function renderVideoInterface(container, state, videoInfo, headerElement) {
         }
         const rangeEnd = state.currentFrameIndex;
         if (rangeEnd < state.rangeStart) {
-            // Use popup dialog to notify user
+            // 使用气泡对话框提示用户
             const button = e.target.closest('button');
             createConfirmPopup({
                 target: button,
-                message: 'End point must be greater than start point',
+                message: '终点必须大于起点',
                 icon: 'pi-exclamation-triangle',
                 singleButton: true,
-                confirmLabel: 'OK',
+                confirmLabel: '确定',
                 position: 'top',
                 onConfirm: () => { }
             });
@@ -810,7 +810,7 @@ function renderVideoInterface(container, state, videoInfo, headerElement) {
         }
         state.selectedFrames.add(`${state.rangeStart}-${rangeEnd}`);
         state.rangeStart = null;
-        // Remove temporary marker and render range markers
+        // 移除临时标记并渲染范围标记
         removeRangeStartMarker();
         renderTags();
     }, "success", "right").btn);
@@ -818,7 +818,7 @@ function renderVideoInterface(container, state, videoInfo, headerElement) {
     controlsContainer.appendChild(playbackControls);
     controlsContainer.appendChild(markerControls);
 
-    // --- Selected frames list area ---
+    // --- 已选帧列表区域 ---
     const listContainer = document.createElement("div");
     listContainer.className = "frame-list-container";
     listContainer.style.marginTop = "0";
@@ -826,14 +826,14 @@ function renderVideoInterface(container, state, videoInfo, headerElement) {
     const listHeader = document.createElement("div");
     listHeader.className = "frame-list-header";
 
-    // Tag list container (left side)
+    // 标签列表容器（左侧）
     const tagsList = document.createElement("div");
     tagsList.className = "frame-tags";
     listHeader.appendChild(tagsList);
 
-    // Clear button (right side)
+    // 清空按钮（右侧）
     const clearBtnObj = createBtn("", "pi-eraser", () => {
-        if (confirm("Are you sure you want to clear all selected frames?")) {
+        if (confirm("确定清空所有已选帧吗？")) {
             state.selectedFrames.clear();
             renderTags();
         }
@@ -844,25 +844,27 @@ function renderVideoInterface(container, state, videoInfo, headerElement) {
     listContainer.appendChild(listHeader);
     container.appendChild(listContainer);
 
-    // Add tooltip (needs to be after element is added to DOM)
+    // 添加 tooltip（需要在元素添加到 DOM 后）
     createTooltip({
         target: clearBtnObj.btn,
-        content: "Clear selected frames",
+        content: "清空已选帧",
         position: "top"
     });
 
-    // --- Event binding and logic ---
-    // Get references for updating (prefer references from header)
+    // --- 事件绑定与逻辑 ---
+    // --- 事件绑定与逻辑 ---
+    // 获取引用以便更新 (优先使用 header 中的引用)
 
-    // Update display function (based on frame index)
+
+    // 更新显示函数（基于帧索引）
     const updateDisplay = () => {
         const currentFrame = state.currentFrameIndex;
         const totalFrames = state.totalFrames;
-        // Calculate current time based on frame index
+        // 根据帧索引计算当前时间
         const t = currentFrame / state.fps;
         const d = state.duration;
 
-        // Format time MM:SS.ms
+        // 格式化时间 MM:SS.ms
         const formatTime = (s) => {
             const m = Math.floor(s / 60);
             const sec = Math.floor(s % 60);
@@ -873,19 +875,19 @@ function renderVideoInterface(container, state, videoInfo, headerElement) {
         if (headerTimeSpan) headerTimeSpan.textContent = `${formatTime(t)} / ${formatTime(d)}`;
         if (headerFrameSpan) headerFrameSpan.textContent = `${currentFrame} / ${totalFrames}`;
 
-        // Sync custom slider position
+        // 同步自定义滑块位置
         updateSliderPosition(currentFrame);
     };
 
-    // --- Render range start temporary marker ---
+    // --- 渲染范围起点临时标记 ---
     const renderRangeStartMarker = () => {
-        // First remove existing temporary marker
+        // 先移除已有的临时标记
         removeRangeStartMarker();
 
         const totalFrames = state.totalFrames;
         if (totalFrames <= 0 || state.rangeStart === null) return;
 
-        // Use unified frame to percentage conversion function
+        // 使用统一的帧到百分比转换函数
         const leftPercent = frameToPercent(state.rangeStart);
         const tempMarker = document.createElement("div");
         tempMarker.className = "frame-marker-temp";
@@ -893,15 +895,15 @@ function renderVideoInterface(container, state, videoInfo, headerElement) {
         tempMarker.dataset.frame = state.rangeStart;
         markerTrack.appendChild(tempMarker);
 
-        // Add tooltip
+        // 添加 tooltip
         createTooltip({
             target: tempMarker,
-            content: `Range start: ${state.rangeStart}`,
+            content: `范围起点: ${state.rangeStart}`,
             position: 'top'
         });
     };
 
-    // --- Remove range start temporary marker ---
+    // --- 移除范围起点临时标记 ---
     const removeRangeStartMarker = () => {
         const tempMarker = markerTrack.querySelector(".frame-marker-temp");
         if (tempMarker) {
@@ -909,14 +911,14 @@ function renderVideoInterface(container, state, videoInfo, headerElement) {
         }
     };
 
-    // --- Clear residual tooltips ---
+    // --- 清理残留的 tooltip ---
     const clearTooltips = () => {
         document.querySelectorAll('.pa-tooltip').forEach(t => t.remove());
     };
 
-    // --- Render frame marker track ---
+    // --- 渲染帧标记轨道 ---
     const renderMarkers = () => {
-        // Clear possible residual tooltips (elements removed during drag but tooltips not destroyed)
+        // 清理可能残留的 tooltip（拖动时元素被删除但 tooltip 未销毁）
         clearTooltips();
         markerTrack.innerHTML = "";
         const totalFrames = state.totalFrames;
@@ -924,7 +926,7 @@ function renderVideoInterface(container, state, videoInfo, headerElement) {
 
         state.selectedFrames.forEach(item => {
             if (typeof item === 'string' && item.includes('-')) {
-                // Range marker (use unified frame to percentage conversion)
+                // 范围标记（使用统一的帧到百分比转换）
                 const [start, end] = item.split('-').map(Number);
                 const leftPercent = frameToPercent(start);
                 const rightPercent = frameToPercent(end);
@@ -937,21 +939,21 @@ function renderVideoInterface(container, state, videoInfo, headerElement) {
                 rangeEl.dataset.range = item;
                 rangeEl.dataset.originalItem = item;
 
-                // Create left edge handle
+                // 创建左边缘手柄
                 const leftHandle = document.createElement("div");
                 leftHandle.className = "range-handle range-handle-left";
                 rangeEl.appendChild(leftHandle);
 
-                // Create right edge handle
+                // 创建右边缘手柄
                 const rightHandle = document.createElement("div");
                 rightHandle.className = "range-handle range-handle-right";
                 rangeEl.appendChild(rightHandle);
 
-                // Left edge drag
+                // 左边缘拖动
                 leftHandle.addEventListener('mousedown', (e) => {
                     e.stopPropagation();
                     e.preventDefault();
-                    clearTooltips(); // Immediately clear tooltip on drag
+                    clearTooltips(); // 拖动时立即清理 tooltip
 
                     let isDragging = false;
                     let dragLabel = null;
@@ -961,7 +963,7 @@ function renderVideoInterface(container, state, videoInfo, headerElement) {
                     const onMouseMove = (moveEvent) => {
                         if (!isDragging) {
                             isDragging = true;
-                            // Create following label
+                            // 创建跟随标签
                             dragLabel = document.createElement("div");
                             dragLabel.className = "drag-label";
                             markerTrack.appendChild(dragLabel);
@@ -972,31 +974,31 @@ function renderVideoInterface(container, state, videoInfo, headerElement) {
                         const newPercent = Math.max(0, Math.min(1, offsetX / trackRect.width));
                         const newStart = Math.round(newPercent * (totalFrames - 1));
 
-                        // Clamp to not exceed end frame
+                        // 限制不能超过结束帧
                         const clampedStart = Math.max(0, Math.min(originalEnd - 1, newStart));
 
-                        // Update position and width (using unified percentage conversion)
+                        // 更新位置和宽度（使用统一的百分比转换）
                         const newLeftPercent = frameToPercent(clampedStart);
                         const newRightPercent = frameToPercent(originalEnd);
                         rangeEl.style.left = `${newLeftPercent}%`;
                         rangeEl.style.width = `${newRightPercent - newLeftPercent}%`;
                         rangeEl.dataset.range = `${clampedStart}-${originalEnd}`;
 
-                        // Update following label
+                        // 更新跟随标签
                         if (dragLabel) {
-                            dragLabel.textContent = `Frame ${clampedStart}-${originalEnd}`;
-                            // Position label at left edge
+                            dragLabel.textContent = `帧 ${clampedStart}-${originalEnd}`;
+                            // 标签位置定位在左边缘
                             dragLabel.style.left = `${newLeftPercent}%`;
                         }
 
-                        // Sync video preview to new start frame
+                        // 同步 video 预览到新的起始帧
                         state.currentFrameIndex = clampedStart;
                         videoElement.currentTime = clampedStart / state.fps;
                         updateDisplay();
                     };
 
                     const onMouseUp = () => {
-                        // Remove following label
+                        // 移除跟随标签
                         if (dragLabel) {
                             dragLabel.remove();
                             dragLabel = null;
@@ -1016,11 +1018,11 @@ function renderVideoInterface(container, state, videoInfo, headerElement) {
                     document.addEventListener('mouseup', onMouseUp);
                 });
 
-                // Right edge drag
+                // 右边缘拖动
                 rightHandle.addEventListener('mousedown', (e) => {
                     e.stopPropagation();
                     e.preventDefault();
-                    clearTooltips(); // Immediately clear tooltip on drag
+                    clearTooltips(); // 拖动时立即清理 tooltip
 
                     let isDragging = false;
                     let dragLabel = null;
@@ -1030,7 +1032,7 @@ function renderVideoInterface(container, state, videoInfo, headerElement) {
                     const onMouseMove = (moveEvent) => {
                         if (!isDragging) {
                             isDragging = true;
-                            // Create following label
+                            // 创建跟随标签
                             dragLabel = document.createElement("div");
                             dragLabel.className = "drag-label";
                             markerTrack.appendChild(dragLabel);
@@ -1041,30 +1043,30 @@ function renderVideoInterface(container, state, videoInfo, headerElement) {
                         const newPercent = Math.max(0, Math.min(1, offsetX / trackRect.width));
                         const newEnd = Math.round(newPercent * (totalFrames - 1));
 
-                        // Clamp to not less than start frame
+                        // 限制不能小于起始帧
                         const clampedEnd = Math.max(originalStart + 1, Math.min(totalFrames - 1, newEnd));
 
-                        // Update width (using unified percentage conversion)
+                        // 更新宽度（使用统一的百分比转换）
                         const leftPercent = frameToPercent(originalStart);
                         const rightPercent = frameToPercent(clampedEnd);
                         rangeEl.style.width = `${rightPercent - leftPercent}%`;
                         rangeEl.dataset.range = `${originalStart}-${clampedEnd}`;
 
-                        // Update following label
+                        // 更新跟随标签
                         if (dragLabel) {
-                            dragLabel.textContent = `Frame ${originalStart}-${clampedEnd}`;
-                            // Position label at right edge
+                            dragLabel.textContent = `帧 ${originalStart}-${clampedEnd}`;
+                            // 标签位置定位在右边缘
                             dragLabel.style.left = `${rightPercent}%`;
                         }
 
-                        // Sync video preview to new end frame
+                        // 同步 video 预览到新的结束帧
                         state.currentFrameIndex = clampedEnd;
                         videoElement.currentTime = clampedEnd / state.fps;
                         updateDisplay();
                     };
 
                     const onMouseUp = () => {
-                        // Remove following label
+                        // 移除跟随标签
                         if (dragLabel) {
                             dragLabel.remove();
                             dragLabel = null;
@@ -1084,16 +1086,16 @@ function renderVideoInterface(container, state, videoInfo, headerElement) {
                     document.addEventListener('mouseup', onMouseUp);
                 });
 
-                // Middle area drag (overall pan)
+                // 中间区域拖动（整体平移）
                 rangeEl.addEventListener('mousedown', (e) => {
-                    // Check if clicked on handle, if so do nothing
+                    // 检查是否点击在手柄上，如果是则不处理
                     if (e.target.classList.contains('range-handle')) {
                         return;
                     }
 
                     e.stopPropagation();
                     e.preventDefault();
-                    clearTooltips(); // Immediately clear tooltip on drag
+                    clearTooltips(); // 拖动时立即清理 tooltip
 
                     let isDragging = false;
                     let dragLabel = null;
@@ -1105,7 +1107,7 @@ function renderVideoInterface(container, state, videoInfo, headerElement) {
                     const onMouseMove = (moveEvent) => {
                         if (!isDragging) {
                             isDragging = true;
-                            // Create following label
+                            // 创建跟随标签
                             dragLabel = document.createElement("div");
                             dragLabel.className = "drag-label";
                             markerTrack.appendChild(dragLabel);
@@ -1119,7 +1121,7 @@ function renderVideoInterface(container, state, videoInfo, headerElement) {
                         let newStart = originalStart + deltaFrames;
                         let newEnd = originalEnd + deltaFrames;
 
-                        // Clamp range to not exceed boundaries
+                        // 限制范围不能超出边界
                         if (newStart < 0) {
                             newStart = 0;
                             newEnd = rangeWidth;
@@ -1128,27 +1130,27 @@ function renderVideoInterface(container, state, videoInfo, headerElement) {
                             newStart = newEnd - rangeWidth;
                         }
 
-                        // Update position (using unified percentage conversion)
+                        // 更新位置（使用统一的百分比转换）
                         const newLeftPercent = frameToPercent(newStart);
                         rangeEl.style.left = `${newLeftPercent}%`;
                         rangeEl.dataset.range = `${newStart}-${newEnd}`;
 
-                        // Update following label
+                        // 更新跟随标签
                         if (dragLabel) {
-                            dragLabel.textContent = `Frame ${newStart}-${newEnd}`;
-                            // Position label at center of range
+                            dragLabel.textContent = `帧 ${newStart}-${newEnd}`;
+                            // 标签位置定位在范围中心
                             const centerFrame = (newStart + newEnd) / 2;
                             dragLabel.style.left = `${frameToPercent(centerFrame)}%`;
                         }
 
-                        // Sync video preview to new start frame
+                        // 同步 video 预览到新的起始帧
                         state.currentFrameIndex = newStart;
                         videoElement.currentTime = newStart / state.fps;
                         updateDisplay();
                     };
 
                     const onMouseUp = () => {
-                        // Remove following label
+                        // 移除跟随标签
                         if (dragLabel) {
                             dragLabel.remove();
                             dragLabel = null;
@@ -1168,7 +1170,7 @@ function renderVideoInterface(container, state, videoInfo, headerElement) {
                     document.addEventListener('mouseup', onMouseUp);
                 });
 
-                // Double-click range marker to jump to start frame
+                // 双击范围帧跳转到起始帧
                 rangeEl.addEventListener('dblclick', (e) => {
                     e.stopPropagation();
                     const range = rangeEl.dataset.range;
@@ -1180,14 +1182,14 @@ function renderVideoInterface(container, state, videoInfo, headerElement) {
 
                 markerTrack.appendChild(rangeEl);
 
-                // Use createTooltip to display frame range
+                // 使用 createTooltip 显示帧范围
                 createTooltip({
                     target: rangeEl,
-                    content: `Frame ${item}`,
+                    content: `帧 ${item}`,
                     position: 'top'
                 });
             } else {
-                // Single frame marker (using unified frame to percentage conversion)
+                // 单帧标记（使用统一的帧到百分比转换）
                 const frame = typeof item === 'number' ? item : parseInt(item);
                 const leftPercent = frameToPercent(frame);
 
@@ -1197,11 +1199,11 @@ function renderVideoInterface(container, state, videoInfo, headerElement) {
                 markerEl.dataset.frame = frame;
                 markerEl.dataset.originalItem = item;
 
-                // Add drag functionality
+                // 添加拖动功能
                 markerEl.addEventListener('mousedown', (e) => {
                     e.stopPropagation();
                     e.preventDefault();
-                    clearTooltips(); // Immediately clear tooltip on drag
+                    clearTooltips(); // 拖动时立即清理 tooltip
 
                     const originalFrame = parseInt(markerEl.dataset.frame);
                     const originalItem = markerEl.dataset.originalItem;
@@ -1211,7 +1213,7 @@ function renderVideoInterface(container, state, videoInfo, headerElement) {
                     const onMouseMove = (moveEvent) => {
                         if (!isDragging) {
                             isDragging = true;
-                            // Create following label
+                            // 创建跟随标签
                             dragLabel = document.createElement("div");
                             dragLabel.className = "drag-label";
                             markerTrack.appendChild(dragLabel);
@@ -1222,27 +1224,27 @@ function renderVideoInterface(container, state, videoInfo, headerElement) {
                         const newPercent = Math.max(0, Math.min(1, offsetX / trackRect.width));
                         const newFrame = Math.round(newPercent * (totalFrames - 1));
 
-                        // Clamp range
+                        // 限制范围
                         const clampedFrame = Math.max(0, Math.min(totalFrames - 1, newFrame));
 
-                        // Real-time update position (using unified percentage conversion)
+                        // 实时更新位置（使用统一的百分比转换）
                         markerEl.style.left = `${frameToPercent(clampedFrame)}%`;
                         markerEl.dataset.frame = clampedFrame;
 
-                        // Update following label
+                        // 更新跟随标签
                         if (dragLabel) {
-                            dragLabel.textContent = `Frame ${clampedFrame}`;
+                            dragLabel.textContent = `帧 ${clampedFrame}`;
                             dragLabel.style.left = `${frameToPercent(clampedFrame)}%`;
                         }
 
-                        // Sync video preview
+                        // 同步 video 预览
                         state.currentFrameIndex = clampedFrame;
                         videoElement.currentTime = clampedFrame / state.fps;
                         updateDisplay();
                     };
 
                     const onMouseUp = () => {
-                        // Remove following label
+                        // 移除跟随标签
                         if (dragLabel) {
                             dragLabel.remove();
                             dragLabel = null;
@@ -1251,7 +1253,7 @@ function renderVideoInterface(container, state, videoInfo, headerElement) {
                         if (isDragging) {
                             const newFrame = parseInt(markerEl.dataset.frame);
 
-                            // Update selectedFrames
+                            // 更新 selectedFrames
                             if (typeof originalItem === 'number') {
                                 state.selectedFrames.delete(originalItem);
                             } else {
@@ -1259,7 +1261,7 @@ function renderVideoInterface(container, state, videoInfo, headerElement) {
                             }
                             state.selectedFrames.add(newFrame);
 
-                            // Re-render
+                            // 重新渲染
                             renderTags();
                         }
 
@@ -1271,7 +1273,7 @@ function renderVideoInterface(container, state, videoInfo, headerElement) {
                     document.addEventListener('mouseup', onMouseUp);
                 });
 
-                // Double-click to jump to corresponding frame
+                // 双击跳转到对应帧
                 markerEl.addEventListener('dblclick', (e) => {
                     e.stopPropagation();
                     const targetFrame = parseInt(markerEl.dataset.frame);
@@ -1282,17 +1284,17 @@ function renderVideoInterface(container, state, videoInfo, headerElement) {
 
                 markerTrack.appendChild(markerEl);
 
-                // Use createTooltip to display frame number
+                // 使用 createTooltip 显示帧号
                 createTooltip({
                     target: markerEl,
-                    content: `Frame ${frame}`,
+                    content: `帧 ${frame}`,
                     position: 'top'
                 });
             }
         });
     };
 
-    // --- Render bottom frame tags ---
+    // --- 渲染底部帧标签 ---
     const renderTags = () => {
         tagsList.innerHTML = "";
         const sorted = Array.from(state.selectedFrames).sort((a, b) => {
@@ -1302,7 +1304,7 @@ function renderVideoInterface(container, state, videoInfo, headerElement) {
 
         sorted.forEach(item => {
             const tag = document.createElement("div");
-            // Add corresponding style class based on type
+            // 根据类型添加对应的样式类
             const isRange = typeof item === 'string' && item.includes('-');
             tag.className = `frame-tag ${isRange ? 'frame-tag-range' : 'frame-tag-single'}`;
             tag.innerHTML = `<span>${item}</span>`;
@@ -1319,11 +1321,11 @@ function renderVideoInterface(container, state, videoInfo, headerElement) {
             tagsList.appendChild(tag);
         });
 
-        // Sync update marker track
+        // 同步更新标记轨道
         renderMarkers();
     };
 
-    // --- Frame slider click support (click on marker track to jump to specified frame) ---
+    // --- 帧滑块点击支持（在标记轨道上点击跳转到指定帧）---
     markerTrack.addEventListener('click', (e) => {
         if (e.target === markerTrack) {
             const rect = markerTrack.getBoundingClientRect();
@@ -1333,30 +1335,30 @@ function renderVideoInterface(container, state, videoInfo, headerElement) {
         }
     });
 
-    // --- Initialize: load first frame ---
+    // --- 初始化：加载第一帧 ---
     loadFrame(0);
     renderTags();
 }
 
 /**
- * Recursively find connected video source
- * @param {Object} node Starting node
- * @returns {Promise<Object|null>} Video information object {url, filename, type}
+ * 递归查找连接的视频源
+ * @param {Object} node 起始节点
+ * @returns {Promise<Object|null>} 视频信息对象 {url, filename, type}
  */
 async function findConnectedVideo(node) {
     if (!node.inputs) return null;
 
-    // Helper function: extract video file information from node
+    // 辅助函数：从节点提取视频文件信息
     const extractVideoFile = (node) => {
         let filename = null;
         let subfolder = "";
         let type = "input";
         let forceRate = 0;
 
-        // Detect if it's a Load Video node from VideoHelperSuite
+        // 检测是否为VideoHelperSuite的Load Video节点
         const isLoadVideoNode = node.type?.includes("VHS_LoadVideo");
 
-        // Strategy 1: Get from serialize.widgets_values
+        // 策略1: 从 serialize.widgets_values 获取
         if (node.serialize) {
             const serialized = node.serialize();
             if (serialized?.widgets_values?.length > 0) {
@@ -1364,7 +1366,7 @@ async function findConnectedVideo(node) {
             }
         }
 
-        // Strategy 2: Get from widgets
+        // 策略2: 从 widgets 获取
         if (!filename && node.widgets?.length > 0) {
             for (const w of node.widgets) {
                 if (w.value && typeof w.value === 'string' && w.value.length > 0) {
@@ -1374,12 +1376,12 @@ async function findConnectedVideo(node) {
             }
         }
 
-        // Strategy 3: Get from properties
+        // 策略3: 从 properties 获取
         if (!filename && node.properties) {
             filename = node.properties.video || node.properties.filename || node.properties.upload;
         }
 
-        // Extract force_rate parameter (from VideoHelperSuite Load Video node)
+        // 提取force_rate参数（来自VideoHelperSuite的Load Video节点）
         if (node.widgets) {
             const forceRateWidget = node.widgets.find(w => w.name === "force_rate");
             if (forceRateWidget && forceRateWidget.value != null) {
@@ -1393,16 +1395,16 @@ async function findConnectedVideo(node) {
         return null;
     };
 
-    // Helper function: recursively traverse graph
+    // 辅助函数：递归遍历图
     const findVideoSource = (currentNode, visited = new Set()) => {
         if (!currentNode || visited.has(currentNode.id)) return null;
         visited.add(currentNode.id);
 
-        // Check if current node has video file
+        // 检查当前节点是否有视频文件
         const videoFile = extractVideoFile(currentNode);
         if (videoFile) return videoFile;
 
-        // Recursively find upstream nodes
+        // 递归查找上游节点
         if (currentNode.inputs) {
             for (const input of currentNode.inputs) {
                 if (input.link) {
@@ -1418,8 +1420,8 @@ async function findConnectedVideo(node) {
         return null;
     };
 
-    // 1. Prefer to find Video type input
-    const videoInput = node.inputs.find(i => i.name === "Video" || i.type === "VIDEO");
+    // 1. 优先查找 Video 类型输入
+    const videoInput = node.inputs.find(i => i.name === "视频" || i.type === "VIDEO");
     if (videoInput?.link) {
         const link = app.graph.links[videoInput.link];
         if (link) {
@@ -1438,8 +1440,8 @@ async function findConnectedVideo(node) {
         }
     }
 
-    // 2. Find Image type input (image sequence)
-    const imageInput = node.inputs.find(i => i.name === "Image Sequence" || i.type === "IMAGE");
+    // 2. 查找 Image 类型输入（图像序列）
+    const imageInput = node.inputs.find(i => i.name === "图像序列" || i.type === "IMAGE");
     if (imageInput?.link) {
         const link = app.graph.links[imageInput.link];
         if (link) {
@@ -1458,7 +1460,7 @@ async function findConnectedVideo(node) {
             } else {
                 return {
                     type: "image_sequence",
-                    error: "Detected image sequence input, but cannot trace back to original video file. Please ensure the image sequence comes from a video loading node (e.g., VHS Load Video)."
+                    error: "检测到图像序列输入，但无法追溯到原始视频文件。请确保图像序列来自视频加载节点（如 VHS Load Video）。"
                 };
             }
         }

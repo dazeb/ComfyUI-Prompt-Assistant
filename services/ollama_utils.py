@@ -10,28 +10,28 @@ OLLAMA_NATIVE_THINKING_UNRELIABLE_PATTERNS = [
 ]
 
 FINAL_ANSWER_MARKERS = [
-    r"final answer\s*[:：]",
-    r"final output\s*[:：]",
-    r"final result\s*[:：]",
-    r"last output\s*[:：]",
-    r"answer\s*[:：]",
+    r"最终答案\s*[:：]",
+    r"最终输出\s*[:：]",
+    r"最终结果\s*[:：]",
+    r"最后输出\s*[:：]",
+    r"答案\s*[:：]",
     r"final\s+answer\s*[:：]",
     r"final\s+result\s*[:：]",
 ]
 
 THINKING_META_TERMS = [
-    "user",
-    "request",
-    "requirement",
-    "need",
-    "should",
-    "decide",
-    "think",
-    "reason",
-    "only output",
-    "final result",
-    "final answer",
-    "final output",
+    "用户",
+    "请求",
+    "要求",
+    "需要",
+    "应该",
+    "决定",
+    "思考",
+    "推理",
+    "只输出",
+    "最终结果",
+    "最终答案",
+    "最终输出",
     "reason",
     "analysis",
 ]
@@ -181,7 +181,7 @@ def build_ollama_final_answer_retry_payload(payload: Dict[str, Any]) -> Dict[str
     retry_payload["options"] = options
 
     if use_soft_retry:
-        instruction = "Please continue the original request, output only the directly usable final result."
+        instruction = "请继续完成原始请求，只输出可以直接使用的最终结果。"
     else:
         instruction = (
             "Your previous response contained only internal reasoning and no final answer. "

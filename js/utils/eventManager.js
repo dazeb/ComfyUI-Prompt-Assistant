@@ -1,75 +1,75 @@
 /**
- * Event Manager
- * Unified management of all event-related operations, including DOM events, mouse events, etc.
+ * 事件管理器
+ * 统一管理所有与事件相关的操作，包括DOM事件、鼠标事件等
  */
 
 import { logger } from './logger.js';
 
 class EventManager {
-    // Event storage - use nested Maps to store events and listeners
+    // 事件存储 - 使用Map嵌套Map来存储事件和监听器
     static listeners = new Map();
 
-    // Global mouse position
+    // 全局鼠标位置
     static mousePosition = { x: 0, y: 0 };
 
-    // Initialization status flag
+    // 初始化状态标记
     static initialized = false;
     static _mouseHandler = null;
 
     /**
-     * Initialize event manager
+     * 初始化事件管理器
      */
     static init() {
-        // Strictly check to avoid repeated initialization
+        // 严格检查避免重复初始化
         if (this.initialized) {
             return true;
         }
 
         try {
-            // Set up global mouse tracking
+            // 设置全局鼠标跟踪
             this.setupGlobalMouseTracking();
 
             this.initialized = true;
-            logger.log("Event Manager | Initialization completed");
+            logger.log("事件管理器 | 初始化完成");
             return true;
         } catch (error) {
-            logger.error(`Event Manager | Initialization failed | ${error.message}`);
+            logger.error(`事件管理器 | 初始化失败 | ${error.message}`);
             return false;
         }
     }
 
     /**
-     * Set up global mouse position tracking
+     * 设置全局鼠标位置跟踪
      */
     static setupGlobalMouseTracking() {
-        // Remove any existing old listener
+        // 移除可能存在的旧监听器
         if (this._mouseHandler) {
             document.removeEventListener('mousemove', this._mouseHandler);
         }
 
-        // Create new mouse handler
+        // 创建新的鼠标处理函数
         this._mouseHandler = (e) => {
-            // Update mouse position
+            // 更新鼠标位置
             this.mousePosition.x = e.clientX;
             this.mousePosition.y = e.clientY;
 
-            // Trigger custom event
+            // 触发自定义事件
             this.emit('global_mouse_move', e);
         };
 
-        // Add mouse listener
+        // 添加鼠标监听
         document.addEventListener('mousemove', this._mouseHandler);
     }
 
     /**
-     * Get current mouse position
+     * 获取当前鼠标位置
      */
     static getMousePosition() {
         return { ...this.mousePosition };
     }
 
     /**
-     * Determine if mouse is over an element
+     * 判断鼠标是否在元素上方
      */
     static isMouseOverElement(element) {
         if (!element) return false;
@@ -88,46 +88,46 @@ class EventManager {
     }
 
     /**
-     * Add event listener
+     * 添加事件监听器
      */
     static on(eventKey, id, callback) {
-        // Parameter validation
+        // 参数验证
         if (!eventKey || !id || typeof callback !== 'function') {
-            logger.error(`Event registration failed | Invalid parameter | Event: ${eventKey}`);
+            logger.error(`事件注册失败 | 无效参数 | 事件: ${eventKey}`);
             return false;
         }
 
-        // Get or create event listener collection
+        // 获取或创建事件监听器集合
         if (!this.listeners.has(eventKey)) {
             this.listeners.set(eventKey, new Map());
         }
 
         const listeners = this.listeners.get(eventKey);
 
-        // Check if a listener with the same ID already exists
+        // 检查是否已存在相同ID的监听器
         if (listeners.has(id)) {
-            return true; // Already exists, silently return
+            return true; // 已存在，静默返回
         }
 
-        // Add new listener
+        // 添加新的监听器
         listeners.set(id, callback);
         return true;
     }
 
     /**
-     * Remove event listener
+     * 移除事件监听器
      */
     static off(eventKey, id) {
-        // Parameter validation
+        // 参数验证
         if (!eventKey || !id) return false;
 
-        // Check if event and listener exist
+        // 检查事件和监听器是否存在
         if (!this.listeners.has(eventKey)) return false;
 
         const listeners = this.listeners.get(eventKey);
         const removed = listeners.delete(id);
 
-        // If the event has no more listeners, delete the entire event
+        // 如果该事件没有监听器了，则删除整个事件
         if (listeners.size === 0) {
             this.listeners.delete(eventKey);
         }
@@ -136,23 +136,23 @@ class EventManager {
     }
 
     /**
-     * Trigger event
+     * 触发事件
      */
     static emit(eventKey, ...args) {
         if (!eventKey) return false;
 
-        // Check if event has listeners
+        // 检查事件是否有监听器
         if (!this.listeners.has(eventKey)) return false;
 
         const listeners = this.listeners.get(eventKey);
         if (listeners.size === 0) return false;
 
-        // Execute all listeners
+        // 执行所有监听器
         for (const [id, callback] of listeners.entries()) {
             try {
                 callback(...args);
             } catch (error) {
-                logger.error(`Event handling error | Event: ${eventKey}, ID: ${id} | Error: ${error.message}`);
+                logger.error(`事件处理错误 | 事件: ${eventKey}, ID: ${id} | 错误: ${error.message}`);
             }
         }
 
@@ -160,8 +160,8 @@ class EventManager {
     }
 
     /**
-     * Add DOM event listener
-     * Simplified helper method, returns a function to remove the listener
+     * 添加DOM事件监听器
+     * 简化的辅助方法，返回用于移除监听器的函数
      */
     static addDOMListener(element, event, handler, options = false) {
         if (!element || !event || typeof handler !== 'function') {
@@ -176,8 +176,8 @@ class EventManager {
     }
 
     /**
-     * Create debounce function
-     * Limit function call frequency
+     * 创建防抖函数
+     * 限制函数调用频率
      */
     static debounce(func, wait = 100) {
         let timeout;
@@ -188,7 +188,7 @@ class EventManager {
     }
 
     /**
-     * Register element hover events (simplified version)
+     * 注册元素的悬停事件（简化版本）
      */
     static registerHoverEvents(element, id, onEnter, onLeave) {
         if (!element) return () => { };
@@ -206,11 +206,11 @@ class EventManager {
     }
 
     /**
-     * Clean up event manager
+     * 清理事件管理器
      */
     static cleanup(keepGlobalEvents = true) {
         if (keepGlobalEvents) {
-            // Keep global events, clean up other events
+            // 保留全局事件，清理其他事件
             const globalEvents = ['global_mouse_move'];
 
             for (const [eventKey, listeners] of this.listeners.entries()) {
@@ -219,16 +219,16 @@ class EventManager {
                 }
             }
         } else {
-            // Clean up all events and listeners
+            // 清理所有事件和监听器
             this.listeners.clear();
 
-            // Remove global mouse listener
+            // 移除全局鼠标监听
             if (this._mouseHandler) {
                 document.removeEventListener('mousemove', this._mouseHandler);
                 this._mouseHandler = null;
             }
 
-            // Reset status
+            // 重置状态
             this.initialized = false;
         }
     }

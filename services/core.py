@@ -1,6 +1,6 @@
 """
-Core Infrastructure Module
-Provides HTTP client pool management
+核心基础设施模块
+提供HTTP客户端池管理
 """
 
 import httpx
@@ -11,17 +11,17 @@ import re
 
 class HTTPClientPool:
     """
-    HTTP Client Pool
-    Manages persistent httpx.AsyncClient instances with connection reuse
+    HTTP客户端池
+    管理持久化的 httpx.AsyncClient，支持连接复用
     """
     _clients: Dict[Tuple[Any, ...], httpx.AsyncClient] = {}
-    _loop_id: Optional[int] = None  # Records the event loop ID when creating the client
+    _loop_id: Optional[int] = None  # 记录创建客户端时的事件循环ID
     
     @classmethod
     def _check_loop_change(cls) -> bool:
         """
-        Detects if the event loop has changed
-        Returns: True = loop changed, old clients need to be cleaned up
+        检测事件循环是否发生变化
+        返回: True = 循环已变化，需要清理旧客户端
         """
         try:
             import asyncio
@@ -33,15 +33,15 @@ class HTTPClientPool:
                 return False
             
             if cls._loop_id != current_loop_id:
-                # Event loop has changed, clean up all old clients
+                # 事件循环已变化，清理所有旧客户端
                 cls._loop_id = current_loop_id
-                # Cannot await close, just drop references (let GC handle it)
+                # 不能 await close，直接丢弃引用（让 GC 处理）
                 cls._clients.clear()
                 return True
             
             return False
         except RuntimeError:
-            # No running event loop, conservative handling
+            # 没有运行中的事件循环，保守处理
             return False
     
     @classmethod
@@ -55,19 +55,19 @@ class HTTPClientPool:
         **kwargs
     ) -> httpx.AsyncClient:
         """
-        Get or create an HTTP client (with connection reuse)
-
-        Args:
-            provider: Provider identifier (for logging)
-            base_url: API base URL, used as cache key
-            timeout: Timeout in seconds
-            proxy: Proxy settings
-            verify_ssl: Whether to verify SSL certificates
+        获取或创建HTTP客户端（支持连接复用）
+        
+        参数:
+            provider: 服务商标识（用于日志）
+            base_url: API基础URL，作为缓存的Key
+            timeout: 超时时间（秒）
+            proxy: 代理设置
+            verify_ssl: 是否验证SSL证书
         """
-        # Detect event loop changes, clean up old clients if necessary
+        # 检测事件循环变化，必要时清理旧客户端
         cls._check_loop_change()
         
-        # Smart detection of whether it's a local address
+        # 智能判定是否为本地地址
         is_local = False
         if base_url:
             is_local = any(host in str(base_url) for host in ['localhost', '127.0.0.1', '0.0.0.0', '[::1]'])
@@ -87,16 +87,16 @@ class HTTPClientPool:
             if not client.is_closed:
                 return client
             
-        # Create new client
+        # 创建新客户端
         client_kwargs = {
             'timeout': httpx.Timeout(timeout, connect=10.0, read=timeout, write=60.0),
             'verify': verify_ssl,
             'follow_redirects': True,
             'http2': False,
-            # Key fix: Intelligently control system proxy configuration based on target address
-            # Prevent HTTP_PROXY/HTTPS_PROXY from intercepting local requests, while allowing external requests (e.g., xflow, openai) to use proxy
+            # 关键修复：根据目标地址智能控制系统代理配置
+            # 避免 HTTP_PROXY/HTTPS_PROXY 拦截本地请求，同时允许外部请求（如xflow, openai）使用代理
             'trust_env': trust_env,
-            # Set connection pool to keep connections alive
+            # 设置连接池保持连接
             'limits': httpx.Limits(max_keepalive_connections=10, max_connections=20, keepalive_expiry=60.0)
         }        
         if proxy:
@@ -112,7 +112,7 @@ class HTTPClientPool:
     
     @classmethod
     async def close_all(cls):
-        """Close all created clients, completely release resources"""
+        """关闭所有已创建的客户端，彻底释放资源"""
         for key in list(cls._clients.keys()):
             client = cls._clients.pop(key)
             try:
@@ -121,44 +121,44 @@ class HTTPClientPool:
                 pass
 
 
-# Logger class has been removed. Please import log_prepare, log_complete, log_error and other functions directly from ..utils.common.
+# Logger 类已移除，请直接从 ..utils.common 导入 log_prepare, log_complete, log_error 等函数使用。
 
 
 
 class BaseAPIService:
     """
-    Abstract base class for API services
-    Base for all services (LLM, VLM, Baidu)
+    API服务抽象基类
+    所有服务（LLM, VLM, Baidu）的基础
     """
     
     def __init__(self, http_client_pool: HTTPClientPool = None):
         """
-        Initialize base class
-
-        Args:
-            http_client_pool: HTTP client pool (optional, defaults to global pool)
+        初始化基类
+        
+        参数:
+            http_client_pool: HTTP客户端池（可选，默认使用全局池）
         """
         self.http_client_pool = http_client_pool or HTTPClientPool
     
     def get_config(self) -> Dict[str, Any]:
         """
-        Get service configuration (subclass must implement)
-
-        Returns:
-            Dict: Configuration dictionary
+        获取服务配置（子类必须实现）
+        
+        返回:
+            Dict: 配置字典
         """
-        raise NotImplementedError("Subclass must implement get_config method")
+        raise NotImplementedError("子类必须实现 get_config 方法")
     
     async def handle_error(self, error: Exception, provider: str) -> Dict[str, Any]:
         """
-        Unified error handling
-
-        Args:
-            error: Exception object
-            provider: Provider identifier
-
-        Returns:
-            Dict: Error response
+        统一错误处理
+        
+        参数:
+            error: 异常对象
+            provider: 服务商标识
+        
+        返回:
+            Dict: 错误响应
         """
         from ..utils.common import format_api_error
         error_message = format_api_error(error, provider)

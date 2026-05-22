@@ -7,89 +7,89 @@ import folder_paths
 
 class ConfigManager:
     def __init__(self):
-        # Plugin directory
+        # 插件目录
         self.dir_path = os.path.dirname(os.path.abspath(__file__))
         
-        # Get ComfyUI user directory
+        # 获取 ComfyUI 用户目录
         try:
             user_dir = folder_paths.get_user_directory()
             if user_dir and os.path.isdir(user_dir):
-                # Use user/default/prompt-assistant as base directory
+                # 使用 user/default/prompt-assistant 作为基础目录
                 self.base_dir = os.path.join(user_dir, "default", "prompt-assistant")
-                # self._log(f"Using user config directory: {self.base_dir}")
+                # self._log(f"使用用户配置目录: {self.base_dir}")
             else:
-                # Fall back to plugin directory
+                # 回退到插件目录
                 self.base_dir = self.dir_path
-                self._log(f"Fallback to plugin config directory: {self.base_dir}")
+                self._log(f"回退到插件配置目录: {self.base_dir}")
         except Exception as e:
-            # Exception handling, fall back to plugin directory
+            # 异常处理，回退到插件目录
             self.base_dir = self.dir_path
-            self._log(f"Cannot get user directory ({str(e)}), using plugin config directory")
+            self._log(f"无法获取用户目录({str(e)})，使用插件配置目录")
         
-        # Define subdirectories
+        # 定义各个子目录
         self.config_dir = os.path.join(self.base_dir, "config")
         self.rules_dir = os.path.join(self.base_dir, "rules")
         self.tags_dir = os.path.join(self.base_dir, "tags")
         
-        # Ensure directories exist
+        # 确保目录存在
         os.makedirs(self.config_dir, exist_ok=True)
         os.makedirs(self.rules_dir, exist_ok=True)
         os.makedirs(self.tags_dir, exist_ok=True)
 
-        # Config file paths (user config and selection)
+        # 配置文件路径（用户配置和选择）
         self.config_path = os.path.join(self.config_dir, "config.json")
         self.active_prompts_path = os.path.join(self.config_dir, "active_prompts.json")
         self.tags_user_path = os.path.join(self.config_dir, "tags_user.json")
         self.tags_selection_path = os.path.join(self.config_dir, "tags_selection.json")
         
-        # Rule file paths (rule definitions and templates)
+        # 规则文件路径（规则定义和模板）
         self.system_prompts_path = os.path.join(self.rules_dir, "system_prompts.json")
         self.kontext_presets_path = os.path.join(self.rules_dir, "kontext_presets.json")
 
-        # ---Template directory (plugin built-in)---
+        # ---模板目录（插件内置）---
         self.templates_dir = os.path.join(self.dir_path, "config")
         
-        # Store template version numbers (for version comparison)
+        # 存储模板版本号（用于版本比对）
         self._template_versions = {}
 
-        # ---Load default config (from template files)---
+        # ---加载默认配置（从模板文件）---
         self.default_config = self._load_template("config", {"version": "2.0", "model_services": []})
         self.default_system_prompts = self._load_template("system_prompts", {})
         self.default_kontext_presets = self._load_template("kontext_presets", {})
         
-        # ---Simple default config (no template needed, defined directly)---
+        # ---简单默认配置（无需模板，直接定义）---
         self.default_active_prompts = {
-            "expand": "expand_扩写-通用",
-            "vision_zh": "vision_zh_图像描述-Tag风格",
-            "vision_en": "vision_en_Detail_Caption"
+            "expand": "expand_general_expansion",
+            "vision_zh": "vision_zh_tag_style_caption",
+            "vision_en": "vision_en_detail_caption"
         }
         self.default_user_tags = {"favorites": []}
         
-        # Default tag selection
-        self.default_tags_selection = {"selected_file": "user_tags.csv"}
+        # 默认标签选择
+        self.default_tags_selection = {"selected_file": "default_tags.csv"}
 
 
 
-        # Execute data migration and config file initialization
-        # migration_tool handles uniformly: ensure files exist -> CSV tag migration -> legacy migration -> incremental update
+        # 执行数据迁移和配置文件初始化
+        # migration_tool 统一处理：确保文件存在 -> CSV标签迁移 -> 旧版迁移 -> 增量更新
         self._run_migrations()
 
-        # Validate and fix active prompts (silent mode, fix only on exception)
+        # 验证并修复激活提示词（静默模式，仅异常时修复）
         self.validate_and_fix_active_prompts()
 
-        # Validate and fix model parameter config
+        # 验证并修复模型参数配置
         self.validate_and_fix_model_params()
 
-    # --- Data Migration ---
+    # --- 数据迁移 ---
     def _run_migrations(self):
         """
-        Execute data migration (called on demand, doesn't affect performance)
-        Only imports and runs migration tool when needed
+        执行数据迁移（按需调用，不影响性能）
+        仅在需要时才导入和运行迁移工具
         """
         try:
             from .utils.migration_tool import run_migrations
             
-            # Prepare default config data for incremental updates
+            # 准备默认配置数据用于增量更新
             default_configs = {
                 'config': self.default_config,
                 'system_prompts': self.default_system_prompts,
@@ -98,16 +98,7 @@ class ConfigManager:
                 'kontext_presets': self.default_kontext_presets
             }
             
-            # Prepare default config data for incremental updates
-            default_configs = {
-                'config': self.default_config,
-                'system_prompts': self.default_system_prompts,
-                'active_prompts': self.default_active_prompts,
-                'tags_user': self.default_user_tags,
-                'kontext_presets': self.default_kontext_presets
-            }
-            
-            # Run migration
+            # 运行迁移
             results = run_migrations(
                 plugin_dir=self.dir_path,
                 user_base_dir=self.base_dir,
@@ -115,46 +106,46 @@ class ConfigManager:
                 default_configs=default_configs
             )
             
-            # Log migration results
+            # 记录迁移结果
             if results.get('tags_migration'):
-                self._log("[User Tags.csv] data migration complete")
+                self._log("[default_tags.csv] data migration completed")
                 
         except Exception as e:
-            self._log(f"Data migration failed: {str(e)}")
-            # Migration failure doesn't affect normal operation, only log
+            self._log(f"数据迁移失败: {str(e)}")
+            # 迁移失败不影响正常运行，仅记录日志
 
-    # --- Unified log output ---
+    # --- 统一日志输出 ---
     def _log(self, msg: str):
-        """Unified console log prefix"""
+        """统一控制台日志前缀"""
         from .utils.common import _ANSI_CLEAR_EOL
         print(f"\r{_ANSI_CLEAR_EOL}✨ {msg}", flush=True)
 
-    # ---Template loading---
+    # ---模板加载---
     def _load_template(self, template_name: str, fallback: dict = None) -> dict:
         """
-        Load default config from template file
+        从模板文件加载默认配置
         
-        Parameters:
-            template_name: Template name (without extension and _template suffix)
-            fallback: Fallback default value if loading fails
+        参数:
+            template_name: 模板名称（不含扩展名和_template后缀）
+            fallback: 加载失败时的回退默认值
             
-        Returns:
-            Config dictionary (includes __config_version for version management)
+        返回:
+            配置字典（包含 __config_version 用于版本管理）
         """
         template_path = os.path.join(self.templates_dir, f"{template_name}_template.json")
         try:
             with open(template_path, "r", encoding="utf-8") as f:
                 data = json.load(f)
-                # Get version number and save for later comparison
+                # 获取版本号并保存，用于后续比对
                 template_version = data.get("__config_version", "2.0")
                 self._template_versions[template_name] = template_version
                 return data
         except Exception as e:
-            self._log(f"Loading template {template_name} failed: {str(e)}, using fallback value")
-            # Ensure fallback also contains version number
+            self._log(f"加载模板 {template_name} 失败: {str(e)}，使用回退值")
+            # 确保 fallback 也包含版本号
             if fallback is None:
                 fallback = {}
-            # If fallback has no version number, add default version number
+            # 如果 fallback 没有版本号，添加默认版本号
             if "__config_version" not in fallback:
                 fallback = {"__config_version": "2.0", **fallback}
             self._template_versions[template_name] = "2.0"
@@ -162,95 +153,95 @@ class ConfigManager:
 
     def _get_config_version(self, config: dict) -> str:
         """
-        Get config version number (compatible with both old and new version fields)
+        获取配置版本号（兼容新旧两种版本字段）
         
-        Version field priority:
-        1. __config_version (new version field, e.g., "2.0.0")
-        2. version (old version field, e.g., "2.0" or "1.0")
-        3. Default returns "1.0" (no version field treated as oldest version)
+        版本字段优先级:
+        1. __config_version (新版本字段，如 "2.0.0")
+        2. version (旧版本字段，如 "2.0" 或 "1.0")
+        3. 默认返回 "1.0"（无版本字段视为最旧版本）
         
-        Returns:
-            Version string, e.g., "2.0.0", "2.0", or "1.0"
+        返回:
+            版本字符串，如 "2.0.0"、"2.0" 或 "1.0"
         """
-        # Prefer new version field
+        # 优先使用新版本字段
         if "__config_version" in config:
             return config["__config_version"]
-        # Compatible with old version field
+        # 兼容旧版本字段
         return config.get("version", "1.0")
     
     def _is_v2_config(self, config: dict) -> bool:
         """
-        Check if config is v2.0 or higher
+        检查配置是否为 v2.0 或更高版本
         
-        Returns:
-        True means v2.0 or higher (1.9 also treated as v2 format, for incremental testing)
+        返回:
+        True 表示 v2.0 或更高版本 (1.9 也视为 v2 格式，用于增量测试)
         """
         version = self._get_config_version(config)
         try:
             v_float = float(version)
             return v_float >= 1.9
         except ValueError:
-            # If not a number (e.g., "2.0.0"), take major version for comparison
+            # 如果不是数字（如 "2.0.0"），取主版本号比较
             major_version = version.split(".")[0]
             try:
                 return int(major_version) >= 2
             except ValueError:
                 return False
 
-    # --- Note: The following methods have been migrated to migration_tool.py ---
+    # --- 注意：以下方法已迁移到 migration_tool.py ---
     # - _apply_migrated_api_keys
     # - _migrate_provider_to_service
     # - _create_or_update_custom_service
     # - _match_service_by_provider
     # - _check_and_add_missing_services
-    # Config file creation, migration, and incremental updates are uniformly handled by migration_tool
+    # 配置文件的创建、迁移和增量更新统一由 migration_tool 处理
 
 
     def _atomic_write_json(self, file_path: str, data: dict) -> bool:
         """
-        Atomic JSON file write
+        原子性写入 JSON 文件
         
-        Uses "write to temp file + atomic rename" strategy to ensure file write atomicity:
-        - If write succeeds, new file replaces old file
-        - If write fails or is interrupted, old file remains unchanged
+        采用"写临时文件 + 原子性重命名"的策略，确保文件写入的原子性：
+        - 如果写入成功，新文件会替换旧文件
+        - 如果写入失败或被中断，旧文件保持不变
         
-        Parameters:
-            file_path: Target file path
-            data: Data dictionary to save
+        参数:
+            file_path: 目标文件路径
+            data: 要保存的数据字典
             
-        Returns:
-            bool: True on success, False on failure
+        返回:
+            bool: 保存成功返回 True，失败返回 False
         """
         temp_fd = None
         temp_path = None
         
         try:
-            # ---Step 1: Write to temp file---
-            # Create temp file in same directory (ensures same filesystem, rename is atomic)
+            # ---步骤1：写入临时文件---
+            # 在同一目录下创建临时文件（确保在同一文件系统，rename 才是原子的）
             temp_fd, temp_path = tempfile.mkstemp(
                 dir=os.path.dirname(file_path),
                 suffix='.tmp',
                 prefix='.tmp_'
             )
             
-            # Write full new config to temp file
+            # 完整写入新配置到临时文件
             with os.fdopen(temp_fd, 'w', encoding='utf-8') as f:
                 json.dump(data, f, ensure_ascii=False, indent=2)
-                temp_fd = None  # File closed, avoid double close
-
-            # ---Step 2: Atomic replacement---
-            # rename operation is atomic, either succeeds or fails unchanged
+                temp_fd = None  # 文件已关闭，避免重复关闭
+            
+            # ---步骤2：原子性替换---
+            # rename 操作是原子的，要么成功替换，要么失败不变
             shutil.move(temp_path, file_path)
-            temp_path = None  # Moved, avoid cleanup deletion
+            temp_path = None  # 已移动，避免清理时删除
             
             return True
             
         except Exception as e:
-            self._log(f"Atomic JSON write failed [{os.path.basename(file_path)}]: {str(e)}")
+            self._log(f"原子性写入 JSON 文件失败 [{os.path.basename(file_path)}]: {str(e)}")
             return False
             
         finally:
-            # Clean up temp file (if write failed)
+            # 清理临时文件（如果写入失败）
             if temp_fd is not None:
                 try:
                     os.close(temp_fd)
@@ -264,78 +255,78 @@ class ConfigManager:
                     pass
 
     def load_config(self):
-        """Load config file"""
+        """加载配置文件"""
         try:
             with open(self.config_path, "r", encoding="utf-8") as f:
                 return json.load(f)
         except Exception as e:
-            self._log(f"Failed to load config file: {str(e)}")
+            self._log(f"加载配置文件失败: {str(e)}")
             return self.default_config
 
     def save_config(self, config):
-        """Save config file"""
+        """保存配置文件"""
         return self._atomic_write_json(self.config_path, config)
 
     def load_system_prompts(self):
-        """Load system prompts config"""
+        """加载系统提示词配置"""
         try:
             with open(self.system_prompts_path, "r", encoding="utf-8") as f:
                 return json.load(f)
         except Exception as e:
-            self._log(f"Failed to load system prompts config: {str(e)}")
+            self._log(f"加载系统提示词配置失败: {str(e)}")
             return self.default_system_prompts
 
     def save_system_prompts(self, system_prompts):
-        """Save system prompts config"""
+        """保存系统提示词配置"""
         return self._atomic_write_json(self.system_prompts_path, system_prompts)
 
     def load_active_prompts(self):
-        """Load active prompts config"""
+        """加载激活的提示词配置"""
         try:
             with open(self.active_prompts_path, "r", encoding="utf-8") as f:
                 return json.load(f)
         except Exception as e:
-            self._log(f"Failed to load active prompts config: {str(e)}")
+            self._log(f"加载激活的提示词配置失败: {str(e)}")
             return self.default_active_prompts
 
     def save_active_prompts(self, active_prompts):
-        """Save active prompts config"""
+        """保存激活的提示词配置"""
         return self._atomic_write_json(self.active_prompts_path, active_prompts)
 
     def load_user_tags(self):
-        """Load user tags config"""
+        """加载用户标签配置"""
         try:
             with open(self.tags_user_path, "r", encoding="utf-8") as f:
                 return json.load(f)
         except Exception as e:
-            self._log(f"Failed to load user tags config: {str(e)}")
+            self._log(f"加载用户标签配置失败: {str(e)}")
             return self.default_user_tags
 
     def save_user_tags(self, user_tags):
-        """Save user tags config"""
+        """保存用户标签配置"""
         return self._atomic_write_json(self.tags_user_path, user_tags)
 
     def load_kontext_presets(self):
-        """Load Kontext presets config"""
+        """加载Kontext预设配置"""
         try:
             with open(self.kontext_presets_path, "r", encoding="utf-8") as f:
                 return json.load(f)
         except Exception as e:
-            self._log(f"Failed to load Kontext presets config: {str(e)}")
+            self._log(f"加载Kontext预设配置失败: {str(e)}")
             return {}
 
     def save_kontext_presets(self, kontext_presets):
-        """Save Kontext presets config"""
+        """保存Kontext预设配置"""
         return self._atomic_write_json(self.kontext_presets_path, kontext_presets)
 
 
 
-    # --- Note: ensure_tags_csv_exists and CSV tag migration have been migrated to migration_tool.py ---
+    # --- 注意：ensure_tags_csv_exists 和 CSV 标签迁移已迁移到 migration_tool.py ---
 
 
 
     def list_tags_files(self) -> list:
-        """List all CSV files in the tags directory"""
+        """列出tags目录下所有CSV文件"""
         try:
             files = []
             for filename in os.listdir(self.tags_dir):
@@ -343,17 +334,17 @@ class ConfigManager:
                     files.append(filename)
             return sorted(files)
         except Exception as e:
-            self._log(f"Failed to list tag files: {str(e)}")
+            self._log(f"列出标签文件失败: {str(e)}")
             return []
 
     def load_tags_csv(self, filename: str) -> dict:
-        """Load CSV tag file, return nested dict structure"""
+        """加载CSV标签文件，返回嵌套字典结构"""
         csv_path = os.path.join(self.tags_dir, filename)
         if not os.path.exists(csv_path):
-            self._log(f"CSV file does not exist: {filename}")
+            self._log(f"CSV文件不存在: {filename}")
             return {}
         
-        # Try multiple encodings, prefer utf-8-sig (Excel default UTF-8), then gbk (Excel default ANSI), finally utf-8
+        # 尝试多种编码，优先尝试 utf-8-sig (Excel默认UTF-8)，然后是 gbk (Excel默认ANSI)，最后是 utf-8
         encodings = ['utf-8-sig', 'gbk', 'gb18030', 'utf-8']
         
         for encoding in encodings:
@@ -362,16 +353,16 @@ class ConfigManager:
                 with open(csv_path, "r", encoding=encoding, newline="") as f:
                     reader = csv.reader(f)
                     try:
-                        header = next(reader, None)  # Skip header
+                        header = next(reader, None)  # 跳过表头
                     except StopIteration:
-                        return {} # Empty file
+                        return {} # 空文件
                     
                     for row in reader:
-                        # Filter invalid rows
+                        # 过滤无效行
                         if not row or not any(cell.strip() for cell in row):
                             continue
                             
-                        # At least two columns required: tag name, tag value
+                        # 至少需要两列：标签名, 标签值
                         if len(row) < 2:
                             continue
                         
@@ -381,35 +372,35 @@ class ConfigManager:
                         if not tag_name:
                             continue
                             
-                        # Category path: start from 3rd column, filter empty values
+                        # 分类路径：从第3列开始，过滤空值
                         categories = [c.strip() for c in row[2:] if c.strip()]
                         
-                        # Build nested structure
+                        # 构建嵌套结构
                         current = result
                         for cat in categories:
                             if cat not in current or not isinstance(current[cat], dict):
                                 current[cat] = {}
                             current = current[cat]
                         
-                        # Handle empty category placeholder: only create category structure, don't add tag
+                        # 处理空分类占位符：只创建分类结构，不添加标签
                         if tag_name == "__empty__" or tag_name == "__placeholder__":
                             continue
                         
-                        # Add tag
+                        # 添加标签
                         current[tag_name] = tag_value
                 
                 return result
             except UnicodeDecodeError:
                 continue
             except Exception as e:
-                self._log(f"Failed to load CSV tags ({encoding}): {str(e)}")
+                self._log(f"加载CSV标签失败 ({encoding}): {str(e)}")
                 continue
         
-        self._log(f"Cannot load CSV file: {filename}, all encodings tried and failed")
+        self._log(f"无法加载CSV文件: {filename}，尝试了所有编码均失败")
         return {}
 
     def save_tags_csv(self, filename: str, tags: dict) -> bool:
-        """Save tag data to CSV file"""
+        """保存标签数据到CSV文件"""
         csv_path = os.path.join(self.tags_dir, filename)
         
         try:
@@ -418,13 +409,13 @@ class ConfigManager:
             
             def extract_tags(obj, path: list):
                 nonlocal max_depth
-                # Ensure obj is a dict type
+                # 确保 obj 是字典类型
                 if not isinstance(obj, dict):
                     return
                 
-                # If empty category (empty dict), add placeholder row
+                # 如果是空分类（空字典），添加占位行
                 if len(obj) == 0 and path:
-                    # Use __empty__ as placeholder to mark empty category
+                    # 使用 __empty__ 作为占位符标记空分类
                     rows.append(["__empty__", ""] + path)
                     max_depth = max(max_depth, len(path))
                     return
@@ -436,68 +427,68 @@ class ConfigManager:
                     elif isinstance(value, dict):
                         extract_tags(value, path + [key])
             
-            # Extract all tags
+            # 提取所有标签
             extract_tags(tags, [])
             
             if not rows:
-                self._log(f"Save CSV tags: data is empty")
-                # If data is empty, write a file with only headers or keep current state?
-                # Usually to prevent accidental deletion, if tags is empty, do nothing or clear the file.
-                # Here we choose to write headers:
+                self._log(f"保存CSV标签: 数据为空")
+                # 如果数据为空，写入只含表头的文件或保持现状？
+                # 通常为了防止误删，如果 tags 为空暂不操作或清空文件。
+                # 这里选择写入表头：
                 with open(csv_path, "w", encoding="utf-8-sig", newline="") as f:
                     writer = csv.writer(f)
                     writer.writerow(["Tag Name", "Tag Value"])
                 return True
 
-            # Dynamically build header
+            # 动态构建表头
             header = ["Tag Name", "Tag Value"]
             for i in range(max_depth):
                 num_zh = ["一", "二", "三", "四", "五", "六", "七", "八", "九", "十"]
                 suffix = num_zh[i] if i < len(num_zh) else str(i + 1)
-                header.append(f"Level {suffix} Category")
+                header.append(f"{suffix}级分类")
             
             with open(csv_path, "w", encoding="utf-8-sig", newline="") as f:
                 writer = csv.writer(f)
                 writer.writerow(header)
                 for row in rows:
-                    # Pad length to match header
+                    # 补齐长度以匹配表头
                     while len(row) < len(header):
                         row.append("")
-                    # Ensure row length doesn't exceed header (defensive)
+                    # 确保 row 长度不超过表头（防御性）
                     writer.writerow(row[:len(header)])
             
             return True
         except Exception as e:
-            self._log(f"Failed to save CSV tags: {str(e)}")
+            self._log(f"保存CSV标签失败: {str(e)}")
             return False
 
     def get_tags_selection(self) -> dict:
-        """Get user's selected tag file"""
+        """获取用户选择的标签文件"""
         try:
             if os.path.exists(self.tags_selection_path):
                 with open(self.tags_selection_path, "r", encoding="utf-8") as f:
                     return json.load(f)
             return self.default_tags_selection
         except Exception as e:
-            self._log(f"Failed to read tag selection: {str(e)}")
+            self._log(f"读取标签选择失败: {str(e)}")
             return self.default_tags_selection
 
     def save_tags_selection(self, selection: dict) -> bool:
-        """Save user's selected tag file"""
+        """保存用户选择的标签文件"""
         try:
             with open(self.tags_selection_path, "w", encoding="utf-8") as f:
                 json.dump(selection, f, ensure_ascii=False, indent=2)
             return True
         except Exception as e:
-            self._log(f"Failed to save tag selection: {str(e)}")
+            self._log(f"保存标签选择失败: {str(e)}")
             return False
 
     def get_favorites(self) -> dict:
-        """Get favorites list"""
+        """获取收藏列表"""
         user_tags = self.load_user_tags()
         favorites = user_tags.get("favorites", {})
         
-        # Compatibility: if it's a list, convert to dict
+        # 兼容性处理：如果是列表，转换为字典
         if isinstance(favorites, list):
             new_favorites = {}
             for item in favorites:
@@ -512,42 +503,41 @@ class ConfigManager:
             
         return favorites
 
-    def add_favorite(self, tag_value: str, tag_name: str = None, category: str = "Default") -> bool:
-        """Add favorite"""
+    def add_favorite(self, tag_value: str, tag_name: str = None, category: str = "默认") -> bool:
+        """添加收藏"""
         try:
             user_tags = self.load_user_tags()
             favorites = user_tags.get("favorites", {})
             
-            # Compatibility migration: if it's a one-dimensional {name: value} dict,
-            # forced migration is not needed, but new additions will be put in a category
-            # If it's a list, migrate to dict first
+            # 兼容性迁移：如果是一维字典 {name: value}，无需强制迁移，但新添加的会放入 category
+            # 如果是列表，先迁移为字典
             if isinstance(favorites, list):
                 favorites = self.get_favorites()
                 
             name = tag_name if tag_name else tag_value
             
-            # Use nested structure {category: {name: value}}
+            # 使用嵌套结构 {分类: {名称: 值}}
             if category not in favorites:
-                # Check if there are old flat structure items; if so, and category is "Default", they may be mixed
-                # Simple handling: if favorites only has key-value pairs and none are dicts, it's old flat format
-                # But to not break old data, we only store category dicts at the top level
-                # If favorites has non-dict values, it's old flat structure {name: value}
-                # We'll move them to the "Default" category
+                # 检查是否存在旧的平铺结构，如果有，且category是默认，可能混杂
+                # 这里简单处理：如果 favorites 只有键值对且都不是字典，说明是旧版平铺
+                # 但为了不破坏旧数据，我们在顶层只存储分类字典
+                # 如果 favorites 中已有非字典的值，说明是旧版平铺结构 {name: value}
+                # 我们将它们移动到 "默认" 分类
                 has_legacy = any(not isinstance(v, dict) for v in favorites.values())
                 if has_legacy:
                     legacy_items = {k: v for k, v in favorites.items() if not isinstance(v, dict)}
-                    # Clear old items
+                    # 清除旧项
                     for k in legacy_items:
                         del favorites[k]
-                    # Initialize default category
-                    if "Default" not in favorites:
-                        favorites["Default"] = {}
-                    favorites["Default"].update(legacy_items)
+                    # 初始化默认分类
+                    if "默认" not in favorites:
+                        favorites["默认"] = {}
+                    favorites["默认"].update(legacy_items)
                 
                 if category not in favorites:
                     favorites[category] = {}
 
-            # If favorites[category] is not a dict (defensive programming), initialize as dict
+            # 如果 favorites[category] 不是字典（防御性编程），初始化为字典
             if not isinstance(favorites.get(category), dict):
                 favorites[category] = {}
 
@@ -556,51 +546,51 @@ class ConfigManager:
             user_tags["favorites"] = favorites
             return self.save_user_tags(user_tags)
         except Exception as e:
-            self._log(f"Failed to add favorite: {str(e)}")
+            self._log(f"添加收藏失败: {str(e)}")
             return False
 
     def remove_favorite(self, tag_value: str, category: str = None) -> bool:
-        """Remove favorite"""
+        """移除收藏"""
         try:
             user_tags = self.load_user_tags()
             favorites = user_tags.get("favorites", {})
             
-            # Compatibility migration
+            # 兼容性迁移
             if isinstance(favorites, list):
                 favorites = self.get_favorites()
             
             removed = False
             
-            # If category is specified, only delete from that category
+            # 如果指定了分类，只在指定分类中删除
             if category:
-                # Try direct category match (exact match)
+                # 尝试直接匹配分类（完全匹配）
                 target_categories = [category]
                 
-                # If not found, try fuzzy match (handle filename suffix differences)
+                # 如果没找到，尝试模糊匹配（处理文件名后缀差异）
                 if category not in favorites:
-                    # e.g., category is "foo", favorites has "foo.csv" or vice versa
-                    # But typically keys in favorites are already suffix-stripped
+                    # 比如 category 是 "foo"，favorites里有 "foo.csv" 或相反
+                    # 但通常 favorites 里的 key 已经是去后缀的
                     pass
 
                 for cat in target_categories:
                     if cat in favorites and isinstance(favorites[cat], dict):
-                        # Delete by value
+                        # 根据值删除
                         keys_to_remove = [k for k, v in favorites[cat].items() if v == tag_value]
                         for k in keys_to_remove:
                             del favorites[cat][k]
                             removed = True
                             
-                        # If the category is empty, should we remove the category key? Leave it for now.
+                        # 如果该分类空了，是否删除分类键？暂时保留
             else:
-                # No category specified, search recursively (old logic)
-                # If old flat structure
+                # 未指定分类，递归全部删除（旧逻辑）
+                # 如果是旧版平铺结构
                 if any(not isinstance(v, dict) for v in favorites.values()):
                     keys_to_remove = [k for k, v in favorites.items() if not isinstance(v, dict) and v == tag_value]
                     for k in keys_to_remove:
                         del favorites[k]
                         removed = True
                 
-                # If new nested structure
+                # 如果是新版嵌套结构
                 for cat, items in favorites.items():
                     if isinstance(items, dict):
                         keys_to_remove = [k for k, v in items.items() if v == tag_value]
@@ -614,75 +604,75 @@ class ConfigManager:
                 
             return True
         except Exception as e:
-            self._log(f"Failed to remove favorite: {str(e)}")
+            self._log(f"移除收藏失败: {str(e)}")
             return False
 
     def get_system_prompts(self):
-        """Get system prompts config (merge prompt definitions and active state)"""
+        """获取系统提示词配置 (合并提示词定义和激活状态)"""
         system_prompts = self.load_system_prompts()
         active_prompts = self.load_active_prompts()
         system_prompts['active_prompts'] = active_prompts
         return system_prompts
 
     def update_system_prompts(self, system_prompts):
-        """Update system prompts config (only update prompt definitions)"""
+        """更新系统提示词配置 (仅更新提示词定义)"""
         prompts_to_save = system_prompts.copy()
         if 'active_prompts' in prompts_to_save:
             del prompts_to_save['active_prompts']
         return self.save_system_prompts(prompts_to_save)
 
     def update_active_prompts(self, active_prompts):
-        """Update all active prompts"""
+        """更新所有激活的提示词"""
         return self.save_active_prompts(active_prompts)
 
     def update_active_prompt(self, prompt_type, prompt_id):
-        """Update a single active prompt"""
+        """更新单个激活的提示词"""
         active_prompts = self.load_active_prompts()
         active_prompts[prompt_type] = prompt_id
         return self.save_active_prompts(active_prompts)
 
     def get_baidu_translate_config(self):
-        """Get Baidu Translate config"""
+        """获取百度翻译配置"""
         config = self.load_config()
         return config.get("baidu_translate", self.default_config["baidu_translate"])
 
     def get_llm_config(self):
-        """Get LLM config"""
+        """获取LLM配置"""
         config = self.load_config()
         current_service_info = config.get('current_services', {}).get('llm')
         
-        # Adapt old and new formats: supports string (old) and dict (new)
+        # 适配新旧格式:支持字符串(旧)和字典(新)
         if isinstance(current_service_info, str):
-            # Old format: "service_id"
+            # 旧格式: "service_id"
             current_service_id = current_service_info
             current_model_name = None
         elif isinstance(current_service_info, dict):
-            # New format: {"service": "service_id", "model": "model_name"}
+            # 新格式: {"service": "service_id", "model": "model_name"}
             current_service_id = current_service_info.get('service')
             current_model_name = current_service_info.get('model')
         else:
-            # Not set
+            # 未设置
             current_service_id = None
             current_model_name = None
         
         if not current_service_id:
-            # No service selected, return default structure
+            # 没有选中的服务，返回默认结构
             return self._get_empty_llm_config()
         
-        # Find the corresponding service
+        # 查找对应的服务
         service = self._get_service_by_id(current_service_id)
         if not service:
             return self._get_empty_llm_config()
         
-        # Get LLM model list
+        # 获取LLM模型列表
         llm_models = service.get('llm_models', [])
         
-        # If a model name is specified, try to find it
+        # 如果指定了模型名称,尝试查找
         target_model = None
         if current_model_name:
             target_model = next((m for m in llm_models if m.get('name') == current_model_name), None)
         
-        # If the specified model is not found, use the default model or the first model
+        # 如果未找到指定模型,使用默认模型或第一个模型
         if not target_model:
             target_model = next((m for m in llm_models if m.get('is_default')), 
                                 llm_models[0] if llm_models else None)
@@ -690,12 +680,12 @@ class ConfigManager:
         if not target_model:
             return self._get_empty_llm_config()
         
-        # Get API Key directly (plain text storage)
+        # 直接获取API Key（明文存储）
         api_key = service.get('api_key', '')
         
-        # Return config
+        # 返回配置
         return {
-            "provider": service.get('id', ''),  # Use service_id as provider
+            "provider": service.get('id', ''),  # 使用service_id作为provider
             "model": target_model.get('name', ''),
             "base_url": service.get('base_url', ''),
             "api_key": api_key,
@@ -703,12 +693,12 @@ class ConfigManager:
             "max_tokens": target_model.get('max_tokens', 1000),
             "top_p": target_model.get('top_p', 0.9),
             "auto_unload": service.get('auto_unload', True) if service.get('type') == 'ollama' else None,
-            "providers": {}  # v2.0 no longer uses this field
+            "providers": {}  # v2.0中不再使用此字段
         }
 
     
     def _get_empty_llm_config(self):
-        """Return empty LLM config"""
+        """返回空的LLM配置"""
         return {
             "provider": "",
             "model": "",
@@ -721,7 +711,7 @@ class ConfigManager:
         }
     
     def _get_service_by_id(self, service_id: str) -> dict:
-        """Get service config by ID"""
+        """根据ID获取服务配置"""
         config = self.load_config()
         services = config.get('model_services', [])
         for service in services:
@@ -730,42 +720,42 @@ class ConfigManager:
         return None
 
     def get_vision_config(self):
-        """Get vision model config"""
+        """获取视觉模型配置"""
         config = self.load_config()
         current_service_info = config.get('current_services', {}).get('vlm')
         
-        # Adapt old and new formats: supports string (old) and dict (new)
+        # 适配新旧格式:支持字符串(旧)和字典(新)
         if isinstance(current_service_info, str):
-            # Old format: "service_id"
+            # 旧格式: "service_id"
             current_service_id = current_service_info
             current_model_name = None
         elif isinstance(current_service_info, dict):
-            # New format: {"service": "service_id", "model": "model_name"}
+            # 新格式: {"service": "service_id", "model": "model_name"}
             current_service_id = current_service_info.get('service')
             current_model_name = current_service_info.get('model')
         else:
-            # Not set
+            # 未设置
             current_service_id = None
             current_model_name = None
         
         if not current_service_id:
-            # No service selected, return default structure
+            # 没有选中的服务，返回默认结构
             return self._get_empty_vision_config()
         
-        # Find the corresponding service
+        # 查找对应的服务
         service = self._get_service_by_id(current_service_id)
         if not service:
             return self._get_empty_vision_config()
         
-        # Get VLM model list
+        # 获取VLM模型列表
         vlm_models = service.get('vlm_models', [])
         
-        # If a model name is specified, try to find it
+        # 如果指定了模型名称,尝试查找
         target_model = None
         if current_model_name:
             target_model = next((m for m in vlm_models if m.get('name') == current_model_name), None)
         
-        # If the specified model is not found, use the default model or the first model
+        # 如果未找到指定模型,使用默认模型或第一个模型
         if not target_model:
             target_model = next((m for m in vlm_models if m.get('is_default')), 
                                 vlm_models[0] if vlm_models else None)
@@ -773,12 +763,12 @@ class ConfigManager:
         if not target_model:
             return self._get_empty_vision_config()
         
-        # Get API Key directly (plain text storage)
+        # 直接获取API Key（明文存储）
         api_key = service.get('api_key', '')
         
-        # Return config
+        # 返回配置
         return {
-            "provider": service.get('id', ''),  # Use service_id as provider
+            "provider": service.get('id', ''),  # 使用service_id作为provider
             "model": target_model.get('name', ''),
             "base_url": service.get('base_url', ''),
             "api_key": api_key,
@@ -786,11 +776,11 @@ class ConfigManager:
             "max_tokens": target_model.get('max_tokens', 4096),
             "top_p": target_model.get('top_p', 0.9),
             "auto_unload": service.get('auto_unload', True) if service.get('type') == 'ollama' else None,
-            "providers": {}  # v2.0 no longer uses this field
+            "providers": {}  # v2.0中不再使用此字段
         }
     
     def _get_empty_vision_config(self):
-        """Return empty vision model config"""
+        """返回空的视觉模型配置"""
         return {
             "provider": "",
             "model": "",
@@ -803,25 +793,25 @@ class ConfigManager:
         }
 
     def get_translate_config(self):
-        """Get translation service config (supports Baidu Translate and LLM translation)"""
+        """获取翻译服务配置（支持百度翻译和LLM翻译）"""
         config = self.load_config()
         current_service_info = config.get('current_services', {}).get('translate')
         
-        # Adapt old and new formats: supports string (old) and dict (new)
+        # 适配新旧格式:支持字符串(旧)和字典(新)
         if isinstance(current_service_info, str):
-            # Old format: "service_id"
+            # 旧格式: "service_id"
             current_service_id = current_service_info
             current_model_name = None
         elif isinstance(current_service_info, dict):
-            # New format: {"service": "service_id", "model": "model_name"}
+            # 新格式: {"service": "service_id", "model": "model_name"}
             current_service_id = current_service_info.get('service')
             current_model_name = current_service_info.get('model')
         else:
-            # Not set, default to Baidu Translate
+            # 未设置，默认使用百度翻译
             current_service_id = 'baidu'
             current_model_name = None
         
-        # Baidu Translate special handling (uses independent baidu_translate config)
+        # 百度翻译特殊处理（使用独立的baidu_translate配置）
         if current_service_id == 'baidu':
             baidu_config = self.get_baidu_translate_config()
             return {
@@ -836,10 +826,10 @@ class ConfigManager:
                 "providers": {}
             }
         
-        # Find the corresponding LLM service
+        # 查找对应的LLM服务
         service = self._get_service_by_id(current_service_id)
         if not service:
-        # Service not found, fallback to Baidu Translate
+            # 服务不存在，回退到百度翻译
             baidu_config = self.get_baidu_translate_config()
             return {
                 "provider": "baidu",
@@ -853,21 +843,21 @@ class ConfigManager:
                 "providers": {}
             }
         
-        # Get LLM model list
+        # 获取LLM模型列表
         llm_models = service.get('llm_models', [])
         
-        # If a model name is specified, try to find it
+        # 如果指定了模型名称,尝试查找
         target_model = None
         if current_model_name:
             target_model = next((m for m in llm_models if m.get('name') == current_model_name), None)
         
-        # If the specified model is not found, use the default model or the first model
+        # 如果未找到指定模型,使用默认模型或第一个模型
         if not target_model:
             target_model = next((m for m in llm_models if m.get('is_default')), 
                                 llm_models[0] if llm_models else None)
         
         if not target_model:
-            # No available models, fallback to Baidu Translate
+            # 没有可用模型，回退到百度翻译
             baidu_config = self.get_baidu_translate_config()
             return {
                 "provider": "baidu",
@@ -881,7 +871,7 @@ class ConfigManager:
                 "providers": {}
             }
         
-        # Return LLM translation config
+        # 返回LLM翻译配置
         api_key = service.get('api_key', '')
         return {
             "provider": service.get('id', ''),
@@ -896,53 +886,53 @@ class ConfigManager:
         }
 
     def get_settings(self):
-        """Get ComfyUI user settings (read from settings file)"""
+        """获取ComfyUI用户设置（从设置文件读取）"""
         try:
-            # ComfyUI settings file is usually located at user/default/comfy.settings.json
-            # Need to find the ComfyUI root directory
+            # ComfyUI的设置文件通常位于 user/default/comfy.settings.json
+            # 需要找到ComfyUI的根目录
             import sys
             
-            # Try to find settings file from multiple possible paths
+            # 尝试从多个可能的路径查找设置文件
             possible_paths = []
             
-            # Method 1: Search upward from current file path
+            # 方法1: 通过当前文件路径向上查找
             current_dir = os.path.dirname(os.path.abspath(__file__))
             # custom_nodes/comfyui_prompt_assistant -> custom_nodes -> ComfyUI
             comfyui_root = os.path.dirname(os.path.dirname(current_dir))
             possible_paths.append(os.path.join(comfyui_root, "user", "default", "comfy.settings.json"))
             
-            # Method 2: Search via sys.path
+            # 方法2: 通过sys.path查找
             for path in sys.path:
                 if 'ComfyUI' in path:
                     possible_paths.append(os.path.join(path, "user", "default", "comfy.settings.json"))
             
-            # Try to read the settings file
+            # 尝试读取设置文件
             for settings_path in possible_paths:
                 if os.path.exists(settings_path):
                     try:
                         with open(settings_path, 'r', encoding='utf-8') as f:
                             settings_data = json.load(f)
-                            # Return settings data
+                            # 返回设置数据
                             return settings_data
                     except Exception as e:
-                        self._log(f"Failed to read settings file: {settings_path}, error: {str(e)}")
+                        self._log(f"读取设置文件失败: {settings_path}, 错误: {str(e)}")
                         continue
             
-            # If not found, return empty dict
+            # 如果都找不到，返回空字典
             return {}
             
         except Exception as e:
-            # If cannot get, return empty dict
-            self._log(f"Failed to get user settings: {str(e)}")
+            # 如果无法获取，返回空字典
+            self._log(f"获取用户设置失败: {str(e)}")
             return {}
 
     def update_baidu_translate_config(self, app_id=None, secret_key=None):
-        """Update Baidu Translate config"""
+        """更新百度翻译配置"""
         config = self.load_config()
         if "baidu_translate" not in config:
             config["baidu_translate"] = {}
 
-        # Only update provided parameters
+        # 仅更新提供的参数
         if app_id is not None:
             config["baidu_translate"]["app_id"] = app_id
         if secret_key is not None:
@@ -953,43 +943,43 @@ class ConfigManager:
 
 
 
-    # --- Note: validate_and_fix_system_prompts has been migrated to migration_tool.py ---
-    # System prompts validation and completion are handled uniformly by migration_tool's incremental update logic
+    # --- 注意：validate_and_fix_system_prompts 已迁移到 migration_tool.py ---
+    # 系统提示词的验证和补全由 migration_tool 的增量更新逻辑统一处理
 
 
     def validate_and_fix_active_prompts(self):
         """
-        Validate that active prompts exist, fix if they don't
+        验证激活提示词是否存在，如果不存在则修复
         
-        Note: This method only repairs active_prompts.json (switches to existing prompts)
-        It will not restore deleted content in system_prompts.json (respects user deletions)
+        注意：此方法只修复 active_prompts.json（切换到存在的提示词）
+        不会恢复 system_prompts.json 中被删除的内容（尊重用户的删除操作）
         """
         try:
             system_prompts = self.load_system_prompts()
             active_prompts = self.load_active_prompts()
 
-            # Flag to track if active prompts need updating
+            # 标记是否需要更新激活提示词
             modified = False
 
-            # Check and fix expand prompt
+            # 检查并修复扩写提示词
             if "expand" in active_prompts:
                 expand_id = active_prompts["expand"]
                 expand_prompts = system_prompts.get("expand_prompts", {})
                 
                 if expand_id not in expand_prompts:
-                    # Active prompt does not exist, switch to first available
+                    # 激活的提示词不存在，切换到第一个可用的
                     if expand_prompts:
                         first_expand_id = next(iter(expand_prompts))
                         active_prompts["expand"] = first_expand_id
-                        self._log(f"Active expand prompt '{expand_id}' does not exist, switched to '{first_expand_id}'")
+                        self._log(f"激活的扩写提示词 '{expand_id}' 不存在，已切换到 '{first_expand_id}'")
                         modified = True
                     else:
-                        # No available expand prompts, clear activation
+                        # 没有可用的扩写提示词，清空激活
                         active_prompts["expand"] = ""
-                        self._log(f"Warning: no available expand prompts")
+                        self._log(f"Warning: no available expansion prompts")
                         modified = True
 
-            # Check and fix Chinese caption prompt
+            # 检查并修复中文反推提示词
             if "vision_zh" in active_prompts:
                 vision_zh_id = active_prompts["vision_zh"]
                 vision_prompts = system_prompts.get("vision_prompts", {})
@@ -999,14 +989,14 @@ class ConfigManager:
                     if zh_prompts:
                         first_id = next(iter(zh_prompts))
                         active_prompts["vision_zh"] = first_id
-                        self._log(f"Active Chinese caption prompt '{vision_zh_id}' does not exist, switched to '{first_id}'")
+                        self._log(f"Active Chinese caption prompt '{vision_zh_id}' not found, switched to '{first_id}'")
                         modified = True
                     else:
                         active_prompts["vision_zh"] = ""
                         self._log(f"Warning: no available Chinese caption prompts")
                         modified = True
 
-            # Check and fix English caption prompt
+            # 检查并修复英文反推提示词
             if "vision_en" in active_prompts:
                 vision_en_id = active_prompts["vision_en"]
                 vision_prompts = system_prompts.get("vision_prompts", {})
@@ -1016,88 +1006,88 @@ class ConfigManager:
                     if en_prompts:
                         first_id = next(iter(en_prompts))
                         active_prompts["vision_en"] = first_id
-                        self._log(f"Active English caption prompt '{vision_en_id}' does not exist, switched to '{first_id}'")
+                        self._log(f"Active English caption prompt '{vision_en_id}' not found, switched to '{first_id}'")
                         modified = True
                     else:
                         active_prompts["vision_en"] = ""
                         self._log(f"Warning: no available English caption prompts")
                         modified = True
 
-            # If update needed, save the fixed active prompts
+            # 如果需要更新，保存修复后的激活提示词
             if modified:
                 self.save_active_prompts(active_prompts)
-                self._log("Active prompts validation and fix completed")
+                self._log("已完成激活提示词的验证和修复")
 
         except Exception as e:
-            self._log(f"Exception validating active prompts: {str(e)}")
+            self._log(f"验证激活提示词异常: {str(e)}")
 
 
 
     def validate_and_fix_model_params(self):
         """
-        Validate and fix model parameter config
-        Note: In v2.0, model parameters are stored directly in each service's model objects,
-        this method primarily ensures the config file exists and has the correct format
+        验证并修复模型参数配置
+        注意: v2.0版本中，模型参数直接存储在 model_services 数组的模型对象中，
+        这个方法主要用于确保配置文件存在和格式正确
         """
         try:
             config = self.load_config()
             
-            # Ensure v2.0 format
+            # 确保是 v2.0 格式
             if not self._is_v2_config(config):
-                self._log("[config.json] Warning: Detected old version config, please manually create a new config file or use default config")
+                self._log("[config.json] 警告: 检测到旧版本配置，请手动创建新的配置文件或使用默认配置")
                 return
             
-            # In v2.0 format, parameters are already in each service's model list, no additional validation needed
-            # If missing services or model parameters need to be filled, handle them in the service management API
+            # v2.0 格式中，参数已经在各个服务的模型列表中，无需额外验证
+            # 如果需要补全缺失的服务或模型参数，应该在服务商管理API中处理
             
         except Exception as e:
-            self._log(f"[config.json] Error validating model parameter config: {str(e)}")
+            self._log(f"[config.json] 验证模型参数配置时出错: {str(e)}")
 
 
-    # --- API Key security methods (Plan A) ---
+    # --- API Key 安全相关方法（方案A）---
     
     @staticmethod
     def mask_api_key(api_key: str) -> str:
         """
-        Mask API Key, showing only the first and last parts
-        Used for secure frontend display, prevents API Key from being visible in plaintext over the Network
+        掩码API Key，只显示首尾部分
+        用于前端安全显示，防止API Key在Network中明文可见
         
-        Parameters:
-            api_key: Plaintext API Key
+        参数:
+            api_key: 明文API Key
             
-        Returns:
-            str: Masked API Key
+        返回:
+            str: 掩码后的API Key
             
-        Examples:
-            - *** -> sk-abc***xyz789
-            - Short Key (< 8 chars) -> ***
-            - Empty string -> ""
+        示例:
+            - sk-abc123xyz789 -> sk-abc***xyz789
+            - 短Key (< 8字符) -> ***
+            - 空字符串 -> ""
         """
         if not api_key:
             return ""
         if len(api_key) < 8:
             return "***"
-        # Show first 6 and last 4 characters
+        # 显示前6个字符和后4个字符
         return f"{api_key[:6]}***{api_key[-4:]}"
     
     def get_llm_config_masked(self):
         """
-        Get LLM config (API Key masked version)
-        Used for frontend display, does not expose the full API Key
+        获取LLM配置（API Key掩码版本）
+        用于前端显示，不暴露完整API Key
         
-        Returns:
-            Dict: LLM config with api_key field masked
+        返回:
+            Dict: LLM配置，api_key字段被掩码
         """
         config = self.get_llm_config()
         
         if 'api_key' in config:
-            # Mask API Key
+            # 掩码API Key
             config['api_key_masked'] = self.mask_api_key(config['api_key'])
             config['api_key_exists'] = bool(config['api_key'])
-            # Remove plaintext API Key
+            # 移除明文API Key
             del config['api_key']
         
-        # Handle API Keys for all providers
+        # 处理所有providers的API Key
         if 'providers' in config:
             for provider_name, provider_config in config['providers'].items():
                 if 'api_key' in provider_config:
@@ -1106,25 +1096,25 @@ class ConfigManager:
                     del provider_config['api_key']
         
         return config
-
+    
     def get_vision_config_masked(self):
         """
-        Get vision model config (API Key masked version)
-        Used for frontend display, does not expose full API Key
+        获取视觉模型配置（API Key掩码版本）
+        用于前端显示，不暴露完整API Key
         
-        Returns:
-            Dict: Vision model config, api_key field is masked
+        返回:
+            Dict: 视觉模型配置，api_key字段被掩码
         """
         config = self.get_vision_config()
         
         if 'api_key' in config:
-            # Mask API Key
+            # 掩码API Key
             config['api_key_masked'] = self.mask_api_key(config['api_key'])
             config['api_key_exists'] = bool(config['api_key'])
-            # Remove plaintext API Key
+            # 移除明文API Key
             del config['api_key']
         
-        # Handle API Keys for all providers
+        # 处理所有providers的API Key
         if 'providers' in config:
             for provider_name, provider_config in config['providers'].items():
                 if 'api_key' in provider_config:
@@ -1133,69 +1123,69 @@ class ConfigManager:
                     del provider_config['api_key']
         
         return config
-
-    # --- Service management methods (CRUD) ---
+    
+    # --- 服务商管理方法（CRUD）---
     
     def get_all_services(self):
         """
-        Get all services list
+        获取所有服务商列表
         
-        Returns:
-            List[Dict]: List of services
+        返回:
+            List[Dict]: 服务商列表
         """
         config = self.load_config()
         
         if self._is_v2_config(config):
             return config.get('model_services', [])
         else:
-            # v1.0 does not support this feature
+            # v1.0不支持此功能
             return []
     
     def get_service(self, service_id: str):
         """
-        Get the full configuration of a specified service
+        获取指定服务商的完整配置
         
-        Parameters:
-            service_id: Service ID
+        参数:
+            service_id: 服务商ID
             
-        Returns:
-            Dict: Service config, returns None if not found
+        返回:
+            Dict: 服务商配置，不存在返回None
         """
         return self._get_service_by_id(service_id)
     
     def create_service(self, service_type: str, name: str = "", base_url: str = "", 
                       api_key: str = "", description: str = ""):
         """
-        Create a new service
+        创建新的服务商
         
-        Parameters:
-            service_type: Service type ('openai_compatible' or 'ollama')
-            name: Service name (auto-generated if empty)
+        参数:
+            service_type: 服务类型 ('openai_compatible' 或 'ollama')
+            name: 服务商名称（如果为空，自动生成）
             base_url: Base URL
-            api_key: API Key (plaintext storage)
-            description: Description
+            api_key: API Key（明文存储）
+            description: 描述
             
-        Returns:
-            str: Newly created service_id, returns None on failure
+        返回:
+            str: 新创建的service_id，失败返回None
         """
         try:
             config = self.load_config()
             
             if not self._is_v2_config(config):
-                self._log("Failed to create service: config version too old, please migrate to v2.0 first")
+                self._log("创建服务商失败: 配置版本过低，请先迁移到v2.0")
                 return None
             
-            # Get existing service list
+            # 获取现有服务商列表
             current_services = config.get('model_services', [])
             
-            # Generate service ID and name
+            # 生成服务商ID和名称
             service_id, auto_name = self._generate_service_id_and_name(service_type, current_services)
             
-            # If user didn't provide a name, use auto-generated name
+            # 如果用户没有提供名称，使用自动生成的名称
             if not name:
                 name = auto_name
             
-            # Create service config
+            # 创建服务配置
             new_service = {
                 "id": service_id,
                 "type": service_type,
@@ -1210,69 +1200,69 @@ class ConfigManager:
                 "vlm_models": []
             }
             
-            # Ollama-specific config
+            # Ollama特有配置
             if service_type == "ollama":
                 new_service["auto_unload"] = True
             
-            # Add to config
+            # 添加到配置
             if 'model_services' not in config:
                 config['model_services'] = []
             
             config['model_services'].append(new_service)
             
-            # Save config
+            # 保存配置
             if self.save_config(config):
-                self._log(f"Successfully created service: {name} (ID: {service_id})")
+                self._log(f"成功创建服务商: {name} (ID: {service_id})")
                 return service_id
             else:
-                self._log(f"Failed to save service config: {name}")
+                self._log(f"保存服务商配置失败: {name}")
                 return None
                 
         except Exception as e:
-            self._log(f"Exception creating service: {str(e)}")
+            self._log(f"创建服务商异常: {str(e)}")
             import traceback
             traceback.print_exc()
             return None
     
     def _generate_service_id_and_name(self, service_type: str, current_services: list) -> tuple:
         """
-        Generate service ID and default name
+        生成服务商ID和默认名称
         
-        Parameters:
-            service_type: Service type
-            current_services: Existing services list
+        参数:
+            service_type: 服务类型
+            current_services: 现有服务商列表
             
-        Returns:
+        返回:
             tuple: (service_id, default_name)
         """
         import random
         
-        # Type mapping
+        # 类型映射
         type_map = {
             "ollama": {
-                "name_prefix": "Ollama Service",
+                "name_prefix": "Ollama服务",
                 "id_prefix": "ollama"
             },
             "openai_compatible": {
-                "name_prefix": "Generic Service",
+                "name_prefix": "通用服务",
                 "id_prefix": "service"
             }
         }
         
-        # Get type config
+        # 获取类型配置
         type_config = type_map.get(service_type, {
-            "name_prefix": "New Service",
+            "name_prefix": "新服务",
             "id_prefix": service_type
         })
         
         name_prefix = type_config["name_prefix"]
         id_prefix = type_config["id_prefix"]
         
-        # Collect used numbers
+        # 收集已使用的编号
         existing_numbers = set()
         for service in current_services:
             sid = service.get('id', '')
-            # Match format: {id_prefix}_{number}
+            # 匹配格式：{id_prefix}_{数字}
             if sid.startswith(f"{id_prefix}_"):
                 try:
                     num_str = sid.split('_')[-1]
@@ -1281,19 +1271,19 @@ class ConfigManager:
                 except:
                     pass
         
-        # Generate random 3-digit number (100-999), try at most 100 times
+        # 生成随机三位数（100-999），最多尝试100次
         max_attempts = 100
         for _ in range(max_attempts):
             random_number = random.randint(100, 999)
             if random_number not in existing_numbers:
                 break
         else:
-            # If all 100 attempts are duplicates, use larger random number (4 digits)
+            # 如果100次都重复，使用更大的随机数（4位数）
             random_number = random.randint(1000, 9999)
             while random_number in existing_numbers:
                 random_number = random.randint(1000, 9999)
         
-        # Generate ID and name
+        # 生成ID和名称
         service_id = f"{id_prefix}_{random_number}"
         default_name = f"{name_prefix}-{random_number}"
         
@@ -1301,32 +1291,32 @@ class ConfigManager:
     
     def delete_service(self, service_id: str):
         """
-        Delete a service
+        删除服务商
         
-        Parameters:
-            service_id: Service ID
+        参数:
+            service_id: 服务商ID
             
-        Returns:
-            bool: True on success
+        返回:
+            bool: 成功返回True
         """
         try:
             config = self.load_config()
             
             if not self._is_v2_config(config):
-                self._log("Failed to delete service: config version too old")
+                self._log("删除服务商失败: 配置版本过低")
                 return False
             
             services = config.get('model_services', [])
             
-            # Find and delete service
+            # 查找并删除服务
             original_length = len(services)
             config['model_services'] = [s for s in services if s.get('id') != service_id]
             
             if len(config['model_services']) == original_length:
-                self._log(f"Failed to delete service: service does not exist (ID: {service_id})")
+                self._log(f"删除服务商失败: 服务商不存在 (ID: {service_id})")
                 return False
             
-            # If deleted service is the current service, clear current_services reference
+            # 如果删除的是当前服务，清除current_services引用
             current_services = config.get('current_services', {})
             if current_services.get('llm') == service_id:
                 current_services['llm'] = None
@@ -1335,71 +1325,71 @@ class ConfigManager:
             if current_services.get('translate') == service_id:
                 current_services['translate'] = None
             
-            # Save config
+            # 保存配置
             if self.save_config(config):
-                self._log(f"Successfully deleted service: {service_id}")
+                self._log(f"成功删除服务商: {service_id}")
                 return True
             else:
-                self._log(f"Failed to save config")
+                self._log(f"保存配置失败")
                 return False
                 
         except Exception as e:
-            self._log(f"Exception deleting service: {str(e)}")
+            self._log(f"删除服务商异常: {str(e)}")
             import traceback
             traceback.print_exc()
             return False
 
     def update_services_order(self, service_ids: list) -> bool:
         """
-        Update service order
+        更新服务商顺序
 
-        Parameters:
-            service_ids: List of service IDs in new order
+        参数:
+            service_ids: 服务商ID列表,按新顺序排列
 
-        Returns:
-            bool: True on success
+        返回:
+            bool: 成功返回True
         """
         try:
             config = self.load_config()
 
             if not self._is_v2_config(config):
-                self._log("Failed to update service order: config version too old")
+                self._log("更新服务商顺序失败: 配置版本过低")
                 return False
 
             services = config.get('model_services', [])
 
-            # Create ID-to-service mapping
+            # 创建ID到服务的映射
             service_map = {s.get('id'): s for s in services}
 
-            # Verify all service_ids exist
+            # 验证所有service_id都存在
             for service_id in service_ids:
                 if service_id not in service_map:
-                    self._log(f"Failed to update service order: service does not exist (ID: {service_id})")
+                    self._log(f"更新服务商顺序失败: 服务商不存在 (ID: {service_id})")
                     return False
 
-            # Rebuild services array in new order
+            # 按新顺序重建services数组
             new_services = []
             for service_id in service_ids:
                 new_services.append(service_map[service_id])
 
-            # Add services not in service_ids list (prevent omissions)
+            # 添加未在service_ids中的服务(防止遗漏)
             for service_id, service in service_map.items():
                 if service_id not in service_ids:
                     new_services.append(service)
-                    self._log(f"Warning: service {service_id} not in new order, appended to end")
+                    self._log(f"警告: 服务商 {service_id} 不在新顺序中,已追加到末尾")
 
             config['model_services'] = new_services
 
-            # Save config
+            # 保存配置
             if self.save_config(config):
-                self._log(f"Successfully updated service order: {', '.join(service_ids)}")
+                self._log(f"成功更新服务商顺序: {', '.join(service_ids)}")
                 return True
             else:
-                self._log("Failed to save config")
+                self._log("保存配置失败")
                 return False
 
         except Exception as e:
-            self._log(f"Exception updating service order: {str(e)}")
+            self._log(f"更新服务商顺序异常: {str(e)}")
             import traceback
             traceback.print_exc()
             return False
@@ -1407,23 +1397,23 @@ class ConfigManager:
     
     def update_service(self, service_id: str, **kwargs):
         """
-        Update service configuration
+        更新服务商配置
         
-        Parameters:
-            service_id: Service ID
-            **kwargs: Fields to update (name, description, base_url, api_key, auto_unload, etc.)
+        参数:
+            service_id: 服务商ID
+            **kwargs: 要更新的字段（name, description, base_url, api_key, auto_unload等）
             
-        Returns:
-            bool: True on success
+        返回:
+            bool: 成功返回True
         """
         try:
             config = self.load_config()
             
             if not self._is_v2_config(config):
-                self._log("Failed to update service: config version too old")
+                self._log("更新服务商失败: 配置版本过低")
                 return False
             
-            # Find service
+            # 查找服务
             services = config.get('model_services', [])
             service = None
             service_index = -1
@@ -1435,10 +1425,10 @@ class ConfigManager:
                     break
             
             if not service:
-                self._log(f"Failed to update service: service does not exist (ID: {service_id})")
+                self._log(f"更新服务商失败: 服务商不存在 (ID: {service_id})")
                 return False
             
-            # Update fields
+            # 更新字段
             if 'name' in kwargs:
                 service['name'] = kwargs['name']
             
@@ -1449,7 +1439,7 @@ class ConfigManager:
                 service['base_url'] = kwargs['base_url']
             
             if 'api_key' in kwargs:
-                # Use plaintext API Key directly
+                # 直接使用明文API Key
                 service['api_key'] = kwargs['api_key'] or ""
             
             if 'auto_unload' in kwargs and service.get('type') == 'ollama':
@@ -1464,118 +1454,118 @@ class ConfigManager:
             if 'filter_thinking_output' in kwargs:
                 service['filter_thinking_output'] = kwargs['filter_thinking_output']
             
-            # Update services array
+            # 更新services数组
             config['model_services'][service_index] = service
             
-            # Save config
+            # 保存配置
             if self.save_config(config):
-                self._log(f"Successfully updated service: {service_id}")
+                self._log(f"成功更新服务商: {service_id}")
                 return True
             else:
-                self._log(f"Failed to save config")
+                self._log(f"保存配置失败")
                 return False
                 
         except Exception as e:
-            self._log(f"Exception updating service: {str(e)}")
+            self._log(f"更新服务商异常: {str(e)}")
             import traceback
             traceback.print_exc()
             return False
     
     def set_current_service(self, service_type: str, service_id: str, model_name: str = None):
         """
-        Set the currently used service and model
+        设置当前使用的服务商和模型
         
-        Parameters:
-            service_type: Service type ('llm', 'vlm', or 'translate')
-            service_id: Service ID
-            model_name: Model name (optional, if not provided, uses the service's default model or the first model)
+        参数:
+            service_type: 服务类型 ('llm', 'vlm', 或 'translate')
+            service_id: 服务商ID
+            model_name: 模型名称(可选,如果不提供则使用该服务的默认模型或第一个模型)
             
-        Returns:
-            bool: True on success
+        返回:
+            bool: 成功返回True
         """
         try:
             config = self.load_config()
             
             if not self._is_v2_config(config):
-                self._log("Failed to set current service: config version too old")
+                self._log("设置当前服务商失败: 配置版本过低")
                 return False
             
-            # ---Baidu Translate special handling---
-            # Baidu Translate uses independent baidu_translate config, not in model_services
+            # ---百度翻译特殊处理---
+            # 百度翻译使用独立的baidu_translate配置,不在model_services中
             if service_id == 'baidu':
-                # Baidu Translate supports LLM service type (old compatibility) and translate service type
+                # 百度翻译支持LLM服务类型(旧兼容)和translate服务类型
                 if service_type not in ['llm', 'translate']:
-                    self._log(f"Failed to set current service: Baidu Translate does not support {service_type} service type")
+                    self._log(f"设置当前服务商失败: 百度翻译不支持{service_type}服务类型")
                     return False
                 
-                # Ensure baidu_translate config exists
+                # 确保baidu_translate配置存在
                 if 'baidu_translate' not in config:
                     config['baidu_translate'] = {"app_id": "", "secret_key": ""}
                 
-                # Ensure current_services structure exists
+                # 确保current_services结构存在
                 if 'current_services' not in config:
                     config['current_services'] = {}
                 
-                # Set Baidu as current service (no model concept)
+                # 设置百度为当前服务(无模型概念)
                 config['current_services'][service_type] = {
                     "service": "baidu",
                     "model": ""
                 }
                 
-                # Save config
+                # 保存配置
                 if self.save_config(config):
-                    self._log(f"Current service switched: Baidu Translate ({service_type})")
+                    self._log(f"当前服务商已切换: 百度翻译 ({service_type})")
                     return True
                 else:
-                    self._log("Failed to set current service: failed to save config")
+                    self._log("设置当前服务商失败: 保存配置失败")
                     return False
             
-            # ---Other services: verify service exists---
+            # ---其他服务:验证服务存在---
             service = self._get_service_by_id(service_id)
             if not service:
-                self._log(f"Failed to set current service: service does not exist (ID: {service_id})")
+                self._log(f"设置当前服务商失败: 服务商不存在 (ID: {service_id})")
                 return False
             
-            # Determine model list field based on service_type
+            # 根据service_type确定模型列表字段
             model_list_key = f'{service_type}_models'
             if service_type == 'translate':
                 model_list_key = 'llm_models'
             
-            # If model_name is provided, verify model exists
+            # 如果提供了model_name,验证模型是否存在
             if model_name:
                 model_list = service.get(model_list_key, [])
                 model_exists = any(m.get('name') == model_name for m in model_list)
                 
                 if not model_exists:
-                    self._log(f"Failed to set current service: model does not exist (model: {model_name}, service: {service_id})")
+                    self._log(f"设置当前服务商失败: 模型不存在 (模型: {model_name}, 服务: {service_id})")
                     return False
            
-            # Ensure current_services structure exists
+            # 确保current_services结构存在
             if 'current_services' not in config:
                 config['current_services'] = {}
             
-            # Get current service info (compatible with old format)
+            # 获取当前服务信息(兼容旧格式)
             current_info = config['current_services'].get(service_type)
             
-            # Set new format for current_services
+            # 设置新格式的current_services
             if model_name:
-                # Explicitly specified model
+                # 明确指定了模型
                 config['current_services'][service_type] = {
                     "service": service_id,
                     "model": model_name
                 }
             else:
-                # No model specified, use default model or first model
+                # 未指定模型,使用默认模型或第一个模型
                 model_list = service.get(model_list_key, [])
                 
-                # If it's Baidu service, no models
+                # 如果是百度服务,没有模型
                 if service.get('id') == 'baidu' or service.get('type') == 'baidu':
                     config['current_services'][service_type] = {
                         "service": service_id,
                         "model": ""
                     }
                 else:
-                    # Find default model or first model
+                    # 查找默认模型或第一个模型
                     default_model = next((m for m in model_list if m.get('is_default')), 
                                         model_list[0] if model_list else None)
                     
@@ -1585,20 +1575,20 @@ class ConfigManager:
                             "model": default_model.get('name', '')
                         }
                     else:
-                        # No models, just set the service
+                        # 没有模型,只设置服务
                         config['current_services'][service_type] = {
                             "service": service_id,
                             "model": ""
                         }
             
-            # Save config
+            # 保存配置
             if self.save_config(config):
                 service_name = service.get('name', service_id)
-                log_model = f" | Model:{model_name}" if model_name else ""
-                self._log(f"Successfully set current {service_type} service: {service_name}{log_model}")
+                log_model = f" | 模型:{model_name}" if model_name else ""
+                self._log(f"成功设置当前{service_type}服务: {service_name}{log_model}")
                 return True
             else:
-                self._log(f"Failed to save config")
+                self._log(f"保存配置失败")
                 return False
                 
         except Exception as e:
@@ -1606,11 +1596,11 @@ class ConfigManager:
             traceback.print_exc()
             return False
     
-    # --- Model management methods ---
+    # --- 模型管理方法 ---
     
     def add_model_to_service(self, service_id: str, model_type: str, model_name: str, 
                             temperature: float = 0.7, top_p: float = 0.9, max_tokens: int = 4096):
-        """Add model to service"""
+        """添加模型到服务商"""
         try:
             config = self.load_config()
             services = config.get('model_services', [])
@@ -1622,12 +1612,12 @@ class ConfigManager:
                     if model_list_key not in service:
                         service[model_list_key] = []
                     
-                    # Check if already exists
+                    # 检查是否已存在
                     if any(m.get('name') == model_name for m in service[model_list_key]):
-                        self._log(f"Model already exists: {model_name}")
+                        self._log(f"模型已存在: {model_name}")
                         return False
                     
-                    # Add new model
+                    # 添加新模型
                     new_model = {
                         "name": model_name,
                         "is_default": len(service[model_list_key]) == 0,
@@ -1639,18 +1629,18 @@ class ConfigManager:
                     config['model_services'][i] = service
                     
                     if self.save_config(config):
-                        self._log(f"Successfully added model: {model_name}")
+                        self._log(f"成功添加模型: {model_name}")
                         return True
                     return False
             
-            self._log(f"Service does not exist: {service_id}")
+            self._log(f"服务商不存在: {service_id}")
             return False
         except Exception as e:
-            self._log(f"Exception adding model: {str(e)}")
+            self._log(f"添加模型异常: {str(e)}")
             return False
     
     def delete_model_from_service(self, service_id: str, model_type: str, model_name: str):
-        """Delete model from service"""
+        """从服务商删除模型"""
         try:
             config = self.load_config()
             services = config.get('model_services', [])
@@ -1666,10 +1656,10 @@ class ConfigManager:
                     service[model_list_key] = [m for m in service[model_list_key] if m.get('name') != model_name]
                     
                     if len(service[model_list_key]) == original_length:
-                        self._log(f"Model does not exist: {model_name}")
+                        self._log(f"模型不存在: {model_name}")
                         return False
                     
-                    # If the deleted model was the default, set the first as default
+                    # 如果删除的是默认模型，设置第一个为默认
                     if len(service[model_list_key]) > 0:
                         if not any(m.get('is_default') for m in service[model_list_key]):
                             service[model_list_key][0]['is_default'] = True
@@ -1677,18 +1667,18 @@ class ConfigManager:
                     config['model_services'][i] = service
                     
                     if self.save_config(config):
-                        self._log(f"Successfully deleted model: {model_name}")
+                        self._log(f"成功删除模型: {model_name}")
                         return True
                     return False
             
-            self._log(f"Service does not exist: {service_id}")
+            self._log(f"服务商不存在: {service_id}")
             return False
         except Exception as e:
-            self._log(f"Exception deleting model: {str(e)}")
+            self._log(f"删除模型异常: {str(e)}")
             return False
     
     def set_default_model(self, service_id: str, model_type: str, model_name: str):
-        """Set default model"""
+        """设置默认模型"""
         try:
             config = self.load_config()
             services = config.get('model_services', [])
@@ -1709,24 +1699,24 @@ class ConfigManager:
                             model['is_default'] = False
                     
                     if not found:
-                        self._log(f"Model does not exist: {model_name}")
+                        self._log(f"模型不存在: {model_name}")
                         return False
                     
                     config['model_services'][i] = service
                     
                     if self.save_config(config):
-                        self._log(f"Successfully set default model: {model_name}")
+                        self._log(f"成功设置默认模型: {model_name}")
                         return True
                     return False
             
-            self._log(f"Service does not exist: {service_id}")
+            self._log(f"服务商不存在: {service_id}")
             return False
         except Exception as e:
-            self._log(f"Exception setting default model: {str(e)}")
+            self._log(f"设置默认模型异常: {str(e)}")
             return False
     
     def update_model_order(self, service_id: str, model_type: str, model_names: list):
-        """Update model order"""
+        """更新模型顺序"""
         try:
             config = self.load_config()
             services = config.get('model_services', [])
@@ -1738,10 +1728,10 @@ class ConfigManager:
                     if model_list_key not in service:
                         return False
                     
-                    # Create model dictionary
+                    # 创建模型字典
                     model_dict = {m.get('name'): m for m in service[model_list_key]}
                     
-                    # Rearrange in new order
+                    # 按新顺序重新排列
                     new_model_list = []
                     for name in model_names:
                         if name in model_dict:
@@ -1751,19 +1741,19 @@ class ConfigManager:
                     config['model_services'][i] = service
                     
                     if self.save_config(config):
-                        self._log(f"Successfully updated model order")
+                        self._log(f"成功更新模型顺序")
                         return True
                     return False
             
-            self._log(f"Service does not exist: {service_id}")
+            self._log(f"服务商不存在: {service_id}")
             return False
         except Exception as e:
-            self._log(f"Exception updating model order: {str(e)}")
+            self._log(f"更新模型顺序异常: {str(e)}")
             return False
     
     def update_model_parameter(self, service_id: str, model_type: str, model_name: str, 
                                parameter_name: str, parameter_value):
-        """Update model parameter"""
+        """更新模型参数"""
         try:
             config = self.load_config()
             services = config.get('model_services', [])
@@ -1775,25 +1765,25 @@ class ConfigManager:
                     if model_list_key not in service:
                         return False
                     
-                    # Find model and update parameter
+                    # 查找模型并更新参数
                     for model in service[model_list_key]:
                         if model.get('name') == model_name:
                             model[parameter_name] = parameter_value
                             config['model_services'][i] = service
                             
                             if self.save_config(config):
-                                self._log(f"Successfully updated model parameter: {model_name}.{parameter_name} = {parameter_value}")
+                                self._log(f"成功更新模型参数: {model_name}.{parameter_name} = {parameter_value}")
                                 return True
                             return False
                     
-                    self._log(f"Model does not exist: {model_name}")
+                    self._log(f"模型不存在: {model_name}")
                     return False
             
-            self._log(f"Service does not exist: {service_id}")
+            self._log(f"服务商不存在: {service_id}")
             return False
         except Exception as e:
-            self._log(f"Exception updating model parameter: {str(e)}")
+            self._log(f"更新模型参数异常: {str(e)}")
             return False
 
-# Create global config manager instance
+# 创建全局配置管理器实例
 config_manager = ConfigManager()

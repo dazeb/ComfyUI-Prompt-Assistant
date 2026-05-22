@@ -1,17 +1,17 @@
 """
-Video captioning (video understanding) node - V3 version
+视频反推（视频理解）节点 - V3 版本
 
-V3 Migration Notes:
-    - Inherits VLMNodeBase + io.ComfyNode
-    - INPUT_TYPES -> define_schema()
-    - IS_CHANGED -> fingerprint_inputs()
-    - def analyze_video_content(self, ...) -> @classmethod execute(cls, ...)
+V3 迁移说明：
+    - 继承 VLMNodeBase + io.ComfyNode
+    - INPUT_TYPES → define_schema()
+    - IS_CHANGED → fingerprint_inputs()
+    - def analyze_video_content(self, ...) → @classmethod execute(cls, ...)
 
-Feature Description:
-    - Supports both IMAGE batch (image_sequence) and VIDEO type optional input ports
-    - Supports Auto (uniform sampling) and Manual (manual index) two sampling modes
-    - Outputs prompt text after frame sampling and preview frame IMAGE tensor
-    - Retains detection and truncation logic for model max supported frame count
+功能说明：
+    - 同时支持 IMAGE batch（image_sequence）和 VIDEO 类型两个可选输入端口
+    - 支持 Auto（均匀采样）和 Manual（手动索引）两种抽帧模式
+    - 输出抽帧后的提示词文本和预览帧 IMAGE tensor
+    - 保留对模型最大支持帧数的检测与截断逻辑
 """
 
 import base64
@@ -37,7 +37,7 @@ from .base import VLMNodeBase
 
 
 class VideoCaptionNode(VLMNodeBase, io.ComfyNode):
-    """Video captioning node (V3), supports video/image sequence input, auto/manual frame sampling, outputs prompt and preview frames"""
+    """视频反推节点（V3），支持视频/图像序列输入，自动/手动抽帧，输出提示词与预览帧"""
 
     @classmethod
     def define_schema(cls):
@@ -65,12 +65,12 @@ class VideoCaptionNode(VLMNodeBase, io.ComfyNode):
             id_to_display_name[key] = display_name
             prompt_template_options.append(display_name)
 
-        default_template_name = prompt_template_options[0] if prompt_template_options else "Video-Natural Language"
+        default_template_name = prompt_template_options[0] if prompt_template_options else "Video Caption - Natural Language"
         if active_video_id and active_video_id in id_to_display_name:
             default_template_name = id_to_display_name[active_video_id]
 
         if not prompt_template_options:
-            prompt_template_options = ["Video-Natural Language"]
+            prompt_template_options = ["Video Caption - Natural Language"]
 
         return io.Schema(
             node_id="VideoCaptionNode",
@@ -78,13 +78,13 @@ class VideoCaptionNode(VLMNodeBase, io.ComfyNode):
             category="✨Prompt Assistant",
             description="Extract text prompt from video frames using Vision-Language Models",
             inputs=[
-                # IMAGE batch input (compatible with most image sequence nodes)
+                # IMAGE batch 输入（兼容大多数图像序列节点）
                 io.Image.Input(
                     "video_frames",
                     tooltip="The video frames to analyze (IMAGE batch)",
                     optional=True
                 ),
-                # VIDEO type input (compatible with VHS and other specialized video nodes)
+                # VIDEO 类型输入（兼容 VHS 等专用视频节点）
                 io.Video.Input(
                     "video",
                     tooltip="Compatible with VIDEO type nodes (like VHS)",
@@ -115,7 +115,7 @@ class VideoCaptionNode(VLMNodeBase, io.ComfyNode):
                     default="",
                     tooltip="Enter additional prompts here, sent with the rule"
                 ),
-                # Sampling mode: auto uniform / manual index
+                # 抽帧模式：自动均匀 / 手动索引
                 io.Combo.Input(
                     "sampling_mode",
                     options=["Auto (Uniform)", "Manual (Indices)"],
@@ -165,7 +165,7 @@ class VideoCaptionNode(VLMNodeBase, io.ComfyNode):
         )
 
     # -------------------------------------------------------------------------
-    # fingerprint_inputs (replaces IS_CHANGED)
+    # fingerprint_inputs（替代 IS_CHANGED）
     # -------------------------------------------------------------------------
 
     @classmethod
@@ -180,7 +180,7 @@ class VideoCaptionNode(VLMNodeBase, io.ComfyNode):
         user_hint_hash = hashlib.md5((user_prompt or "").encode('utf-8')).hexdigest()
         indices_hash = hashlib.md5((manual_indices or "").encode('utf-8')).hexdigest()
 
-        # Extract valid tensor from two input ports for hash computation
+        # 从两个输入端口中提取有效张量，用于哈希计算
         effective_frames = cls._resolve_input_tensor(video_frames, video)
 
         video_hash = ""
@@ -222,7 +222,7 @@ class VideoCaptionNode(VLMNodeBase, io.ComfyNode):
         ))
 
     # -------------------------------------------------------------------------
-    # Internal helper methods
+    # 内部辅助方法
     # -------------------------------------------------------------------------
 
     @classmethod
@@ -232,26 +232,26 @@ class VideoCaptionNode(VLMNodeBase, io.ComfyNode):
         video
     ) -> Optional[torch.Tensor]:
         """
-        Resolve a valid frame tensor from two input ports (IMAGE batch or VIDEO type).
+        从两个输入端口（IMAGE batch 或 VIDEO 类型）解析出有效的帧张量。
 
-        Priority: video_frames first, try extracting from video if empty:
-        - dict type (VHS etc.): look for 'frames' / 'video' key
-        - torch.Tensor: use directly
-        - Objects with frames/video attributes
+        优先使用 video_frames，若为空则尝试从 video 中提取：
+        - dict 类型（VHS 等）：查找 'frames' / 'video' 键
+        - torch.Tensor：直接使用
+        - 带有 frames/video 属性的对象
         """
-        # Prefer IMAGE batch port
+        # 优先使用 IMAGE batch 端口
         if video_frames is not None and video_frames.numel() > 0:
             return video_frames
 
-        # Try extracting from VIDEO port
+        # 尝试从 VIDEO 端口提取
         if video is None:
             return None
 
         if isinstance(video, torch.Tensor):
             return video if video.numel() > 0 else None
 
-        # ComfyUI V3 native VideoInput object (io.Video type)
-        # Extract frame tensor via get_components().images (shape [N, H, W, C])
+        # ComfyUI V3 原生 VideoInput 对象（io.Video 类型）
+        # 通过 get_components().images 提取帧张量（形状 [N, H, W, C]）
         try:
             from comfy_api.input import VideoInput as _VideoInput
             if isinstance(video, _VideoInput):
@@ -264,23 +264,23 @@ class VideoCaptionNode(VLMNodeBase, io.ComfyNode):
             pass
 
         if isinstance(video, dict):
-            # VHS nodes typically use 'frames' or 'video' key
+            # VHS 节点一般使用 'frames' 或 'video' 键
             tensor = video.get('frames') or video.get('video')
             if tensor is not None and isinstance(tensor, torch.Tensor):
                 return tensor if tensor.numel() > 0 else None
-            # Iterate all values, find first Tensor
+            # 遍历所有值，找第一个 Tensor
             for v in video.values():
                 if isinstance(v, torch.Tensor) and v.numel() > 0:
                     return v
             return None
 
-        # Compatible with objects having frames/video attributes (legacy VHS etc.)
+        # 兼容具有 frames/video 属性的对象（兼容旧式 VHS 等节点）
         for attr in ('frames', 'video'):
             t = getattr(video, attr, None)
             if isinstance(t, torch.Tensor) and t.numel() > 0:
                 return t
 
-        # Finally try get_components() duck-typing (non-VideoInput subclass but same interface)
+        # 最后尝试 get_components() 鸭子类型兼容（非 VideoInput 子类但接口相同）
         try:
             components = video.get_components()
             tensor = components.images
@@ -289,7 +289,7 @@ class VideoCaptionNode(VLMNodeBase, io.ComfyNode):
         except Exception:
             pass
 
-        # Try index access (a few special containers)
+        # 尝试索引访问（少数特殊容器）
         try:
             first = video[0]
             if isinstance(first, torch.Tensor):
@@ -306,8 +306,8 @@ class VideoCaptionNode(VLMNodeBase, io.ComfyNode):
     @classmethod
     def _uniform_sample(cls, total: int, n: int) -> List[int]:
         """
-        Uniformly sample n indices from [0, total).
-        Algorithm: Divide sequence into n equal-length intervals, take the midpoint of each.
+        从 [0, total) 中均匀采样 n 个索引。
+        算法：将序列分成 n 个等长区间，取每个区间中点。
         """
         if n >= total:
             return list(range(total))
@@ -317,12 +317,12 @@ class VideoCaptionNode(VLMNodeBase, io.ComfyNode):
     @classmethod
     def _parse_frame_indices(cls, indices_str: str, total_frames: int) -> List[int]:
         """
-        Parse manual frame index string, supports single index and range formats.
+        解析手动帧索引字符串，支持单索引和范围格式。
 
-        Examples:
-            "0,10,20"     -> [0, 10, 20]
-            "0-10,50,90"  -> [0,1,...,10,50,90]
-            "-1,-5"       -> 1st last frame, 5th last frame
+        示例：
+            "0,10,20"     → [0, 10, 20]
+            "0-10,50,90"  → [0,1,...,10,50,90]
+            "-1,-5"       → 倒数第 1 帧、倒数第 5 帧
         """
         indices = set()
         if not indices_str or not indices_str.strip():
@@ -334,10 +334,10 @@ class VideoCaptionNode(VLMNodeBase, io.ComfyNode):
                 continue
             try:
                 if '-' in part.lstrip('-'):
-                    # Check if it's a range (exclude negative sign)
-                    # Find the middle '-' (excluding first character's negative sign)
+                    # 检查是否是范围（排除负号）
+                    # 寻找中间的 '-'（不含第一个字符的负号）
                     raw = part
-                    # Handle leading negative sign first
+                    # 先处理首位负号
                     prefix = ""
                     if raw.startswith('-'):
                         prefix = "-"
@@ -347,11 +347,11 @@ class VideoCaptionNode(VLMNodeBase, io.ComfyNode):
                         start = int(prefix + left) if left else 0
                         end = int(right)
                     else:
-                        # Pure negative number
+                        # 纯负数
                         indices.add(max(0, min((int(part) + total_frames), total_frames - 1)))
                         continue
 
-                    # Handle negative indices
+                    # 处理负索引
                     if start < 0:
                         start += total_frames
                     if end < 0:
@@ -366,7 +366,7 @@ class VideoCaptionNode(VLMNodeBase, io.ComfyNode):
                         idx += total_frames
                     indices.add(max(0, min(idx, total_frames - 1)))
             except ValueError:
-                print(f"{WARN_PREFIX} Ignoring invalid frame index format: {part}")
+                print(f"{WARN_PREFIX} 忽略无效的帧索引格式: {part}")
 
         return sorted(list(indices))
 
@@ -379,31 +379,31 @@ class VideoCaptionNode(VLMNodeBase, io.ComfyNode):
         manual_indices: str
     ) -> Tuple[List[str], torch.Tensor]:
         """
-        Extract frames from tensor according to specified mode, return both base64 list and preview tensor.
+        按指定模式从张量中提取帧，同时返回 base64 列表和预览张量。
 
-        Args:
-            tensor        : Frame tensor of shape [N, H, W, C] (ComfyUI IMAGE standard)
-            sampling_mode : "Auto (Uniform)" or "Manual (Indices)"
-            frame_count   : Target number of frames in auto mode
-            manual_indices: Index string in manual mode
+        参数：
+            tensor        : 形状 [N, H, W, C]（ComfyUI IMAGE 标准）的帧张量
+            sampling_mode : "Auto (Uniform)" 或 "Manual (Indices)"
+            frame_count   : 自动模式下目标帧数
+            manual_indices: 手动模式下的索引字符串
 
-        Returns:
+        返回：
             (base64_list, preview_tensor)
-            - base64_list  : JPEG base64 data URL per frame
-            - preview_tensor: Selected frame tensor, shape [K, H, W, C]
+            - base64_list  : 每帧的 JPEG base64 data URL 列表
+            - preview_tensor: 选中帧的张量，形状 [K, H, W, C]
         """
         total = tensor.shape[0]
 
         if sampling_mode == "Manual (Indices)":
             selected = cls._parse_frame_indices(manual_indices, total)
             if not selected:
-                print(f"{WARN_PREFIX} Manual frame indices are invalid or empty, falling back to uniform sampling of 8 frames")
+                print(f"{WARN_PREFIX} 手动帧索引无效或为空，回退到均匀采样 8 帧")
                 selected = cls._uniform_sample(total, min(8, total))
         else:
-            # Auto (Uniform) mode
+            # Auto (Uniform) 模式
             selected = cls._uniform_sample(total, min(frame_count, total))
 
-        # Extract selected frame tensor [K, H, W, C]
+        # 提取选中帧张量 [K, H, W, C]
         preview_tensor = tensor[selected]
 
         request_frame_count = preview_tensor.shape[0]
@@ -417,7 +417,7 @@ class VideoCaptionNode(VLMNodeBase, io.ComfyNode):
             max_edge = 768
             jpeg_quality = 75
 
-        # Convert to base64 list
+        # 转换为 base64 列表
         base64_list = []
         resample_filter = getattr(
             getattr(PILImage, "Resampling", PILImage),
@@ -443,7 +443,7 @@ class VideoCaptionNode(VLMNodeBase, io.ComfyNode):
         return base64_list, preview_tensor
 
     # -------------------------------------------------------------------------
-    # execute (V3 main execution method)
+    # execute（V3 主执行方法）
     # -------------------------------------------------------------------------
 
     @classmethod
@@ -460,7 +460,7 @@ class VideoCaptionNode(VLMNodeBase, io.ComfyNode):
 
         try:
             # ------------------------------------------------------------------
-            # 1. Resolve valid frame tensor
+            # 1. 解析有效帧张量
             # ------------------------------------------------------------------
             input_tensor = cls._resolve_input_tensor(video_frames, video)
             if input_tensor is None or input_tensor.numel() == 0:
@@ -470,7 +470,7 @@ class VideoCaptionNode(VLMNodeBase, io.ComfyNode):
                 )
 
             # ------------------------------------------------------------------
-            # 2. Frame sampling (based on mode)
+            # 2. 抽帧（根据模式）
             # ------------------------------------------------------------------
             frames_data, preview_tensor = cls._extract_frames_and_tensor(
                 input_tensor,
@@ -480,7 +480,7 @@ class VideoCaptionNode(VLMNodeBase, io.ComfyNode):
             )
 
             # ------------------------------------------------------------------
-            # 3. Build prompt
+            # 3. 构建提示词
             # ------------------------------------------------------------------
             rule_name = "Custom Rule" if (custom_rule and custom_rule_content) else rule
             system_message = None
@@ -506,11 +506,11 @@ class VideoCaptionNode(VLMNodeBase, io.ComfyNode):
                         break
 
                 if not template_found or not system_message or not system_message.get('content'):
-                    system_message = {"role": "system", "content": "Please describe the content of this video in detail."}
+                    system_message = {"role": "system", "content": "请详细描述这段视频的内容"}
                     rule_name = "Default Rule"
 
             # ------------------------------------------------------------------
-            # 4. Parse service and model
+            # 4. 解析服务与模型
             # ------------------------------------------------------------------
             service_id, model_name = cls.parse_service_model(vlm_service)
             if not service_id:
@@ -546,7 +546,7 @@ class VideoCaptionNode(VLMNodeBase, io.ComfyNode):
                 provider_config['auto_unload'] = ollama_auto_unload
 
             # ------------------------------------------------------------------
-            # 5. Model max frame count truncation check (retain this mechanism)
+            # 5. 模型最大帧数截断检查（保留此机制）
             # ------------------------------------------------------------------
             model_full_name = provider_config.get('model')
             max_images = get_model_max_images(model_full_name)
@@ -555,16 +555,16 @@ class VideoCaptionNode(VLMNodeBase, io.ComfyNode):
             truncated_count = 0
             if original_count > max_images:
                 frames_data = frames_data[:max_images]
-                # Synchronously truncate preview tensor
+                # 同步截断预览张量
                 preview_tensor = preview_tensor[:max_images]
                 truncated_count = original_count - max_images
                 print(
-                    f"{WARN_PREFIX} ⚠️ Frame truncated | "
-                    f"Original:{original_count} -> Actual:{max_images} | "
-                    f"Ignored:{truncated_count} frames | Model:{model_full_name}"
+                    f"{WARN_PREFIX} ⚠️ 帧数截断 | "
+                    f"原始:{original_count} → 实际:{max_images} | "
+                    f"已忽略:{truncated_count}帧 | 模型:{model_full_name}"
                 )
 
-            # Inject frame count metadata to help model analyze frame by frame
+            # 注入帧数元信息，帮助模型逐帧分析
             actual_frame_count = len(frames_data)
             system_text = (
                 system_message.get('content', '')
@@ -572,14 +572,14 @@ class VideoCaptionNode(VLMNodeBase, io.ComfyNode):
                 else str(system_message)
             )
             frame_info_prefix = (
-                f"[Important: This time {actual_frame_count} frame images were provided, "
-                f"please analyze each frame and ensure the output description count matches the frame count.]\n\n"
+                f"[重要提示：本次共提供了 {actual_frame_count} 帧图像，"
+                f"请务必逐帧分析，确保输出的描述数量与帧数一致。]\n\n"
             )
             system_text = frame_info_prefix + system_text
             prompt_to_send = f"{system_text}\n\n{user_prompt}".strip() if user_prompt else system_text
 
             # ------------------------------------------------------------------
-            # 6. Preparation log and API call
+            # 6. 准备日志与 API 调用
             # ------------------------------------------------------------------
             request_id = generate_request_id("video", None, unique_id)
 
@@ -594,7 +594,7 @@ class VideoCaptionNode(VLMNodeBase, io.ComfyNode):
             log_prepare(
                 TASK_VIDEO_CAPTION, request_id, SOURCE_NODE,
                 service_display_name, model_display, rule_name,
-                {"Sampling Mode": sampling_mode, "Frames": len(frames_data)}
+                {"抽帧模式": sampling_mode, "帧数": len(frames_data)}
             )
 
             if not provider_config.get('model', ''):
@@ -614,10 +614,10 @@ class VideoCaptionNode(VLMNodeBase, io.ComfyNode):
             )
 
             # ------------------------------------------------------------------
-            # 7. Handle return result
+            # 7. 处理返回结果
             # ------------------------------------------------------------------
             if result and result.get('success'):
-                # Push truncation warning to frontend on success
+                # 成功后推送截断警告到前端
                 if truncated_count > 0:
                     try:
                         from server import PromptServer
@@ -644,7 +644,7 @@ class VideoCaptionNode(VLMNodeBase, io.ComfyNode):
                     result.get('error', 'Unknown error') if result
                     else 'No result returned'
                 )
-                if error_msg == "Task interrupted":
+                if error_msg == "任务被中断":
                     raise InterruptProcessingException()
                 log_error(TASK_VIDEO_CAPTION, request_id, error_msg, source=SOURCE_NODE)
                 raise RuntimeError(f"Analysis failed: {error_msg}")

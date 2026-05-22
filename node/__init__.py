@@ -1,4 +1,4 @@
-# Node package initialization file
-# Ensures the node folder is recognized as a Python package
+# 节点包初始化文件
+# 确保node文件夹被识别为Python包
 
-# Nodes registered here will be exported to the top-level package
+# 将在这里注册的节点导出到顶级包 

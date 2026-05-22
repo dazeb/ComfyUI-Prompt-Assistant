@@ -1,16 +1,16 @@
 /**
- * API Service
- * Calling third-party services through backend API proxy to protect API key security
+ * API服务
+ * 通过后端API代理调用第三方服务，保护API密钥安全
  */
 
 import { logger } from '../utils/logger.js';
 
-// Used to store AbortController of ongoing requests
+// 用于存储进行中的请求的AbortController
 const runningRequests = new Map();
 
-// ---Basic route inference logic---
-// Automatically get the mount point of the current plugin, eliminating hardcoded paths
-// By parsing the URL of the current script, extract the directory name after extensions/
+// ---基础路由推断逻辑---
+// 自动获取当前插件的挂载点，消除硬编码路径
+// 通过解析当前脚本的 URL，提取出 extensions/ 后的目录名
 let apiBaseUrl = null;
 
 function getDynamicApiBase() {
@@ -21,20 +21,20 @@ function getDynamicApiBase() {
         const url = new URL(scriptUrl);
         const pathParts = url.pathname.split('/');
 
-        // Strategy 1: Find the /js/ directory segment and take the previous segment as the plugin name (most universal)
+        // 策略1：寻找 /js/ 目录段，并取其前一个段作为插件名 (最通用)
         const jsIdx = pathParts.indexOf('js');
         if (jsIdx > 0) {
             const nodeDir = pathParts[jsIdx - 1];
             apiBaseUrl = `/${nodeDir}/api`;
         }
-        // Strategy 2: Fall back to searching for the extensions keyword (ComfyUI standard structure)
+        // 策略2：回退到 extensions 关键词寻找 (ComfyUI 标准结构)
         else {
             const extIdx = pathParts.indexOf('extensions');
             if (extIdx !== -1 && pathParts.length > extIdx + 1) {
                 const nodeDir = pathParts[extIdx + 1];
                 apiBaseUrl = `/${nodeDir}/api`;
             } else {
-                // Strategy 3: Hardcoded fallback
+                // 策略3：硬编码兜底
                 apiBaseUrl = '/prompt-assistant/api';
             }
         }
@@ -46,34 +46,34 @@ function getDynamicApiBase() {
 
 class APIService {
     /**
-     * Get dynamic API base path
-     * Expose the module-level getDynamicApiBase function for external calls
+     * 获取动态 API 基础路径
+     * 暴露模块级的 getDynamicApiBase 函数供外部调用
      */
     static getDynamicApiBase() {
         return getDynamicApiBase();
     }
 
     /**
-     * Construct the complete API URL
+     * 构建完整的API URL
      */
     static getApiUrl(path) {
-        // Get dynamic base route (e.g. /comfyui_prompt_assistant/api)
+        // 获取动态基础路由 (例如 /comfyui_prompt_assistant/api)
         const baseApi = getDynamicApiBase();
 
-        // Ensure path does not contain duplicate prefixes and is correctly formatted
+        // 确保 path 不含重复的前缀，且格式正确
         let subPath = path.startsWith('/') ? path : `/${path}`;
 
-        // If path already contains baseApi, do not add it again
+        // 如果 path 已经包含了 baseApi，则不再重复添加
         const fullPath = subPath.startsWith(baseApi) ? subPath : `${baseApi}${subPath}`;
 
         const url = `${window.location.origin}${fullPath}`;
-        // logger.debug(`Construct API URL: ${url}`);
+        // logger.debug(`构建API URL: ${url}`);
         return url;
     }
 
     /**
-     * Parse JSON array like [{"id":0,"text":"..."}, ...]
-     * Returns Map<id, text>
+     * 解析形如 [{"id":0,"text":"..."}, ...] 的JSON数组
+     * 返回 Map<id, text>
      */
     static _extractIndexedTranslations(text) {
         const arr = APIService._extractJsonArray(text);
@@ -88,25 +88,25 @@ class APIService {
     }
 
     /**
-     * Structured batch translation (pure frontend wrapper, single LLM request)
-     * Requires the model to strictly return a JSON array, one-to-one correspondence with input texts
+     * 结构化批量翻译（纯前端封装，单次LLM请求）
+     * 要求模型严格返回 JSON 数组，与输入 texts 一一对应
      */
     static async llmBatchTranslate(texts, from = 'auto', to = 'zh', request_id = null) {
         try {
             if (!Array.isArray(texts) || texts.length === 0) {
-                throw new Error('Text array to be translated cannot be empty');
+                throw new Error('待翻译文本数组不能为空');
             }
 
-            // Construct structured instruction, use index, require strict JSON object array output
+            // 构造结构化指令，使用索引，要求输出严格的 JSON 对象数组
             const indexed = texts.map((t, i) => ({ id: i, text: t }));
-            // Enhanced prompt: explicitly prohibit Markdown table format, prohibit adding '|' prefix
-            const sysHint = `You are a professional translation API. Please translate the text field content in the input JSON array from ${from} to ${to}.
-            Rules:
-            1. Keep the JSON structure unchanged, return an array containing id and text.
-            2. It is strictly forbidden to use Markdown table format, and it is strictly forbidden to add '|' symbol before the translation.
-            3. For parameter names, variable names (such as snake_case format), try to translate them into Chinese meaning as much as possible (e.g., pose_images -> pose images), unless it is a proper noun (e.g., CLIP, VAE).
-            4. Keep the array length consistent with the input.
-            5. Output JSON directly, do not include Markdown code block markers (like \`\`\`json).`;
+            // 强化提示词：明确禁止 Markdown 表格格式，禁止添加 '|' 前缀
+            const sysHint = `你是一个专业的翻译API。请将输入的 JSON 数组中的 text 字段内容从 ${from} 翻译为 ${to}。
+            规则：
+            1. 保持 JSON 结构不变，返回包含 id 和 text 的数组。
+            2. 严禁使用 Markdown 表格格式，严禁在译文前添加 '|' 符号。
+            3. 对于参数名、变量名（如 snake_case 格式），请尽可能将其翻译为中文含义（例如：pose_images -> 姿势图像），除非是专有名词（如 CLIP, VAE）。
+            4. 保持数组长度与输入一致。
+            5. 直接输出 JSON，不要包含 Markdown 代码块标记（如 \`\`\`json）。`;
 
             const payload = { segments: indexed };
             const prompt = [
@@ -114,17 +114,17 @@ class APIService {
                 'Input: ' + JSON.stringify(payload)
             ].join('\n');
 
-            // Reuse single text interface
+            // 复用单文本接口
             const res = await this.llmTranslate(prompt, from, to, request_id);
             if (!res || !res.success) {
-                return { success: false, error: res?.error || 'Batch translation failed' };
+                return { success: false, error: res?.error || '批量翻译失败' };
             }
 
             const content = (res.data && (res.data.translated || res.data.expanded || res.data.content)) || res.translated || res.content || '';
-            // Parse as index map
+            // 解析为索引映射
             let mapped = APIService._extractIndexedTranslations(content);
             if (!mapped) {
-                // Fallback: try to parse as pure string array and align by order
+                // 回退：尝试解析为纯字符串数组并顺序对齐
                 const arr = APIService._extractJsonArray(content);
                 if (Array.isArray(arr) && arr.length === texts.length) {
                     mapped = new Map(arr.map((v, i) => [i, v]));
@@ -132,10 +132,10 @@ class APIService {
             }
 
             if (!mapped) {
-                return { success: false, error: 'Failed to parse batch translation result: no valid JSON detected' };
+                return { success: false, error: '解析批量译文失败：未检测到有效JSON' };
             }
 
-            // If there are missing items, make a single call for missing indices to avoid complete failure
+            // 如果缺项，针对缺失索引做单次补救调用，避免整次失败
             const translations = new Array(texts.length).fill("");
             const missingIdx = [];
             for (let i = 0; i < texts.length; i++) {
@@ -164,16 +164,16 @@ class APIService {
     }
 
     /**
-     * Parallel chunked batch translation (optimized version)
-     * Chunk the text array and initiate multiple translation requests in parallel, significantly improving translation speed
+     * 并行分块批量翻译（优化版本）
+     * 将文本数组分块后并行发起多个翻译请求，显著提升翻译速度
      * 
-     * @param {string[]} texts - Text array to be translated
-     * @param {string} from - Source language
-     * @param {string} to - Target language
-     * @param {Object} options - Configuration options
-     * @param {number} options.chunkSize - Number of texts per chunk (default 5)
-     * @param {number} options.concurrency - Maximum concurrency (default 3)
-     * @param {Function} options.onProgress - Progress callback (completedChunks, totalChunks)
+     * @param {string[]} texts - 待翻译的文本数组
+     * @param {string} from - 源语言
+     * @param {string} to - 目标语言
+     * @param {Object} options - 配置选项
+     * @param {number} options.chunkSize - 每块包含的文本数量（默认5）
+     * @param {number} options.concurrency - 最大并发数（默认3）
+     * @param {Function} options.onProgress - 进度回调 (completedChunks, totalChunks)
      * @returns {Promise<{success: boolean, data?: {translations: string[]}, error?: string}>}
      */
     static async llmParallelBatchTranslate(texts, from = 'auto', to = 'zh', options = {}) {
@@ -181,10 +181,10 @@ class APIService {
 
         try {
             if (!Array.isArray(texts) || texts.length === 0) {
-                throw new Error('Text array to be translated cannot be empty');
+                throw new Error('待翻译文本数组不能为空');
             }
 
-            // 1. Chunk
+            // 1. 分块
             const chunks = [];
             for (let i = 0; i < texts.length; i += chunkSize) {
                 chunks.push({
@@ -193,34 +193,34 @@ class APIService {
                 });
             }
 
-            logger.log(`[APIService] Parallel chunked translation | Total texts:${texts.length} | Chunks:${chunks.length} | Per chunk:${chunkSize} | Concurrency:${concurrency}`);
+            logger.log(`[APIService] 并行分块翻译 | 总文本数:${texts.length} | 分块数:${chunks.length} | 每块:${chunkSize} | 并发:${concurrency}`);
 
-            // 2. Create result array
+            // 2. 创建结果数组
             const allTranslations = new Array(texts.length).fill('');
             let completedChunks = 0;
             let hasError = false;
             let lastError = null;
 
-            // 3. Concurrency control function
+            // 3. 并发控制函数
             const translateChunk = async (chunk) => {
                 try {
                     const result = await this.llmBatchTranslate(chunk.texts, from, to);
 
                     if (result.success && result.data && result.data.translations) {
-                        // Fill translation results into corresponding positions
+                        // 将翻译结果填充到对应位置
                         result.data.translations.forEach((translation, idx) => {
                             allTranslations[chunk.startIndex + idx] = translation || '';
                         });
                     } else {
-                        // Single chunk failure, record but do not interrupt
+                        // 单块失败，记录但不中断
                         hasError = true;
-                        lastError = result.error || 'Translation failed';
-                        logger.warn(`[APIService] Chunk translation failed | Start index:${chunk.startIndex} | Error:${lastError}`);
+                        lastError = result.error || '翻译失败';
+                        logger.warn(`[APIService] 分块翻译失败 | 起始索引:${chunk.startIndex} | 错误:${lastError}`);
                     }
                 } catch (err) {
                     hasError = true;
                     lastError = err.message;
-                    logger.error(`[APIService] Chunk translation exception | Start index:${chunk.startIndex} | Error:${err.message}`);
+                    logger.error(`[APIService] 分块翻译异常 | 起始索引:${chunk.startIndex} | 错误:${err.message}`);
                 } finally {
                     completedChunks++;
                     if (onProgress) {
@@ -229,42 +229,42 @@ class APIService {
                 }
             };
 
-            // 4. Batch concurrent execution (control maximum concurrency)
+            // 4. 分批并发执行（控制最大并发数）
             for (let i = 0; i < chunks.length; i += concurrency) {
                 const batch = chunks.slice(i, i + concurrency);
                 await Promise.all(batch.map(chunk => translateChunk(chunk)));
             }
 
-            // 5. Check results
+            // 5. 检查结果
             const successCount = allTranslations.filter(t => t && t.trim()).length;
-            logger.log(`[APIService] Parallel translation completed | Success:${successCount}/${texts.length}`);
+            logger.log(`[APIService] 并行翻译完成 | 成功:${successCount}/${texts.length}`);
 
-            // Return success even with partial failures (have some translation results)
+            // 即使部分失败也返回成功（有翻译结果）
             if (successCount === 0 && texts.length > 0) {
-                return { success: false, error: lastError || 'All texts translation failed' };
+                return { success: false, error: lastError || '所有文本翻译失败' };
             }
 
             return { success: true, data: { translations: allTranslations } };
 
         } catch (error) {
-            logger.error(`[APIService] Parallel batch translation failed: ${error.message}`);
+            logger.error(`[APIService] 并行批量翻译失败: ${error.message}`);
             return { success: false, error: error.message };
         }
     }
 
     /**
-     * Extract and parse the first JSON array from a string
+     * 从字符串中提取并解析首个JSON数组
      */
     static _extractJsonArray(text) {
         if (!text) return null;
         try {
-            // Fast path: the entire text is a JSON array
+            // 快速路径：整段就是JSON数组
             if (text.trim().startsWith('[')) {
                 return JSON.parse(text.trim());
             }
         } catch (_) { /* ignore */ }
 
-        // Handle prefixes/suffixes added by the model: find the first '[' and matching ']'
+        // 兼容模型添加的前后缀：寻找第一个 '[' 与匹配的 ']'
         const first = text.indexOf('[');
         const last = text.lastIndexOf(']');
         if (first === -1 || last === -1 || last <= first) return null;
@@ -272,18 +272,18 @@ class APIService {
         try {
             return JSON.parse(candidate);
         } catch (e) {
-            // Try to fix full-width quotes
+            // 尝试修正全角引号
             const normalized = candidate.replace(/[“”]/g, '"');
             try { return JSON.parse(normalized); } catch { return null; }
         }
     }
 
     /**
-     * Generate a unique request ID
+     * 生成唯一请求ID
      */
     /**
-     * Generate a unique request ID
-     * Format: requestType_serviceType(optional)_NodeID_four-digit timestamp
+     * 生成唯一请求ID
+     * 格式: 请求类型_服务类型(可选)_NodeID_四位时间戳
      */
     static generateRequestId(type, serviceType = null, nodeId = '0') {
         const timestamp = Math.floor(Date.now() / 1000).toString().slice(-4);
@@ -297,21 +297,21 @@ class APIService {
     }
 
     /**
-     * Cancel an ongoing request
+     * 取消一个正在进行的请求
      */
     static async cancelRequest(requestId) {
-        if (!requestId) return { success: false, error: "Missing requestId" };
+        if (!requestId) return { success: false, error: "缺少requestId" };
 
         const controller = runningRequests.get(requestId);
 
         if (controller) {
-            // 1. Abort the frontend fetch request
+            // 1. 中止前端的fetch请求
             controller.abort();
             runningRequests.delete(requestId);
-            logger.debug(`Frontend request aborted | ID: ${requestId}`);
+            logger.debug(`前端请求已中止 | ID: ${requestId}`);
         }
 
-        // 2. Notify the backend to cancel the task
+        // 2. 通知后端取消任务
         try {
             const apiUrl = this.getApiUrl('request/cancel');
             const response = await fetch(apiUrl, {
@@ -320,20 +320,20 @@ class APIService {
                 body: JSON.stringify({ request_id: requestId })
             });
             const result = await response.json();
-            logger.debug(`Backend task cancel request sent | ID: ${requestId} | Result: ${JSON.stringify(result)}`);
+            logger.debug(`后端任务取消请求已发送 | ID: ${requestId} | 结果: ${JSON.stringify(result)}`);
             return result;
         } catch (error) {
-            logger.error(`Backend task cancel request failed | ID: ${requestId} | Error: ${error.message}`);
+            logger.error(`后端任务取消请求失败 | ID: ${requestId} | 错误: ${error.message}`);
             return { success: false, error: error.message };
         }
     }
 
     /**
-     * Baidu Translate API
+     * 百度翻译API
      */
     static async baiduTranslate(text, from = 'auto', to = 'zh', request_id = null, is_auto = false) {
-        // Generate request ID
-        // Generate request ID
+        // 生成请求ID
+        // 生成请求ID
         if (!request_id) {
             request_id = this.generateRequestId('trans', 'baidu');
         }
@@ -344,13 +344,13 @@ class APIService {
 
         try {
             if (!text || text.trim() === '') {
-                throw new Error('Text to be translated cannot be empty');
+                throw new Error('待翻译文本不能为空');
             }
 
-            // Get API URL
+            // 获取API URL
             const apiUrl = this.getApiUrl('baidu/translate');
 
-            // Call backend API
+            // 调用后端API
             const response = await fetch(apiUrl, {
                 method: 'POST',
                 headers: {
@@ -363,22 +363,22 @@ class APIService {
                     request_id,
                     is_auto
                 }),
-                signal // Pass signal
+                signal // 传递signal
             });
 
             const result = await response.json();
             return result;
         } catch (error) {
             if (error.name === 'AbortError') {
-                logger.debug(`Baidu translation request aborted by user | ID: ${request_id}`);
-                return { success: false, error: 'Request cancelled', cancelled: true };
+                logger.debug(`百度翻译请求被用户中止 | ID: ${request_id}`);
+                return { success: false, error: '请求已取消', cancelled: true };
             }
             return {
                 success: false,
                 error: error.message
             };
         } finally {
-            // Remove from Map after request completes
+            // 请求完成后从Map中移除
             if (runningRequests.has(request_id)) {
                 runningRequests.delete(request_id);
             }
@@ -386,15 +386,15 @@ class APIService {
     }
 
     /**
-     * Batch translation
+     * 批量翻译
      */
     static async batchBaiduTranslate(texts, from = 'auto', to = 'zh') {
         try {
             if (!Array.isArray(texts) || texts.length === 0) {
-                throw new Error('Text array to be translated cannot be empty');
+                throw new Error('待翻译文本数组不能为空');
             }
 
-            // Process each text's translation serially
+            // 串行处理每个文本的翻译
             const results = [];
             for (const text of texts) {
                 const result = await this.baiduTranslate(text, from, to);
@@ -403,17 +403,17 @@ class APIService {
 
             return results;
         } catch (error) {
-            logger.error(`Batch translation | Result: failed | Error:${error.message}`);
+            logger.error(`批量翻译 | 结果:失败 | 错误:${error.message}`);
             return [];
         }
     }
 
     /**
-     * LLM expand prompt
+     * LLM扩写提示词
      */
     static async llmExpandPrompt(prompt, request_id = null) {
-        // Generate request ID
-        // Generate request ID
+        // 生成请求ID
+        // 生成请求ID
         if (!request_id) {
             request_id = this.generateRequestId('exp');
         }
@@ -424,14 +424,14 @@ class APIService {
 
         try {
             if (!prompt || prompt.trim() === '') {
-                throw new Error('Please enter the prompt to optimize');
+                throw new Error('请输入要优化的提示词');
             }
 
-            logger.debug(`Initiate LLM prompt expansion request | RequestID:${request_id} | Original:${prompt}`);
+            logger.debug(`发起LLM提示词优化请求 | 请求ID:${request_id} | 原文:${prompt}`);
 
-            // Call backend API
+            // 调用后端API
             const apiUrl = this.getApiUrl('llm/expand');
-            logger.debug('LLM prompt expansion API URL:', apiUrl);
+            logger.debug('LLM提示词优化API URL:', apiUrl);
 
             const response = await fetch(apiUrl, {
                 method: 'POST',
@@ -442,25 +442,25 @@ class APIService {
                     prompt,
                     request_id
                 }),
-                signal // Pass signal
+                signal // 传递signal
             });
 
             const result = await response.json();
-            logger.debug(`LLM prompt expansion request succeeded | RequestID:${request_id} | Result:${JSON.stringify(result)}`);
+            logger.debug(`LLM提示词优化请求成功 | 请求ID:${request_id} | 结果:${JSON.stringify(result)}`);
 
             return result;
         } catch (error) {
             if (error.name === 'AbortError') {
-                logger.debug(`LLM prompt expansion request aborted by user | ID: ${request_id}`);
-                return { success: false, error: 'Request cancelled', cancelled: true };
+                logger.debug(`LLM提示词优化请求被用户中止 | ID: ${request_id}`);
+                return { success: false, error: '请求已取消', cancelled: true };
             }
-            logger.error(`LLM prompt expansion request failed | RequestID:${request_id || 'unknown'} | Error:${error.message}`);
+            logger.error(`LLM提示词优化请求失败 | 请求ID:${request_id || 'unknown'} | 错误:${error.message}`);
             return {
                 success: false,
                 error: error.message
             };
         } finally {
-            // Remove from Map after request completes
+            // 请求完成后从Map中移除
             if (runningRequests.has(request_id)) {
                 runningRequests.delete(request_id);
             }
@@ -468,11 +468,11 @@ class APIService {
     }
 
     /**
-     * LLM translate text
+     * LLM翻译文本
      */
     static async llmTranslate(text, from = 'auto', to = 'zh', request_id = null, is_auto = false) {
-        // Generate request ID
-        // Generate request ID
+        // 生成请求ID
+        // 生成请求ID
         if (!request_id) {
             request_id = this.generateRequestId('trans', 'llm');
         }
@@ -483,10 +483,10 @@ class APIService {
 
         try {
             if (!text || text.trim() === '') {
-                throw new Error('Please enter the content to translate');
+                throw new Error('请输入要翻译的内容');
             }
 
-            // Call backend API
+            // 调用后端API
             const apiUrl = this.getApiUrl('llm/translate');
 
             const response = await fetch(apiUrl, {
@@ -501,22 +501,22 @@ class APIService {
                     request_id,
                     is_auto
                 }),
-                signal // Pass signal
+                signal // 传递signal
             });
 
             const result = await response.json();
             return result;
         } catch (error) {
             if (error.name === 'AbortError') {
-                logger.debug(`LLM translation request aborted by user | ID: ${request_id}`);
-                return { success: false, error: 'Request cancelled', cancelled: true };
+                logger.debug(`LLM翻译请求被用户中止 | ID: ${request_id}`);
+                return { success: false, error: '请求已取消', cancelled: true };
             }
             return {
                 success: false,
                 error: error.message
             };
         } finally {
-            // Remove from Map after request completes
+            // 请求完成后从Map中移除
             if (runningRequests.has(request_id)) {
                 runningRequests.delete(request_id);
             }
@@ -524,11 +524,11 @@ class APIService {
     }
 
     /**
-     * Call vision model to analyze image
+     * 调用视觉模型分析图像
      */
     static async llmAnalyzeImage(imageData, prompt, request_id = null) {
-        // Generate request ID
-        // Generate request ID
+        // 生成请求ID
+        // 生成请求ID
         if (!request_id) {
             request_id = this.generateRequestId('icap');
         }
@@ -539,65 +539,65 @@ class APIService {
 
         try {
             if (!imageData) {
-                throw new Error('No valid image found');
+                throw new Error('未找到有效的图像');
             }
 
-            logger.debug(`Initiate vision analysis request | RequestID:${request_id}`);
+            logger.debug(`发起视觉分析请求 | 请求ID:${request_id}`);
 
-            // Construct API URL
+            // 构建API URL
             const apiUrl = this.getApiUrl('vlm/analyze');
-            logger.debug('Vision analysis API URL:', apiUrl);
+            logger.debug('视觉分析API URL:', apiUrl);
 
-            // Construct request data
+            // 构建请求数据
             const requestData = {
                 image: imageData,
-                prompt: prompt, // Add prompt
+                prompt: prompt, // 添加prompt
                 request_id: request_id
             };
 
-            // Send request
+            // 发送请求
             const response = await fetch(apiUrl, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify(requestData),
-                signal // Pass signal
+                signal // 传递signal
             });
 
-            // Parse response
+            // 解析响应
             const result = await response.json();
-            logger.debug(`Vision analysis request completed | RequestID:${request_id}`);
+            logger.debug(`视觉分析请求完成 | 请求ID:${request_id}`);
 
             return result;
         } catch (error) {
             if (error.name === 'AbortError') {
-                logger.debug(`Vision analysis request aborted by user | ID: ${request_id}`);
-                return { success: false, error: 'Request cancelled', cancelled: true };
+                logger.debug(`视觉分析请求被用户中止 | ID: ${request_id}`);
+                return { success: false, error: '请求已取消', cancelled: true };
             }
-            logger.error(`Vision analysis request failed | RequestID:${request_id || 'unknown'} | Error:${error.message}`);
+            logger.error(`视觉分析请求失败 | 请求ID:${request_id || 'unknown'} | 错误:${error.message}`);
             return {
                 success: false,
-                error: error.message || 'Request failed'
+                error: error.message || '请求失败'
             };
         } finally {
-            // Remove from Map after request completes
+            // 请求完成后从Map中移除
             if (runningRequests.has(request_id)) {
                 runningRequests.delete(request_id);
             }
         }
     }
 
-    // ---Streaming output API methods (SSE)---
+    // ---流式输出API方法（SSE）---
 
     /**
-     * Stream vision analysis of image
-     * Receive analysis results token by token using SSE
-     * @param {string} imageData - Base64 encoded image data
-     * @param {string} prompt - Analysis prompt
-     * @param {string} request_id - Request ID
-     * @param {Function} onChunk - Callback function to receive each chunk
-     * @returns {Promise<Object>} - Full analysis result
+     * 流式视觉分析图像
+     * 使用 SSE 逐 token 接收分析结果
+     * @param {string} imageData - Base64 编码的图像数据
+     * @param {string} prompt - 分析提示词
+     * @param {string} request_id - 请求ID
+     * @param {Function} onChunk - 接收每个 chunk 的回调函数
+     * @returns {Promise<Object>} - 完整的分析结果
      */
     static async llmAnalyzeImageStream(imageData, prompt, request_id = null, onChunk = null) {
         if (!request_id) {
@@ -610,10 +610,10 @@ class APIService {
 
         try {
             if (!imageData) {
-                throw new Error('No valid image found');
+                throw new Error('未找到有效的图像');
             }
 
-            logger.debug(`Initiate streaming vision analysis request | RequestID:${request_id}`);
+            logger.debug(`发起流式视觉分析请求 | 请求ID:${request_id}`);
 
             const apiUrl = this.getApiUrl('vlm/analyze/stream');
             const requestData = {
@@ -661,23 +661,23 @@ class APIService {
                             }
                         } catch (parseError) {
                             if (parseError.message !== 'Unexpected end of JSON input') {
-                                logger.warn(`Failed to parse SSE data: ${parseError.message}`);
+                                logger.warn(`解析 SSE 数据失败: ${parseError.message}`);
                             }
                         }
                     }
                 }
             }
 
-            logger.debug(`Streaming vision analysis request completed | RequestID:${request_id}`);
+            logger.debug(`流式视觉分析请求完成 | 请求ID:${request_id}`);
             return finalResult;
 
         } catch (error) {
             if (error.name === 'AbortError') {
-                logger.debug(`Streaming vision analysis request aborted by user | ID: ${request_id}`);
-                return { success: false, error: 'Request cancelled', cancelled: true };
+                logger.debug(`流式视觉分析请求被用户中止 | ID: ${request_id}`);
+                return { success: false, error: '请求已取消', cancelled: true };
             }
-            logger.error(`Streaming vision analysis request failed | RequestID:${request_id || 'unknown'} | Error:${error.message}`);
-            return { success: false, error: error.message || 'Request failed' };
+            logger.error(`流式视觉分析请求失败 | 请求ID:${request_id || 'unknown'} | 错误:${error.message}`);
+            return { success: false, error: error.message || '请求失败' };
         } finally {
             if (runningRequests.has(request_id)) {
                 runningRequests.delete(request_id);
@@ -686,12 +686,12 @@ class APIService {
     }
 
     /**
-     * Stream LLM expand prompt
-     * Receive expansion results token by token using SSE
-     * @param {string} prompt - The prompt to expand
-     * @param {string} request_id - Request ID
-     * @param {Function} onChunk - Callback function to receive each chunk
-     * @returns {Promise<Object>} - Full expansion result
+     * 流式LLM扩写提示词
+     * 使用 SSE 逐 token 接收扩写结果
+     * @param {string} prompt - 要扩写的提示词
+     * @param {string} request_id - 请求ID
+     * @param {Function} onChunk - 接收每个 chunk 的回调函数
+     * @returns {Promise<Object>} - 完整的扩写结果
      */
     static async llmExpandPromptStream(prompt, request_id = null, onChunk = null) {
         if (!request_id) {
@@ -704,10 +704,10 @@ class APIService {
 
         try {
             if (!prompt || prompt.trim() === '') {
-                throw new Error('Please enter the prompt to optimize');
+                throw new Error('请输入要优化的提示词');
             }
 
-            logger.debug(`Initiate streaming LLM prompt expansion request | RequestID:${request_id}`);
+            logger.debug(`发起流式LLM提示词优化请求 | 请求ID:${request_id}`);
 
             const apiUrl = this.getApiUrl('llm/expand/stream');
 
@@ -750,22 +750,22 @@ class APIService {
                             }
                         } catch (parseError) {
                             if (parseError.message !== 'Unexpected end of JSON input') {
-                                logger.warn(`Failed to parse SSE data: ${parseError.message}`);
+                                logger.warn(`解析 SSE 数据失败: ${parseError.message}`);
                             }
                         }
                     }
                 }
             }
 
-            logger.debug(`Streaming LLM prompt expansion request completed | RequestID:${request_id}`);
+            logger.debug(`流式LLM提示词优化请求完成 | 请求ID:${request_id}`);
             return finalResult;
 
         } catch (error) {
             if (error.name === 'AbortError') {
-                logger.debug(`Streaming LLM prompt expansion request aborted by user | ID: ${request_id}`);
-                return { success: false, error: 'Request cancelled', cancelled: true };
+                logger.debug(`流式LLM提示词优化请求被用户中止 | ID: ${request_id}`);
+                return { success: false, error: '请求已取消', cancelled: true };
             }
-            logger.error(`Streaming LLM prompt expansion request failed | RequestID:${request_id || 'unknown'} | Error:${error.message}`);
+            logger.error(`流式LLM提示词优化请求失败 | 请求ID:${request_id || 'unknown'} | 错误:${error.message}`);
             return { success: false, error: error.message };
         } finally {
             if (runningRequests.has(request_id)) {
@@ -775,15 +775,15 @@ class APIService {
     }
 
     /**
-     * Stream LLM translation
-     * Receive translation results token by token using SSE
-     * Note: Only supports LLM translation service; Baidu translation does not support streaming
-     * @param {string} text - Text to translate
-     * @param {string} fromLang - Source language
-     * @param {string} toLang - Target language
-     * @param {string} request_id - Request ID
-     * @param {Function} onChunk - Callback function to receive each chunk
-     * @returns {Promise<Object>} - Full translation result
+     * 流式LLM翻译
+     * 使用 SSE 逐 token 接收翻译结果
+     * 注意：仅支持LLM翻译服务，百度翻译不支持流式
+     * @param {string} text - 要翻译的文本
+     * @param {string} fromLang - 源语言
+     * @param {string} toLang - 目标语言
+     * @param {string} request_id - 请求ID
+     * @param {Function} onChunk - 接收每个 chunk 的回调函数
+     * @returns {Promise<Object>} - 完整的翻译结果
      */
     static async llmTranslateStream(text, fromLang, toLang, request_id = null, onChunk = null) {
         if (!request_id) {
@@ -796,10 +796,10 @@ class APIService {
 
         try {
             if (!text || text.trim() === '') {
-                throw new Error('Please enter the content to translate');
+                throw new Error('请输入要翻译的内容');
             }
 
-            logger.debug(`Initiate streaming LLM translation request | RequestID:${request_id} | ${fromLang}→${toLang}`);
+            logger.debug(`发起流式LLM翻译请求 | 请求ID:${request_id} | ${fromLang}→${toLang}`);
 
             const apiUrl = this.getApiUrl('llm/translate/stream');
 
@@ -847,22 +847,22 @@ class APIService {
                             }
                         } catch (parseError) {
                             if (parseError.message !== 'Unexpected end of JSON input') {
-                                logger.warn(`Failed to parse SSE data: ${parseError.message}`);
+                                logger.warn(`解析 SSE 数据失败: ${parseError.message}`);
                             }
                         }
                     }
                 }
             }
 
-            logger.debug(`Streaming LLM translation request completed | RequestID:${request_id}`);
+            logger.debug(`流式LLM翻译请求完成 | 请求ID:${request_id}`);
             return finalResult;
 
         } catch (error) {
             if (error.name === 'AbortError') {
-                logger.debug(`Streaming LLM translation request aborted by user | ID: ${request_id}`);
-                return { success: false, error: 'Request cancelled', cancelled: true };
+                logger.debug(`流式LLM翻译请求被用户中止 | ID: ${request_id}`);
+                return { success: false, error: '请求已取消', cancelled: true };
             }
-            logger.error(`Streaming LLM translation request failed | RequestID:${request_id || 'unknown'} | Error:${error.message}`);
+            logger.error(`流式LLM翻译请求失败 | 请求ID:${request_id || 'unknown'} | 错误:${error.message}`);
             return { success: false, error: error.message };
         } finally {
             if (runningRequests.has(request_id)) {
@@ -872,23 +872,23 @@ class APIService {
     }
 
     /**
-     * Convert image to Base64
+     * 将图像转换为Base64
      */
     static async imageToBase64(img) {
         return new Promise((resolve, reject) => {
             try {
                 if (!img) {
-                    reject('Invalid image');
+                    reject('无效的图像');
                     return;
                 }
 
-                // If it is already a base64 string, return directly
+                // 如果已经是base64字符串，直接返回
                 if (typeof img === 'string' && img.startsWith('data:image')) {
                     resolve(img);
                     return;
                 }
 
-                // If it is a Blob object
+                // 如果是Blob对象
                 if (img instanceof Blob) {
                     const reader = new FileReader();
                     reader.onload = () => resolve(reader.result);
@@ -897,7 +897,7 @@ class APIService {
                     return;
                 }
 
-                // If it is a URL
+                // 如果是URL
                 if (typeof img === 'string' && (img.startsWith('http') || img.startsWith('/'))) {
                     const image = new Image();
                     image.crossOrigin = 'Anonymous';
@@ -909,14 +909,14 @@ class APIService {
                         ctx.drawImage(image, 0, 0);
                         resolve(canvas.toDataURL('image/jpeg'));
                     };
-                    image.onerror = () => reject('Image loading failed');
+                    image.onerror = () => reject('图像加载失败');
                     image.src = img;
                     return;
                 }
 
-                // Handle ComfyUI image object
+                // 处理ComfyUI图像对象
                 if (img && typeof img === 'object' && img.src) {
-                    // If the image object has a src attribute, use it
+                    // 如果图像对象有src属性，使用它
                     const image = new Image();
                     image.crossOrigin = 'Anonymous';
                     image.onload = () => {
@@ -928,14 +928,14 @@ class APIService {
                         resolve(canvas.toDataURL('image/jpeg'));
                     };
                     image.onerror = (e) => {
-                        console.error('Image loading failed:', e);
-                        reject('Image loading failed');
+                        console.error('图像加载失败:', e);
+                        reject('图像加载失败');
                     };
                     image.src = img.src;
                     return;
                 }
 
-                // Handle HTMLImageElement or similar objects
+                // 处理HTMLImageElement或类似的对象
                 if (img && (img instanceof HTMLImageElement || (img.width && img.height && img.complete))) {
                     try {
                         const canvas = document.createElement('canvas');
@@ -946,18 +946,18 @@ class APIService {
                         resolve(canvas.toDataURL('image/jpeg'));
                         return;
                     } catch (e) {
-                        console.warn('Failed to convert image using canvas:', e);
-                        // Continue trying other methods
+                        console.warn('使用canvas转换图像失败:', e);
+                        // 继续尝试其他方法
                     }
                 }
 
-                // Handle ComfyUI special format (dataURL cached in node)
+                // 处理ComfyUI的特殊格式 (dataURL缓存在node中)
                 if (img && img.dataURL) {
                     resolve(img.dataURL);
                     return;
                 }
 
-                // Handle ComfyUI special image data format
+                // 处理ComfyUI特殊的图像数据格式
                 if (img && img.data && img.width && img.height) {
                     try {
                         const canvas = document.createElement('canvas');
@@ -973,18 +973,18 @@ class APIService {
                         resolve(canvas.toDataURL('image/jpeg'));
                         return;
                     } catch (e) {
-                        console.error('Failed to process image data:', e);
+                        console.error('处理图像数据失败:', e);
                     }
                 }
 
-                console.error('Unsupported image format', img);
-                reject('Unsupported image format');
+                console.error('不支持的图像格式', img);
+                reject('不支持的图像格式');
             } catch (error) {
-                console.error('Error converting image:', error);
+                console.error('转换图像出错:', error);
                 reject(error);
             }
         });
     }
 }
 
-export { APIService };
+export { APIService }; 

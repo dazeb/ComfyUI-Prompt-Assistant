@@ -1,27 +1,27 @@
 /**
- * Assistant Feature Management Module
- * Responsible for managing all feature toggles, button visibility, feature status changes, etc.
+ * 小助手功能特性管理模块
+ * 负责管理所有功能开关、按钮可见性、功能状态变更等
  */
 
 import { logger } from '../utils/logger.js';
 
-// Externally injected promptAssistant instance
+// 外部注入的 promptAssistant 实例
 let promptAssistant = null;
-// Externally injected PromptAssistant class
+// 外部注入的 PromptAssistant 类
 let PromptAssistant = null;
-// Externally injected UIToolkit
+// 外部注入的 UIToolkit
 let UIToolkit = null;
-// Externally injected HistoryCacheService
+// 外部注入的 HistoryCacheService
 let HistoryCacheService = null;
-// Externally injected imageCaption instance
+// 外部注入的 imageCaption 实例
 let imageCaption = null;
-// Externally injected ImageCaption class
+// 外部注入的 ImageCaption 类
 let ImageCaption = null;
-// Externally injected nodeHelpTranslator instance
+// 外部注入的 nodeHelpTranslator 实例
 let nodeHelpTranslator = null;
 
 /**
- * Inject dependency instances (called by main entry)
+ * 注入依赖实例（由主入口调用）
  */
 export function setFeatureModuleDeps({ promptAssistant: pa, PromptAssistant: PAC, UIToolkit: ui, HistoryCacheService: hc, imageCaption: ic, ImageCaption: ICC, nodeHelpTranslator: nht }) {
     promptAssistant = pa;
@@ -31,7 +31,7 @@ export function setFeatureModuleDeps({ promptAssistant: pa, PromptAssistant: PAC
     imageCaption = ic;
     ImageCaption = ICC;
     nodeHelpTranslator = nht;
-    // Sync log level on initialization
+    // 初始化时同步日志级别
     try {
         if (typeof window !== 'undefined' && window.FEATURES) {
             if (typeof window.FEATURES.logLevel === 'undefined') {
@@ -45,46 +45,46 @@ export function setFeatureModuleDeps({ promptAssistant: pa, PromptAssistant: PAC
 }
 
 /**
- * Feature configuration object
- * Controls the enabled status of each feature
+ * 功能特性配置对象
+ * 控制各个功能的启用状态
  */
 export const FEATURES = {
-    // Basic feature toggle
+    // 基础功能开关
     enabled: true,
 
-    // Specific feature toggles
-    history: true, // History feature (includes history, undo, redo)
+    // 具体功能开关
+    history: true, // 历史功能（包含历史、撤销、重做）
     tag: true,
     expand: true,
     translate: true,
-    autoTranslate: false, // Auto-translate feature
-    imageCaption: true, // Image captioning prompt feature
-    nodeHelpTranslator: true, // Node help document translation feature
+    autoTranslate: false, // 自动翻译功能
+    imageCaption: true, // 图像反推提示词功能
+    nodeHelpTranslator: true, // 节点帮助文档翻译功能
 
-    // Translation formatting options
-    translateFormatPunctuation: true, // Automatically convert punctuation to half-width
-    translateFormatSpace: true, // Remove extra spaces
-    translateFormatDots: false, // Handle consecutive dots
-    translateFormatNewline: false, // Preserve newlines
+    // 翻译格式化选项
+    translateFormatPunctuation: true, // 标点符号自动转成半角
+    translateFormatSpace: true, // 移除多余空格
+    translateFormatDots: false, // 处理连续点号
+    translateFormatNewline: false, // 保留换行符
 
-    // Mixed language translation cache
-    cacheMixedLangTranslation: false, // Whether to cache mixed language translation results
+    // 混合语言翻译缓存
+    cacheMixedLangTranslation: false, // 是否缓存混合语言翻译结果
 
-    // Mixed language translation rules
-    mixedLangTranslateRule: 'auto_minor', // Automatically translate minority language
+    // 混合语言翻译规则
+    mixedLangTranslateRule: 'auto_minor', // 自动翻译小比例语言
 
-    // System settings
-    showStreamingProgress: true, // Show streaming progress (terminal log)
-    enableStreaming: true, // Enable frontend streaming output effect
+    // 系统设置
+    showStreamingProgress: true, // 显示流式输出进度（终端日志）
+    enableStreaming: true, // 启用前端流式输出效果
 
     /**
-     * Load feature toggle status from configuration
-     * Must be called after app.ui.settings has been loaded
+     * 从配置加载功能开关状态
+     * 必须在 app.ui.settings 加载完成后调用
      */
     loadSettings() {
         if (typeof app === 'undefined' || !app.ui || !app.ui.settings) return;
 
-        // Helper function: load boolean setting, keep default if not set
+        // 辅助函数：加载布尔值设置，如果未设置则保持默认值
         const loadBool = (key, settingId) => {
             const val = app.ui.settings.getSettingValue(settingId);
             if (typeof val === 'boolean') {
@@ -92,7 +92,7 @@ export const FEATURES = {
             }
         };
 
-        // Load basic feature toggle
+        // 加载基础功能开关
         loadBool('enabled', "PromptAssistant.Features.Enabled");
         loadBool('history', "PromptAssistant.Features.History");
         loadBool('tag', "PromptAssistant.Features.Tag");
@@ -102,29 +102,29 @@ export const FEATURES = {
         loadBool('nodeHelpTranslator', "PromptAssistant.Features.NodeHelpTranslator");
         loadBool('useTranslateCache', "PromptAssistant.Features.UseTranslateCache");
 
-        // Load translation formatting options
+        // 加载翻译格式化选项
         loadBool('translateFormatPunctuation', "PromptAssistant.Features.TranslateFormatPunctuation");
         loadBool('translateFormatSpace', "PromptAssistant.Features.TranslateFormatSpace");
         loadBool('translateFormatDots', "PromptAssistant.Features.TranslateFormatDots");
 
-        // Load mixed language cache options
+        // 加载混合语言缓存选项
         loadBool('cacheMixedLangTranslation', "PromptAssistant.Features.CacheMixedLangTranslation");
         loadBool('translateFormatNewline', "PromptAssistant.Features.TranslateFormatNewline");
 
-        // Load mixed language translation rules
+        // 加载混合语言翻译规则
         const mixedLangRule = app.ui.settings.getSettingValue("PromptAssistant.Features.MixedLangTranslateRule");
         if (mixedLangRule) {
             this.mixedLangTranslateRule = mixedLangRule;
         }
 
-        // Load system settings
+        // 加载系统设置
         loadBool('showStreamingProgress', "PromptAssistant.Settings.ShowStreamingProgress");
         loadBool('enableStreaming', "PromptAssistant.Settings.EnableStreaming");
 
-        // Load log level
+        // 加载日志级别
         const logLevel = app.ui.settings.getSettingValue("PromptAssistant.Settings.LogLevel");
         if (logLevel !== undefined) {
-            // Ensure it's a number
+            // 确保是数字
             const level = parseInt(logLevel);
             if (!isNaN(level)) {
                 if (typeof window !== 'undefined') {
@@ -137,15 +137,15 @@ export const FEATURES = {
     },
 
     /**
-     * Update button display status for all instances
-     * Control UI element visibility based on feature toggle status
+     * 更新所有实例的按钮显示状态
+     * 根据功能开关状态控制UI元素的显示和隐藏
      */
     updateButtonsVisibility() {
         if (!PromptAssistant) return;
-        // Iterate over all assistant instances
+        // 遍历所有助手实例
         PromptAssistant.instances.forEach((instance) => {
             if (instance.buttons) {
-                // History-related buttons - controlled by single history toggle
+                // 历史相关按钮 - 由单一的history开关控制
                 if (instance.buttons['history']) {
                     instance.buttons['history'].style.display = this.history ? 'block' : 'none';
                 }
@@ -156,7 +156,7 @@ export const FEATURES = {
                     instance.buttons['redo'].style.display = this.history ? 'block' : 'none';
                 }
 
-                // Divider 1 - after history feature
+                // 分隔线1 - 在历史功能之后
                 if (instance.buttons['divider1']) {
                     const hasHistoryFeature = this.history;
                     const hasOtherFeatures = this.tag || this.expand || this.translate;
@@ -164,7 +164,7 @@ export const FEATURES = {
                     instance.buttons['divider1'].style.display = showDivider1 ? 'block' : 'none';
                 }
 
-                // Other feature buttons
+                // 其他功能按钮
                 if (instance.buttons['tag']) {
                     instance.buttons['tag'].style.display = this.tag ? 'block' : 'none';
                 }
@@ -175,16 +175,16 @@ export const FEATURES = {
                     instance.buttons['translate'].style.display = this.translate ? 'block' : 'none';
                 }
 
-                // Logging (too frequent, removed)
-                // logger.debug(`Button update | Node ID: ${instance.nodeId}`);
+                // 记录日志 (太频繁，已移除)
+                // logger.debug(`按钮更新 | 节点ID: ${instance.nodeId}`);
             }
         });
 
-        // Handle image assistant button display
+        // 处理图像小助手的按钮显示
         if (ImageCaption) {
             ImageCaption.instances.forEach((assistant) => {
                 if (assistant.buttons) {
-                    // Image captioning buttons
+                    // 图像反推按钮
                     if (assistant.buttons['caption_zh']) {
                         assistant.buttons['caption_zh'].style.display = this.imageCaption ? 'block' : 'none';
                     }
@@ -192,12 +192,12 @@ export const FEATURES = {
                         assistant.buttons['caption_en'].style.display = this.imageCaption ? 'block' : 'none';
                     }
 
-                    // If image captioning is disabled, hide the entire assistant
+                    // 如果图像反推功能被禁用，隐藏整个小助手
                     if (assistant.element) {
                         if (!this.imageCaption) {
                             assistant.element.style.display = 'none';
                         } else {
-                            // Always show image assistant
+                            // 始终显示图像小助手
                             assistant.element.style.display = 'flex';
                         }
                     }
@@ -208,39 +208,39 @@ export const FEATURES = {
 };
 
 /**
- * Handle feature toggle status changes
+ * 处理功能开关状态变化
  */
 export function handleFeatureChange(featureName, value, oldValue) {
     if (!PromptAssistant || !promptAssistant) return;
-    // Regardless of master toggle status, feature toggles always work independently
-    // If changing from disabled to enabled, need to recreate buttons
+    // 无论总开关状态如何，功能开关始终独立工作
+    // 如果是从禁用变为启用，需要重新创建按钮
     if (value && !oldValue) {
-        // Only rebuild buttons if assistant system has been initialized
+        // 只有当小助手系统已初始化时才重建按钮
         if (PromptAssistant.instances.size > 0) {
-            // Recreate buttons for all instances
+            // 重新创建所有实例的按钮
             PromptAssistant.instances.forEach((instance) => {
                 if (instance.element && instance.innerContent) {
-                    // Clear existing button container
+                    // 清空现有按钮容器
                     instance.innerContent.innerHTML = '';
                     instance.buttons = {};
-                    // Recreate all buttons
+                    // 重新创建所有按钮
                     promptAssistant.addFunctionButtons(instance);
                 }
             });
-            logger.debug(`Feature rebuild | Result: Complete | Feature: ${featureName}`);
+            logger.debug(`功能重建 | 结果:完成 | 功能: ${featureName}`);
 
-            // Recalculate and update all instance widths
+            // 重新计算并更新所有实例的宽度
             promptAssistant.updateAllInstancesWidth();
             if (imageCaption && imageCaption.updateAllInstancesWidth) {
                 imageCaption.updateAllInstancesWidth();
             }
         }
 
-        // If image captioning feature is enabled
-        if (featureName === 'Image captioning' && imageCaption) {
-            // Enable image assistant feature
+        // 如果是图像反推功能被启用
+        if (featureName === '图像反推' && imageCaption) {
+            // 启用图像小助手功能
             if (imageCaption.initialized) {
-                // Reset node initialization flag
+                // 重置节点初始化标记
                 if (app.canvas && app.canvas.graph) {
                     const nodes = app.canvas.graph._nodes || [];
                     nodes.forEach(node => {
@@ -250,14 +250,14 @@ export function handleFeatureChange(featureName, value, oldValue) {
                     });
                 }
 
-                // If there is a currently selected node, process immediately
+                // 如果有当前选中的节点，立即处理
                 if (app.canvas && app.canvas.selected_nodes && Object.keys(app.canvas.selected_nodes).length > 0) {
                     app.canvas._imageCaptionSelectionHandler(app.canvas.selected_nodes);
                 }
             } else {
-                // If image assistant has not been initialized, initialize it
+                // 如果图像小助手尚未初始化，则初始化它
                 imageCaption.initialize().then(() => {
-                    // After initialization, process currently selected nodes
+                    // 初始化完成后处理当前选中的节点
                     if (app.canvas && app.canvas.selected_nodes && Object.keys(app.canvas.selected_nodes).length > 0) {
                         app.canvas._imageCaptionSelectionHandler(app.canvas.selected_nodes);
                     }
@@ -265,28 +265,28 @@ export function handleFeatureChange(featureName, value, oldValue) {
             }
         }
 
-        // If node help translation feature is enabled
-        if (featureName === 'Node help translation' && nodeHelpTranslator) {
-            // Enable node help translation feature
+        // 如果是节点帮助翻译功能被启用
+        if (featureName === '节点帮助翻译' && nodeHelpTranslator) {
+            // 启用节点帮助翻译功能
             nodeHelpTranslator.initialize();
         }
     } else {
-        // Otherwise only update display status
+        // 否则只更新显示状态
         FEATURES.updateButtonsVisibility();
 
-        // If image captioning feature is disabled
-        if (featureName === 'Image captioning' && !value && imageCaption) {
-            // Clean up all image assistant instances
+        // 如果是图像反推功能被禁用
+        if (featureName === '图像反推' && !value && imageCaption) {
+            // 清理所有图像小助手实例
             imageCaption.cleanup();
         }
 
-        // If node help translation feature is disabled
-        if (featureName === 'Node help translation' && !value && nodeHelpTranslator) {
-            // Clean up node help translation feature
+        // 如果是节点帮助翻译功能被禁用
+        if (featureName === '节点帮助翻译' && !value && nodeHelpTranslator) {
+            // 清理节点帮助翻译功能
             nodeHelpTranslator.cleanup();
         }
 
-        // When feature toggle changes, update all instance widths
+        // 功能开关变化时，更新所有实例的宽度
         if (PromptAssistant.instances.size > 0 || (ImageCaption && ImageCaption.instances.size > 0)) {
             promptAssistant.updateAllInstancesWidth();
             if (imageCaption && imageCaption.updateAllInstancesWidth) {
@@ -294,4 +294,4 @@ export function handleFeatureChange(featureName, value, oldValue) {
             }
         }
     }
-}
+} 

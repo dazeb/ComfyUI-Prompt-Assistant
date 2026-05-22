@@ -1,17 +1,17 @@
 /**
- * Node Mount Service (NodeMountService)
- * Unified management of assistant creation and mounting under different rendering modes
+ * 节点挂载服务 (NodeMountService)
+ * 统一管理小助手在不同渲染模式下的创建和挂载
  * 
- * Supports two rendering modes:
- * - litegraph.js: Traditional Canvas rendering + DOM Widget overlay
- * - Vue node2.0: Pure Vue component rendering
+ * 支持两种渲染模式：
+ * - litegraph.js: 传统Canvas渲染 + DOM Widget覆盖层
+ * - Vue node2.0: 纯Vue组件渲染
  */
 
 import { app } from "../../../../scripts/app.js";
 import { logger } from '../utils/logger.js';
 import { EventManager } from '../utils/eventManager.js';
 
-// ---Render mode enum---
+// ---渲染模式枚举---
 export const RENDER_MODE = {
     LITEGRAPH: 'litegraph',
     VUE_NODES: 'vue_nodes',
@@ -19,133 +19,133 @@ export const RENDER_MODE = {
 };
 
 /**
- * Node Mount Service Class
- * Provides render mode detection, container lookup, mount management and other functions
+ * 节点挂载服务类
+ * 提供渲染模式检测、容器查找、挂载管理等功能
  */
 class NodeMountService {
     constructor() {
-        // Current render mode
+        // 当前渲染模式
         this.currentMode = RENDER_MODE.UNKNOWN;
-        // Mode change callback list
+        // 模式切换回调列表
         this._modeChangeCallbacks = [];
-        // Whether initialized
+        // 是否已初始化
         this._initialized = false;
-        // Set up listener cleanup functions
+        // 设置监听清理函数
         this._cleanupFunctions = [];
-        // Mode detection cache, avoid frequent detection
+        // 模式检测缓存，避免频繁检测
         this._modeCache = null;
         this._modeCacheTime = 0;
-        this._modeCacheTTL = 1000; // Cache validity 1 second
+        this._modeCacheTTL = 1000; // 缓存有效期1秒
 
-        // Mount observer map { nodeId: observer }
+        // 挂载观察者映射 { nodeId: observer }
         this._observers = new Map();
 
-        // ---Mode switch mutex---
+        // ---模式切换互斥锁---
         this._modeSwitching = false;
-        // Pending mode switch requests
+        // 待处理的模式切换请求
         this._pendingModeChange = null;
     }
 
-    // ---Initialization and lifecycle---
+    // ---初始化与生命周期---
 
     /**
-     * Initialize the service and set up mode listener
+     * 初始化服务并设置模式监听
      */
     initialize() {
         if (this._initialized) {
-            logger.debug('[NodeMountService] Already initialized, skipping');
+            logger.debug('[NodeMountService] 已初始化，跳过');
             return;
         }
 
-        // Detect initial render mode
+        // 检测初始渲染模式
         this.currentMode = this.detectRenderMode();
 
-        // Set up mode change listener
+        // 设置模式变更监听
         this._setupModeWatcher();
 
         this._initialized = true;
-        logger.log(`[NodeMountService] Initialization complete | Render mode: ${this.currentMode}`);
+        logger.log(`[NodeMountService] 初始化完成 | 渲染模式: ${this.currentMode}`);
     }
 
     /**
-     * Clean up service resources
+     * 清理服务资源
      */
     cleanup() {
-        // Clean up all observers
+        // 清理所有观察者
         this._observers.forEach(observer => observer.disconnect());
         this._observers.clear();
 
-        // Execute all cleanup functions
+        // 执行所有清理函数
         this._cleanupFunctions.forEach(fn => {
             try {
                 if (typeof fn === 'function') fn();
             } catch (e) {
-                logger.debug(`[NodeMountService] Cleanup function execution failed: ${e.message}`);
+                logger.debug(`[NodeMountService] 清理函数执行失败: ${e.message}`);
             }
         });
         this._cleanupFunctions = [];
         this._modeChangeCallbacks = [];
         this._initialized = false;
         this._modeCache = null;
-        logger.debug('[NodeMountService] Resource cleanup complete');
+        logger.debug('[NodeMountService] 资源清理完成');
     }
 
-    // ---Node type detection utilities---
+    // ---节点类型检测工具---
 
     /**
-     * Check if the node is a node using comfy-markdown
-     * Including Note, MarkdownNote, PreviewTextNode, etc.
-     * @param {object} node - Node object
+     * 检查节点是否为使用comfy-markdown的节点
+     * 包括 Note、MarkdownNote、PreviewTextNode 等
+     * @param {object} node - 节点对象
      * @returns {boolean}
      */
     _isMarkdownNode(node) {
         if (!node || !node.type) return false;
 
-        // Known node types using comfy-markdown
+        // 已知的使用comfy-markdown的节点类型
         const markdownNodeTypes = ['Note', 'MarkdownNote', 'PreviewAny', 'PreviewTextNode'];
         if (markdownNodeTypes.includes(node.type)) {
             return true;
         }
 
-        // Check if the node type name contains related keywords
+        // 检查节点类型名称是否包含相关关键词
         const typeLower = node.type.toLowerCase();
         return typeLower.includes('markdown') ||
             (typeLower.includes('preview') && typeLower.includes('text'));
     }
 
     /**
-     * Check if the node is a subgraph node
-     * The type name of subgraph nodes is UUID format
-     * @param {object} node - Node object
+     * 检查节点是否为子图节点 (Subgraph)
+     * 子图节点的类型名为 UUID 格式
+     * @param {object} node - 节点对象
      * @returns {boolean}
      */
     _isSubgraphNode(node) {
         if (!node || !node.type) return false;
-        // UUID format: 8-4-4-4-12 characters
+        // UUID 格式：8-4-4-4-12 字符
         return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(node.type);
     }
 
-    // ---Render mode detection---
+    // ---渲染模式检测---
 
     /**
-     * Detect current render mode
-     * [Optimization] Uses only the most reliable LiteGraph.vueNodesMode global flag
-     * @param {boolean} forceRefresh - Whether to force refresh cache
-     * @returns {string} Render mode enum value
+     * 检测当前渲染模式
+     * 【优化】只使用最可靠的 LiteGraph.vueNodesMode 全局标志
+     * @param {boolean} forceRefresh - 是否强制刷新缓存
+     * @returns {string} 渲染模式枚举值
      */
     detectRenderMode(forceRefresh = false) {
-        // Check cache
+        // 检查缓存
         const now = Date.now();
         if (!forceRefresh && this._modeCache && (now - this._modeCacheTime) < this._modeCacheTTL) {
             return this._modeCache;
         }
 
-        // [Simplified] Uses only the most reliable global flag
+        // 【简化】只使用最可靠的全局标志
         const mode = (typeof LiteGraph !== 'undefined' && LiteGraph.vueNodesMode === true)
             ? RENDER_MODE.VUE_NODES
             : RENDER_MODE.LITEGRAPH;
 
-        // Update cache
+        // 更新缓存
         this._modeCache = mode;
         this._modeCacheTime = now;
 
@@ -153,7 +153,7 @@ class NodeMountService {
     }
 
     /**
-     * Check if it is Vue node2.0 mode
+     * 检查是否为 Vue node2.0 模式
      * @returns {boolean}
      */
     isVueNodesMode() {
@@ -161,18 +161,18 @@ class NodeMountService {
     }
 
     /**
-     * Check if it is litegraph.js mode
+     * 检查是否为 litegraph.js 模式
      * @returns {boolean}
      */
     isLitegraphMode() {
         return this.detectRenderMode() === RENDER_MODE.LITEGRAPH;
     }
 
-    // ---Mode change listener---
+    // ---模式切换监听---
 
     /**
-     * Register a mode change callback
-     * @param {Function} callback - Callback function, receives (newMode, oldMode) parameters
+     * 注册模式切换回调
+     * @param {Function} callback - 回调函数，接收 (newMode, oldMode) 参数
      */
     onModeChange(callback) {
         if (typeof callback === 'function') {
@@ -181,8 +181,8 @@ class NodeMountService {
     }
 
     /**
-     * Remove a mode change callback
-     * @param {Function} callback - Callback function to remove
+     * 移除模式切换回调
+     * @param {Function} callback - 要移除的回调函数
      */
     offModeChange(callback) {
         const index = this._modeChangeCallbacks.indexOf(callback);
@@ -192,7 +192,7 @@ class NodeMountService {
     }
 
     /**
-     * Check if a mode switch is in progress
+     * 检查是否正在进行模式切换
      * @returns {boolean}
      */
     isModeSwitching() {
@@ -200,34 +200,34 @@ class NodeMountService {
     }
 
     /**
-     * Trigger mode change event (with lock protection)
-     * @param {string} newMode - New mode
-     * @param {string} oldMode - Old mode
+     * 触发模式切换事件（带锁保护）
+     * @param {string} newMode - 新模式
+     * @param {string} oldMode - 旧模式
      */
     _triggerModeChange(newMode, oldMode) {
-        // If already switching, record pending request and return
+        // 如果已在切换中，记录待处理请求并返回
         if (this._modeSwitching) {
             this._pendingModeChange = { newMode, oldMode };
-            logger.debug('[NodeMountService] Mode switch is locked, request enqueued');
+            logger.debug('[NodeMountService] 模式切换已加锁，请求入队列');
             return;
         }
 
         this._modeSwitching = true;
-        logger.log(`[NodeMountService] Render mode switch | ${oldMode} -> ${newMode}`);
+        logger.log(`[NodeMountService] 渲染模式切换 | ${oldMode} -> ${newMode}`);
 
-        // Clear cache
+        // 清除缓存
         this._modeCache = null;
 
-        // Execute all callbacks, wait for async callbacks to complete
+        // 执行所有回调，等待异步回调完成
         Promise.all(this._modeChangeCallbacks.map(async callback => {
             try {
                 await callback(newMode, oldMode);
             } catch (e) {
-                logger.error(`[NodeMountService] Mode switch callback execution failed: ${e.message}`);
+                logger.error(`[NodeMountService] 模式切换回调执行失败: ${e.message}`);
             }
         })).finally(() => {
             this._modeSwitching = false;
-            // Process pending requests
+            // 处理待处理的请求
             if (this._pendingModeChange) {
                 const pending = this._pendingModeChange;
                 this._pendingModeChange = null;
@@ -237,14 +237,14 @@ class NodeMountService {
     }
 
     /**
-     * Set up mode change listener
-     * Use ComfyUI official event to listen for render mode switch
+     * 设置模式变更监听器
+     * 使用 ComfyUI 官方事件监听渲染模式切换
      */
     _setupModeWatcher() {
-        // Record state for comparison
+        // 记录状态用于比对
         let lastMode = this.currentMode;
 
-        // Unified state change check function
+        // 统一的状态变更检查函数
         const checkModeChange = () => {
             const currentMode = this.detectRenderMode(true);
             if (currentMode !== lastMode) {
@@ -257,10 +257,10 @@ class NodeMountService {
 
         try {
             if (app.ui?.settings) {
-                // Listen for ComfyUI official CustomEvent
+                // 监听 ComfyUI 官方 CustomEvent
                 const eventName = 'Comfy.VueNodes.Enabled.change';
                 const handleEvent = () => {
-                    // Delay 50ms to ensure LiteGraph.vueNodesMode has completed global sync
+                    // 延迟 50ms 确保 LiteGraph.vueNodesMode 已完成全局同步
                     setTimeout(checkModeChange, 50);
                 };
 
@@ -269,29 +269,29 @@ class NodeMountService {
                     app.ui.settings.removeEventListener(eventName, handleEvent);
                 });
 
-                logger.debug('[NodeMountService] Render mode listener ready (event listener mode)');
+                logger.debug('[NodeMountService] 渲染模式监听器已就绪 (事件监听模式)');
             } else {
-                // Fallback strategy: if app.ui.settings is not ready, keep low-frequency polling
+                // 兜底策略: 如果 app.ui.settings 尚未就绪，保留低频轮询
                 const intervalId = setInterval(checkModeChange, 2000);
                 this._cleanupFunctions.push(() => clearInterval(intervalId));
-                logger.debug('[NodeMountService] app.ui.settings not ready, starting low-frequency polling fallback (2s)');
+                logger.debug('[NodeMountService] app.ui.settings 未就绪，启动低频轮询兜底 (2s)');
             }
         } catch (e) {
-            logger.debug(`[NodeMountService] Mode listener setup failed: ${e.message}`);
+            logger.debug(`[NodeMountService] 模式监听器设置失败: ${e.message}`);
         }
     }
 
-    // ---Container lookup---
+    // ---容器查找---
 
     /**
-     * Find mount container for node's input widget
-     * @param {object} node - LiteGraph node object
-     * @param {object} widget - Input widget object
-     * @returns {object|null} Container info object or null
+     * 为节点的输入控件查找挂载容器
+     * @param {object} node - LiteGraph节点对象
+     * @param {object} widget - 输入控件对象
+     * @returns {object|null} 容器信息对象或null
      */
     findMountContainer(node, widget) {
         if (!node || !widget) {
-            logger.debug('[NodeMountService] findMountContainer: Invalid parameters');
+            logger.debug('[NodeMountService] findMountContainer: 参数无效');
             return null;
         }
 
@@ -305,13 +305,13 @@ class NodeMountService {
     }
 
     /**
-     * Vue node2.0 mode container lookup
-     * @param {object} node - LiteGraph node object
-     * @param {object} widget - Input widget object
-     * @returns {object|null} Container info
+     * Vue node2.0 模式下查找容器
+     * @param {object} node - LiteGraph节点对象
+     * @param {object} widget - 输入控件对象
+     * @returns {object|null} 容器信息
      */
     /**
-     * Determine if a widget should be rendered as a Textarea
+     * 判断一个 widget 是否应该被渲染为 Textarea
      * @param {object} widget 
      */
     _isTextareaWidget(widget) {
@@ -325,21 +325,21 @@ class NodeMountService {
             } catch (e) {}
         }
         
-        // 1. Explicit customtext type or string
+        // 1. 明确的 customtext 类型 或 string
         if (targetWidget.type === 'customtext' || targetWidget.type === 'string') return true;
-        // 2. STRING type with multiline: true
+        // 2. STRING 类型且 multiline: true
         if (targetWidget.type === 'STRING' && targetWidget.options?.multiline) return true;
-        // 3. Already bound to a textarea element
+        // 3. 已经绑定了 textarea 元素
         if (targetWidget.element && targetWidget.element.tagName === 'TEXTAREA') return true;
 
         return false;
     }
 
     /**
-     * Vue node2.0 mode container lookup
-     * @param {object} node - LiteGraph node object
-     * @param {object} widget - Input widget object
-     * @returns {object|null} Container info
+     * Vue node2.0 模式下查找容器
+     * @param {object} node - LiteGraph节点对象
+     * @param {object} widget - 输入控件对象
+     * @returns {object|null} 容器信息
      */
     _findVueNodeContainer(node, widget) {
         try {
@@ -351,22 +351,22 @@ class NodeMountService {
                 } catch (e) {}
             }
 
-            // Find Vue node container with data-node-id
+            // 查找带有 data-node-id 的 Vue 节点容器
             const nodeContainer = document.querySelector(`[data-node-id="${node.id}"]`);
             if (!nodeContainer) {
 
                 return null;
             }
 
-            // Get widget name for finding corresponding textarea
+            // 获取widget名称用于查找对应的textarea
             const widgetName = targetWidget.name || targetWidget.id || widget.name;
             let textarea = null;
 
-            // Identify node type
+            // 识别节点类型
             const isSubgraph = this._isSubgraphNode(node);
             const isMarkdown = this._isMarkdownNode(node);
 
-            // --- Strategy 1: Prefer widget.inputEl (if bound and is PrimeVue component) ---
+            // --- 策略1: 优先使用 widget.inputEl (如果已绑定且为 PrimeVue 组件) ---
             if (targetWidget.inputEl && targetWidget.inputEl.tagName === 'TEXTAREA') {
                 if (nodeContainer.contains(targetWidget.inputEl)) {
                     textarea = targetWidget.inputEl;
@@ -374,10 +374,10 @@ class NodeMountService {
                 }
             }
 
-            // --- Strategy 2: Compute index position match (required for subgraph nodes with multiple inputs) ---
-            // Applicable to multiple same-type input fields (e.g., Subgraph, CLIPTextEncodeSDXL)
+            // --- 策略2: 计算索引位置匹配 (子图节点多输入框场景必用) ---
+            // 适用于多个同类型输入框的情况 (如 Subgraph, CLIPTextEncodeSDXL 等)
             if (!textarea && node.widgets) {
-                // 1. Calculate index of current widget among all Textarea-type widgets
+                // 1. 计算当前 widget 在所有 Textarea 类 widget 中的索引
                 let targetIndex = -1;
                 let currentIndex = 0;
 
@@ -387,7 +387,7 @@ class NodeMountService {
                         continue;
                     }
                     if (this._isTextareaWidget(w)) {
-                        // Try to unwrap dynamic proxy (e.g., Subgraph's PromotedWidgetView) to compare underlying real reference
+                        // 尝试解包动态代理 (如 Subgraph 的 PromotedWidgetView) 以比对底层真实引用
                         let wInternal = w;
                         if (typeof w.resolveDeepest === 'function') {
                             try {
@@ -400,7 +400,7 @@ class NodeMountService {
                             targetIndex = currentIndex;
                             break;
                         }
-                        // Support SubgraphNode proxy widgets (use core source identifier strict comparison to completely resolve name conflict issues)
+                        // 支持 SubgraphNode 代理控件（利用核心来源标识严格比对，可彻底解决重名文本框冲突问题）
                         else if (
                             w.sourceNodeId && widget.sourceNodeId &&
                             w.sourceWidgetName && widget.sourceWidgetName &&
@@ -410,11 +410,11 @@ class NodeMountService {
                             targetIndex = currentIndex;
                             break;
                         }
-                        // Support other dynamic proxy widgets
-                        // and cannot resolve to underlying reference
-                        // Use exact name matching. If names are duplicated and cannot resolve to underlying component, record the first match.
+                        // 支持其他动态代理控件
+                        // 且无法通过解析到底层引用的情况
+                        // 通过名称精确匹配。如果名字存在重复，且无法解析到底层组件，这里会记录第一个匹配到的。
                         else if (targetIndex === -1 && w.name && widget.name && w.name === widget.name) {
-                            // Temporarily store matched index, but do not break, in case a strict reference match appears later
+                            // 暂存匹配到的索引，但不要 break，以防后面出现严格引用比对成功的对象
                             targetIndex = currentIndex;
                         }
                         currentIndex++;
@@ -422,35 +422,36 @@ class NodeMountService {
                 }
 
                 if (targetIndex !== -1) {
-                    // 2. Get all PrimeVue textareas (preferred) or regular textareas from the DOM
-                    // [Correction] Must ensure the found textarea is truly corresponding to the widget
-                    // It's possible some widgets in subgraph are hidden and not rendered, causing the number of textareas in DOM to be less than the count collected in node.widgets.
+                    // 2. 获取 DOM 中所有的 PrimeVue textarea（优先）或普通 textarea
+                    // 【修正】必须保证查找到的是真正与 widget 对应的 textarea
+                    // 有可能子图中有些 widget 被隐藏并未渲染，会导致 DOM 中的 textarea 数量
+                    // 少于 node.widgets 里收集到的数量。
                     const primeTextareas = Array.from(nodeContainer.querySelectorAll('textarea.p-textarea'));
                     const textareas = primeTextareas.length > 0
                         ? primeTextareas
                         : Array.from(nodeContainer.querySelectorAll('textarea'));
 
-                    // 3. Match by index
+                    // 3. 按索引匹配
                     if (targetIndex < textareas.length) {
                         textarea = textareas[targetIndex];
-                        logger.debugSample(() => `[NodeMountService] Vue mode: Index match successful [${targetIndex}] | Widget: ${widgetName} | Subgraph: ${isSubgraph}`);
+                        logger.debugSample(() => `[NodeMountService] Vue模式: 索引匹配成功 [${targetIndex}] | Widget: ${widgetName} | 子图: ${isSubgraph}`);
                     }
                 }
             }
 
-            // --- Strategy 3: Label/Placeholder fuzzy matching (compatibility with old logic as supplement) ---
+            // --- 策略3: 标签/Placeholder 模糊匹配 (兼容旧逻辑作为补充) ---
             if (!textarea) {
                 const textareas = nodeContainer.querySelectorAll('textarea');
                 const searchName = widgetName.toLowerCase().replace(/_/g, ' '); // snake_case -> space separated
 
                 for (const ta of textareas) {
-                    // Check placeholder
+                    //检查 placeholder
                     const placeholder = (ta.getAttribute('placeholder') || '').toLowerCase();
-                    // Check aria-label
+                    // 检查 aria-label
                     const ariaLabel = (ta.getAttribute('aria-label') || '').toLowerCase();
-                    // Check parent label
+                    // 检查父级 label
                     const label = ta.closest('label')?.textContent?.toLowerCase() || '';
-                    // Check preceding label (Vue floating label structure)
+                    // 检查前置 label (Vue 浮动标签结构)
                     const floatLabel = ta.parentElement?.querySelector('label')?.textContent?.toLowerCase() || '';
 
                     if (placeholder.includes(searchName) ||
@@ -458,28 +459,28 @@ class NodeMountService {
                         label.includes(searchName) ||
                         floatLabel.includes(searchName)) {
                         textarea = ta;
-                        // logger.debug(`[NodeMountService] Vue mode: Fuzzy match successful | Widget: ${widgetName}`);
+                        // logger.debug(`[NodeMountService] Vue模式: 模糊匹配成功 | Widget: ${widgetName}`);
                         break;
                     }
                 }
             }
 
-            // --- Strategy 4: Last resort (only safe when there is exactly one textarea) ---
+            // --- 策略4: 最后的兜底 (仅当只有一个 textarea 时才敢用) ---
             if (!textarea) {
                 const textareas = nodeContainer.querySelectorAll('textarea');
                 if (textareas.length === 1) {
                     textarea = textareas[0];
-                    logger.debug(`[NodeMountService] Vue mode: Fallback match | Widget: ${widgetName}`);
+
                 }
             }
 
             if (!textarea) {
 
-                // For nodes using comfy-markdown (Note/MarkdownNote/PreviewTextNode, etc.), return nodeContainer as container but textarea is null
+                // 对于使用comfy-markdown的节点（Note/MarkdownNote/PreviewTextNode等），返回nodeContainer作为容器但textarea为null
                 if (this._isMarkdownNode(node)) {
                     return {
                         container: nodeContainer,
-                        textarea: null, // Mark that further lookup is needed
+                        textarea: null, // 标记需要进一步查找
                         nodeContainer: nodeContainer,
                         mode: RENDER_MODE.VUE_NODES,
                         widgetName: widgetName,
@@ -489,8 +490,8 @@ class NodeMountService {
                 return null;
             }
 
-            // Find textarea's parent container as mount point
-            // Prefer floatlabel container, otherwise parent
+            // 找到textarea的父容器作为挂载点
+            // 优先找 floatlabel 容器，否则找父级
             const mountContainer = textarea.closest('.p-floatlabel, [class*="float"]') || textarea.parentElement;
 
             return {
@@ -499,20 +500,20 @@ class NodeMountService {
                 nodeContainer: nodeContainer,
                 mode: RENDER_MODE.VUE_NODES,
                 widgetName: widgetName,
-                isSubgraph: isSubgraph,  // Mark if it is a subgraph node
-                isNoteNode: isMarkdown   // Mark if it is a Markdown type node
+                isSubgraph: isSubgraph,  // 标记是否为子图节点
+                isNoteNode: isMarkdown   // 标记是否为 Markdown 类节点
             };
         } catch (e) {
-            logger.error(`[NodeMountService] Vue container lookup failed: ${e.message}`);
+            logger.error(`[NodeMountService] Vue容器查找失败: ${e.message}`);
             return null;
         }
     }
 
     /**
-     * Find container in litegraph.js mode
-     * @param {object} node - LiteGraph node object
-     * @param {object} widget - Input widget object
-     * @returns {object|null} Container info
+     * litegraph.js 模式下查找容器
+     * @param {object} node - LiteGraph节点对象
+     * @param {object} widget - 输入控件对象
+     * @returns {object|null} 容器信息
      */
     _findDomWidgetContainer(node, widget) {
         try {
@@ -526,11 +527,11 @@ class NodeMountService {
 
             const inputEl = targetWidget.inputEl || targetWidget.element;
             if (!inputEl) {
-                logger.debug('[NodeMountService] Litegraph mode: Input element does not exist');
+                logger.debug('[NodeMountService] Litegraph模式: 输入元素不存在');
                 return null;
             }
 
-            // Look up for dom-widget container
+            // 向上查找 dom-widget 容器
             let parent = inputEl.parentElement;
             let domWidgetContainer = null;
 
@@ -543,7 +544,7 @@ class NodeMountService {
             }
 
             if (!domWidgetContainer) {
-                logger.debug(`[NodeMountService] Litegraph mode: dom-widget container not found | Node ID: ${node.id}`);
+                logger.debug(`[NodeMountService] Litegraph模式: 未找到dom-widget容器 | 节点ID: ${node.id}`);
                 return null;
             }
 
@@ -554,17 +555,17 @@ class NodeMountService {
                 widgetName: targetWidget.name || targetWidget.id
             };
         } catch (e) {
-            logger.error(`[NodeMountService] dom-widget container lookup failed: ${e.message}`);
+            logger.error(`[NodeMountService] dom-widget容器查找失败: ${e.message}`);
             return null;
         }
     }
 
-    // ---Image node container lookup---
+    // ---图像节点容器查找---
 
     /**
-     * Find mount container for image node (for ImageCaption)
-     * @param {object} node - LiteGraph node object
-     * @returns {object|null} Container info
+     * 为图像节点查找挂载容器（用于ImageCaption）
+     * @param {object} node - LiteGraph节点对象
+     * @returns {object|null} 容器信息
      */
     findImageNodeContainer(node) {
         if (!node) return null;
@@ -574,7 +575,7 @@ class NodeMountService {
         if (mode === RENDER_MODE.VUE_NODES) {
             return this._findVueImageNodeContainer(node);
         } else {
-            // In litegraph mode, image assistant uses fixed positioning, container not needed
+            // litegraph模式下，图像小助手使用fixed定位，不需要容器
             return {
                 container: document.body,
                 mode: RENDER_MODE.LITEGRAPH,
@@ -584,15 +585,15 @@ class NodeMountService {
     }
 
     /**
-     * Find image node container in Vue node2.0 mode
-     * @param {object} node - LiteGraph node object
-     * @returns {object|null} Container info
+     * Vue node2.0 模式下查找图像节点容器
+     * @param {object} node - LiteGraph节点对象
+     * @returns {object|null} 容器信息
      */
     _findVueImageNodeContainer(node) {
         try {
             const nodeContainer = document.querySelector(`[data-node-id="${node.id}"]`);
             if (!nodeContainer) {
-                logger.debug(`[NodeMountService] Vue mode: Image node container not found | ID: ${node.id}`);
+                logger.debug(`[NodeMountService] Vue模式: 未找到图像节点容器 | ID: ${node.id}`);
                 return null;
             }
 
@@ -602,23 +603,23 @@ class NodeMountService {
                 useFixedPositioning: false
             };
         } catch (e) {
-            logger.error(`[NodeMountService] Vue image node container lookup failed: ${e.message}`);
+            logger.error(`[NodeMountService] Vue图像节点容器查找失败: ${e.message}`);
             return null;
         }
     }
 
-    // ---Mount helper methods---
+    // ---挂载辅助方法---
 
     /**
-     * Mount assistant element to container
-     * @param {HTMLElement} assistantElement - Assistant DOM element
-     * @param {object} containerInfo - Container info returned by findMountContainer
-     * @param {object} options - Mount options
-     * @returns {boolean} Whether mount successful
+     * 将小助手元素挂载到容器
+     * @param {HTMLElement} assistantElement - 小助手DOM元素
+     * @param {object} containerInfo - findMountContainer返回的容器信息
+     * @param {object} options - 挂载选项
+     * @returns {boolean} 是否挂载成功
      */
     mountAssistant(assistantElement, containerInfo, options = {}) {
         if (!assistantElement || !containerInfo?.container) {
-            logger.debug('[NodeMountService] mountAssistant: Invalid parameters');
+            logger.debug('[NodeMountService] mountAssistant: 参数无效');
             return false;
         }
 
@@ -627,7 +628,7 @@ class NodeMountService {
             const { position = 'bottom-right', offset = { x: 4, y: 4 } } = options;
 
             if (mode === RENDER_MODE.VUE_NODES) {
-                // Vue node2.0 mode: Use relative positioning
+                // Vue node2.0 模式：使用相对定位
                 assistantElement.style.position = 'absolute';
                 assistantElement.style.zIndex = '10';
 
@@ -643,7 +644,7 @@ class NodeMountService {
                     assistantElement.style.top = 'auto';
                 }
 
-                // Ensure container has relative positioning
+                // 确保容器有相对定位
                 const containerPosition = window.getComputedStyle(container).position;
                 if (containerPosition === 'static') {
                     container.style.position = 'relative';
@@ -652,7 +653,7 @@ class NodeMountService {
                 container.appendChild(assistantElement);
 
             } else {
-                // litegraph.js mode: Use absolute positioning (inside dom-widget)
+                // litegraph.js 模式：使用绝对定位（在dom-widget内）
                 assistantElement.style.position = 'absolute';
                 assistantElement.style.right = `${offset.x}px`;
                 assistantElement.style.bottom = `${offset.y}px`;
@@ -662,29 +663,29 @@ class NodeMountService {
                 container.appendChild(assistantElement);
             }
 
-            // Trigger reflow to ensure styles take effect
+            // 触发回流确保样式生效
             void assistantElement.offsetWidth;
 
 
             return true;
 
         } catch (e) {
-            logger.error(`[NodeMountService] Mount failed: ${e.message}`);
+            logger.error(`[NodeMountService] 挂载失败: ${e.message}`);
             return false;
         }
     }
 
     /**
-     * Wait for element to appear (using MutationObserver)
-     * Replace polling to achieve near-zero latency response
-     * @param {HTMLElement} parent - Parent element to observe
-     * @param {string} selector - Target selector (or check function)
-     * @param {number} timeout - Timeout in ms
+     * 等待元素出现 (使用 MutationObserver)
+     * 替代轮询，实现几乎零延迟的响应
+     * @param {HTMLElement} parent - 要监听的父元素
+     * @param {string} selector - 目标选择器 (或者检查函数)
+     * @param {number} timeout - 超时时间 (ms)
      * @returns {Promise<HTMLElement|null>}
      */
     waitForElement(parent, selector, timeout = 2000) {
         return new Promise((resolve) => {
-            // 1. Immediately check if exists
+            // 1. 立即检查是否存在
             let element = null;
             if (typeof selector === 'function') {
                 element = selector(parent);
@@ -696,7 +697,7 @@ class NodeMountService {
                 return resolve(element);
             }
 
-            // 2. Set up observer
+            // 2. 设置观察者
             const observer = new MutationObserver((mutations) => {
                 let found = null;
                 if (typeof selector === 'function') {
@@ -714,10 +715,10 @@ class NodeMountService {
             observer.observe(parent, {
                 childList: true,
                 subtree: true,
-                attributes: true // Sometimes element may only change attribute (e.g., hidden removed)
+                attributes: true // 有时元素可能只是属性变化（如hidden移除）
             });
 
-            // 3. Set timeout
+            // 3. 设置超时
             setTimeout(() => {
                 observer.disconnect();
                 resolve(null);
@@ -726,37 +727,37 @@ class NodeMountService {
     }
 
     /**
-     * Container lookup with retry/wait
-     * Optimization: Use MutationObserver instead of plain polling
-     * @param {object} node - Node object
-     * @param {object} widget - Widget object
-     * @param {object} options - Options
-     * @returns {Promise<object|null>} Container info
+     * 带重试/等待的容器查找
+     * 优化：使用 MutationObserver 替代单纯的轮询
+     * @param {object} node - 节点对象
+     * @param {object} widget - 控件对象
+     * @param {object} options - 选项
+     * @returns {Promise<object|null>} 容器信息
      */
     async findMountContainerWithRetry(node, widget, options = {}) {
-        // [Optimization] Based on test verification, textarea in Vue nodes 2.0 already exists when node container is added
-        // Therefore, complex waiting logic is not needed in most cases
+        // 【优化】根据测试验证，Vue nodes 2.0 中 textarea 在节点容器添加时就已存在
+        // 因此大多数情况下不需要复杂的等待逻辑
         const { timeout = 500 } = options;
 
-        // Try immediate lookup (should succeed in most cases)
+        // 尝试立即查找（大多数情况下应该成功）
         const immediateResult = this.findMountContainer(node, widget);
         if (immediateResult && immediateResult.textarea) {
             return immediateResult;
         }
 
-        // If it's a Markdown/Note node and we found container but no textarea
+        // 如果是 Markdown/Note 节点且找到了容器但没找到 textarea
         if (immediateResult && immediateResult.isNoteNode) {
-            // Continue below, wait for textarea to appear
+            // 继续往下，等待 textarea 出现
         }
 
         const mode = this.detectRenderMode();
 
-        // Vue mode: Simplified wait strategy
+        // Vue 模式下：简化的等待策略
         if (mode === RENDER_MODE.VUE_NODES) {
             const nodeContainer = document.querySelector(`[data-node-id="${node.id}"]`);
 
             if (nodeContainer) {
-                // Use Observer to briefly wait for textarea to appear
+                // 使用 Observer 短暂等待 textarea 出现
 
 
                 await this.waitForElement(nodeContainer, () => {
@@ -764,7 +765,7 @@ class NodeMountService {
                     return (result && result.textarea) ? result : null;
                 }, timeout);
 
-                // Get final result
+                // 获取最终结果
                 const finalResult = this.findMountContainer(node, widget);
                 if (finalResult && finalResult.textarea) {
 
@@ -772,19 +773,19 @@ class NodeMountService {
                 }
             }
         } else if (mode === RENDER_MODE.VUE_NODES) {
-            // [Critical] nodeContainer does not exist yet, need to wait for node container to render
-            // Observe canvas container, wait for nodeContainer to appear
+            // 【关键】nodeContainer 还不存在，需要等待节点容器渲染
+            // 监听画布容器，等待 nodeContainer 出现
             const graphCanvas = document.querySelector('.graph-canvas-container') ||
                 document.querySelector('[class*="graph"]') ||
                 document.body;
 
 
 
-            // Use Observer to wait for nodeContainer to appear
+            // 使用 Observer 等待 nodeContainer 出现
             const waitResult = await this.waitForElement(graphCanvas, () => {
                 const container = document.querySelector(`[data-node-id="${node.id}"]`);
                 if (container) {
-                    // After finding node container, then look for textarea
+                    // 找到节点容器后，再查找 textarea
                     const result = this.findMountContainer(node, widget);
                     return (result && result.textarea) ? result : null;
                 }
@@ -797,18 +798,18 @@ class NodeMountService {
             }
         }
 
-        // Degradation strategy: quick retry once (only for LiteGraph mode or Observer failure)
+        // 降级策略：快速重试一次（仅用于 LiteGraph 模式或 Observer 失效情况）
         await new Promise(r => setTimeout(r, 100));
         const retryResult = this.findMountContainer(node, widget);
         if (retryResult && retryResult.textarea) return retryResult;
 
-        logger.debugSample(() => `[NodeMountService] Container lookup not ready | Node ID: ${node?.id}`);
+        logger.debugSample(() => `[NodeMountService] 容器查找未就绪 | 节点ID: ${node?.id}`);
         return null;
     }
 }
 
-// Create singleton instance
+// 创建单例实例
 export const nodeMountService = new NodeMountService();
 
-// Export class (for type checking or inheritance)
+// 导出类（用于类型检查或继承）
 export { NodeMountService };

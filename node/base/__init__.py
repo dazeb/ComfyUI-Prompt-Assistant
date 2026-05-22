@@ -1,6 +1,6 @@
 """
-Node base module
-Provides common basic capabilities for all nodes
+节点基类模块
+提供所有节点的通用基础能力
 """
 
 from .base_node import BaseNode

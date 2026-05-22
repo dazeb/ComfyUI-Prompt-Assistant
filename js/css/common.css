@@ -1,13 +1,13 @@
 /**
- * Common Styles and Animation Library
- * Provide globally shared animation effects and specific functional component styles
+ * 通用样式及动画库
+ * 提供全局共享的动画效果和特定功能组件样式
  */
 
 /* ==========================================================================
-   1. Keyframe Animations (Keyframes)
+   1. 关键帧动画 (Keyframes)
    ========================================================================== */
 
-/* Input highlight blink */
+/* 输入框高亮闪烁 */
 @keyframes inputHighlight {
     0% {
         background-color: transparent;
@@ -22,7 +22,7 @@
     }
 }
 
-/* Button breathing effect */
+/* 按钮呼吸效果 */
 @keyframes buttonBreathing {
     0% {
         transform: scale(1);
@@ -40,7 +40,7 @@
     }
 }
 
-/* Status tip float away */
+/* 状态提示浮动消失 */
 @keyframes tipFloatUp {
     0% {
         opacity: 1;
@@ -58,7 +58,7 @@
     }
 }
 
-/* Status tip scale in */
+/* 状态提示缩放出现 */
 @keyframes tipScaleIn {
     0% {
         opacity: 0;
@@ -76,7 +76,7 @@
     }
 }
 
-/* Fade in/out combinations */
+/* 淡入淡出组合 */
 @keyframes clipFadeInUp {
     from {
         opacity: 0;
@@ -135,7 +135,7 @@
     }
 }
 
-/* Tag content fade in */
+/* 标签内容渐显 */
 @keyframes tagContentFadeIn {
     from {
         opacity: 0;
@@ -148,7 +148,7 @@
     }
 }
 
-/* Dialog entrance */
+/* 对话框入场 */
 @keyframes dialogFadeIn {
     from {
         opacity: 0;
@@ -161,7 +161,7 @@
     }
 }
 
-/* Loading spin */
+/* Loading 旋转 */
 @keyframes spin {
     from {
         transform: rotate(0deg);
@@ -173,23 +173,23 @@
 }
 
 /* ==========================================================================
-   2. Common Utilities (Utilities)
+   2. 通用工具类 (Utilities)
    ========================================================================== */
 
-/* Apply highlight animation */
+/* 应用高亮动画 */
 .input-highlight {
     animation: inputHighlight 0.2s ease-out;
     background-color: transparent !important;
-    /* Fallback: ensure transparency even if animation is stuck, when class name exists */
+    /* 兜底：即使动画卡住，类名存在时也确保透明 */
     will-change: background-color;
-    /* Optimize composite layer rendering */
+    /* 优化合成层渲染 */
 }
 
 /* ==========================================================================
-   3. Tag Component Styles (Tag Components)
+   3. 标签组件样式 (Tag Components)
    ========================================================================== */
 
-/* Tag content wrapper (for tag.js) */
+/* 标签内容包装器 (用于 tag.js) */
 .tag_content_wrapper {
     width: 100%;
     height: 100%;
@@ -204,7 +204,7 @@
 }
 
 /* ==========================================================================
-   4. Image Caption Dialog
+   4. 图像反推对话框 (Image Caption Dialog)
    ========================================================================== */
 
 .image-assistant-copy-dialog {
@@ -224,7 +224,7 @@
     animation: dialogFadeIn 0.2s ease-out;
 }
 
-/* Close button */
+/* 关闭按钮 */
 .image-assistant-copy-dialog-close {
     position: absolute;
     top: 12px;
@@ -252,7 +252,7 @@
     height: 16px;
 }
 
-/* Dialog title */
+/* 对话框标题 */
 .image-assistant-copy-dialog-title {
     font-size: 14px;
     font-weight: bold;
@@ -261,7 +261,7 @@
     padding-right: 30px;
 }
 
-/* Text area */
+/* 文本区域 */
 .image-assistant-copy-dialog-textarea {
     width: 100%;
     height: 160px;
@@ -286,7 +286,7 @@
     box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
 }
 
-/* Copy button */
+/* 复制按钮 */
 .image-assistant-copy-dialog-copy-btn {
     display: block;
     margin: 0 auto;
@@ -315,7 +315,7 @@
 }
 
 /* ==========================================================================
-   5. Loading Component
+   5. Loading 组件
    ========================================================================== */
 
 .loading-container {

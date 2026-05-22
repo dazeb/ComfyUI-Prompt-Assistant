@@ -1,10 +1,9 @@
 """
-LLM Node Base Class
-Provides dedicated base capabilities for LLM-type nodes (expand, translate, etc.)
+LLM 节点基类
+为 LLM 类节点（扩写、翻译等）提供专用基础能力
 
-V3 Migration Notes:
-    All original instance methods (self) have been converted to class methods (cls) to
-    comply with the V3 requirement that execute() must be a @classmethod.
+V3 迁移说明：
+    所有原实例方法（self）均已转换为类方法（cls），以适配 V3 execute 必须为 @classmethod 的要求。
 """
 
 import asyncio
@@ -16,25 +15,24 @@ from ...utils.common import format_api_error
 
 class LLMNodeBase(BaseNode):
     """
-    LLM Node Base Class (V3 Mixin version)
+    LLM 节点基类（V3 Mixin 版本）
 
-    Provides LLM node-specific functionality:
-    - LLM Provider configuration retrieval
-    - LLM-related common logic
-    - Dynamic service/model list generation
+    提供 LLM 节点专用功能：
+    - LLM Provider 配置获取
+    - LLM 相关的通用逻辑
+    - 动态服务/模型列表生成
     """
 
     @staticmethod
     def get_llm_service_options():
         """
-        Get all available LLM service/model option list
+        获取所有可用的 LLM 服务/模型选项列表
 
-        Return format: ["Baidu Translate", "Zhipu/glm-4-flash", "Ollama/qwen3:14b", ...]
-        Baidu Translate has no model concept, only displays service name;
-        other services display as "service_name/model_name" format
+        返回格式: ["百度翻译", "智谱/glm-4-flash", "Ollama/qwen3:14b", ...]
+        百度翻译服务无模型概念，仅显示服务名；其他服务显示为"服务名/模型名"格式
 
-        Returns:
-            List[str]: Service/model option list
+        返回：
+            List[str]: 服务/模型选项列表
         """
         from ...config_manager import config_manager
 
@@ -45,20 +43,20 @@ class LLMNodeBase(BaseNode):
             service_name = service.get('name', '')
             service_type = service.get('type', '')
 
-            # Baidu Translate special handling: only display service name
+            # 百度翻译特殊处理：仅显示服务名
             if service_type == 'baidu':
                 options.append(service_name)
                 continue
 
-            # Other services: iterate llm_models
+            # 其他服务：遍历 llm_models
             llm_models = service.get('llm_models', [])
             for model in llm_models:
                 model_name = model.get('name', '')
                 if model_name:
-                    # Format: "service_name/model_name"
+                    # 格式: "服务名/模型名"
                     options.append(f"{service_name}/{model_name}")
 
-        # If no options, return default to avoid ComfyUI errors
+        # 如果没有任何选项，返回默认值避免 ComfyUI 报错
         if not options:
             options = ["Zhipu"]
 
@@ -67,39 +65,39 @@ class LLMNodeBase(BaseNode):
     @staticmethod
     def get_translate_service_options():
         """
-        Get service/model option list specifically for translation services
+        获取翻译服务专用的服务/模型选项列表
 
-        Difference from get_llm_service_options:
-        - Hard-coded "Baidu Translate" option (Baidu Translate uses independent config, not in model_services)
-        - Specifically for translation node and translation button
+        与 get_llm_service_options 的区别：
+        - 硬编码添加"百度翻译"选项（百度翻译使用独立配置，不在 model_services 中）
+        - 专门用于翻译节点和翻译按钮
 
-        Return format: ["Baidu Translate", "Zhipu/glm-4-flash", "Ollama/qwen3:14b", ...]
+        返回格式: ["百度翻译", "智谱/glm-4-flash", "Ollama/qwen3:14b", ...]
 
-        Returns:
-            List[str]: Service/model option list (includes Baidu Translate)
+        返回：
+            List[str]: 服务/模型选项列表（包含百度翻译）
         """
         from ...config_manager import config_manager
 
         options = []
 
-        # ---Hard-coded Baidu Translate---
-        # Baidu Translate uses independent baidu_translate config, not in model_services list
+        # ---Hard-code Baidu Translate option---
+        # Baidu Translate uses independent baidu_translate config, not model_services
         config_manager.load_config().get('baidu_translate', {})
-        # Always show Baidu option even without config app_id
+        # Show the option even when app_id is not configured
         options.append("Baidu Translate")
 
-        # ---Dynamically get other LLM services---
+        # ---动态获取其他 LLM 服务---
         services = config_manager.get_all_services()
 
         for service in services:
             service_name = service.get('name', '')
 
-            # Iterate llm_models
+            # 遍历 llm_models
             llm_models = service.get('llm_models', [])
             for model in llm_models:
                 model_name = model.get('name', '')
                 if model_name:
-                    # Format: "service_name/model_name"
+                    # 格式: "服务名/模型名"
                     options.append(f"{service_name}/{model_name}")
 
         return options
@@ -107,39 +105,39 @@ class LLMNodeBase(BaseNode):
     @staticmethod
     def parse_service_model(service_model_str: str):
         """
-        Parse "service_name/model_name" format string
+        解析"服务名/模型名"格式的字符串
 
-        Special handling:
-        - "Baidu Translate": returns ('baidu', None) - uses independent config
+        特殊处理：
+        - "Baidu Translate" / "百度翻译": 返回 ('baidu', None) - 百度翻译使用独立配置
 
-        Args:
-            service_model_str: Service/model string, e.g., "Zhipu/glm-4-flash" or "Baidu Translate"
+        参数：
+            service_model_str: 服务/模型字符串，例如 "智谱/glm-4-flash" 或 "百度翻译"
 
-        Returns:
+        返回：
             Tuple[str, Optional[str]]: (service_id, model_name)
-            - service_id: Service ID (e.g., 'zhipu', 'baidu')
-            - model_name: Model name, None if not applicable
+            - service_id: 服务 ID（如 'zhipu', 'baidu'）
+            - model_name: 模型名称，如果没有则为 None
         """
         from ...config_manager import config_manager
 
-        # Split string
+        # 分割字符串
         if '/' in service_model_str:
             service_name, model_name = service_model_str.split('/', 1)
         else:
             service_name = service_model_str
             model_name = None
 
-        # ---Special handling: Baidu Translate---
-        if service_name in ['Baidu Translate', 'Baidu', 'baidu']:
+        # ---特殊处理：百度翻译---
+        if service_model_str in ('Baidu Translate', '百度翻译'):
             return 'baidu', None
 
-        # Find corresponding service_id
+        # 查找对应的 service_id
         services = config_manager.get_all_services()
         for service in services:
             if service.get('name') == service_name:
                 return service.get('id'), model_name
 
-        # Not found, return None
+        # 未找到，返回 None
         return None, None
 
     @classmethod
@@ -149,14 +147,14 @@ class LLMNodeBase(BaseNode):
         provider: str
     ) -> Optional[Dict[str, Any]]:
         """
-        Get specified LLM Provider configuration
+        获取指定 LLM Provider 的配置
 
-        Args:
-            config_manager: Config manager instance
-            provider: Provider identifier (e.g., 'zhipu', 'ollama', etc.)
+        参数：
+            config_manager: 配置管理器实例
+            provider: Provider 标识符（如 'zhipu', 'ollama' 等）
 
-        Returns:
-            Provider config dict, or None if not found
+        返回：
+            Provider 配置字典，如果未找到则返回 None
         """
         llm_config = config_manager.get_llm_config()
 
@@ -174,51 +172,51 @@ class LLMNodeBase(BaseNode):
         **kwargs
     ) -> Dict[str, Any]:
         """
-        Unified method for executing LLM tasks (expand/translate)
+        执行 LLM 任务（扩写/翻译）的统一方法
 
-        Encapsulates:
-        1. Async task thread execution
-        2. Interrupt exception capture and handling
-        3. API exception formatting
+        封装了：
+        1. 异步任务的线程执行
+        2. 中断异常的捕获和处理
+        3. API 异常的格式化
 
-        Args:
-            llm_service_func: LLMService async method
-            provider: Provider name (for error formatting)
-            *args, **kwargs: Arguments to pass to llm_service_func
+        参数：
+            llm_service_func: LLMService 的异步方法
+            provider: Provider 名称（用于错误格式化）
+            *args, **kwargs: 传递给 llm_service_func 的参数
 
-        Returns:
-            {"success": bool, "data": dict, "error": str} format result
+        返回：
+            {"success": bool, "data": dict, "error": str} 格式的结果
         """
         def thread_task(result_container, cancel_event):
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
             try:
-                # Pass cancel_event to service function
+                # 将 cancel_event 传递给服务函数
                 kwargs['cancel_event'] = cancel_event
                 result = loop.run_until_complete(llm_service_func(*args, **kwargs))
                 result_container['result'] = result
             except (asyncio.CancelledError, KeyboardInterrupt):
-                print(f"{cls.LOG_PREFIX} Async task cancelled")
-                result_container['result'] = {"success": False, "error": "Task interrupted"}
+                print(f"{cls.LOG_PREFIX} 异步任务被取消")
+                result_container['result'] = {"success": False, "error": "任务被中断"}
             except Exception as e:
-                # Catch other exceptions, format error info
+                # 捕获其他异常，格式化错误信息
                 error_message = format_api_error(e, provider)
                 result_container['result'] = {"success": False, "error": error_message}
             finally:
-                # Clean up all unfinished tasks to eliminate "Task was destroyed but it is pending" warning
+                # 清理所有未完成的任务，消除 "Task was destroyed but it is pending" 警告
                 try:
                     pending = asyncio.all_tasks(loop)
                     if pending:
                         for task in pending:
                             task.cancel()
-                        # Wait for task cancellation to complete, ignore cancel errors
+                        # 等待任务取消完成，忽略取消错误
                         loop.run_until_complete(asyncio.gather(*pending, return_exceptions=True))
                 except Exception:
                     pass
                 finally:
                     loop.close()
 
-        # Create cancel event
+        # 创建取消事件
         import threading
         cancel_event = threading.Event()
 

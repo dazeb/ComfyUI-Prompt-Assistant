@@ -1,6 +1,6 @@
 """
-Utility function module
-Integrates error handling, image processing, constants, and other common utilities
+工具函数模块
+整合错误处理、图像处理、常量定义等通用工具
 """
 
 import json
@@ -17,25 +17,25 @@ import time
 import random
 import threading
 
-# Fix Windows terminal encoding issue
-# Solve GBK encoding errors with emoji and special character output
+# 修复 Windows 终端编码问题
+# 解决 GBK 编码导致的 emoji 和特殊字符输出错误
 if sys.platform == 'win32' and sys.stdout.encoding != 'utf-8':
     try:
         sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
         sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace')
     except Exception:
-        pass  # Silently fail, keep original encoding
+        pass  # 静默失败，保持原有编码
 
 
-# ==================== Unified display width calculation ====================
+# ==================== 统一显示宽度计算 ====================
 
 def get_display_width(text: str) -> int:
     """
-    Calculate the display width of a string in terminal (Chinese and some emoji take 2 cells, ASCII takes 1)
+    计算字符串在终端中的显示宽度（中文及部分 emoji 占2格，ASCII 占1格）
     """
     width = 0
     for char in text:
-        # Common Chinese character encoding range
+        # 常见的中文字符编码范围
         if ord(char) > 0x7F:
             width += 2
         else:
@@ -43,8 +43,8 @@ def get_display_width(text: str) -> int:
     return width
 
 
-# ==================== Unified log prefix constants ====================
-# All modules import from here to ensure consistent log format
+# ==================== 统一日志前缀常量 ====================
+# 所有模块从此处导入，确保日志格式一致
 
 PREFIX = "✨"
 ERROR_PREFIX = "✨-❌"
@@ -53,19 +53,19 @@ REQUEST_PREFIX = "✨"
 WARN_PREFIX = "✨-⚠️"
 
 
-# ==================== Task type constants ====================
-TASK_TRANSLATE = "Translation"
-TASK_EXPAND = "Prompt Optimization"
-TASK_IMAGE_CAPTION = "Image Captioning"
-TASK_VIDEO_CAPTION = "Video Captioning"
+# ==================== 任务类型常量 ====================
+TASK_TRANSLATE = "翻译"
+TASK_EXPAND = "提示词优化"
+TASK_IMAGE_CAPTION = "图像反推"
+TASK_VIDEO_CAPTION = "视频反推"
 
 
-# ==================== Request source constants ====================
-SOURCE_NODE = "Node-"
-SOURCE_FRONTEND = "Frontend-"
+# ==================== 请求来源常量 ====================
+SOURCE_NODE = "节点-"
+SOURCE_FRONTEND = "前端-"
 
 
-# ==================== Unified log message functions ====================
+# ==================== 统一日志消息函数 ====================
 
 def log_prepare(
     task_type: str,
@@ -77,24 +77,24 @@ def log_prepare(
     extra: dict = None
 ) -> None:
     """
-    Output unified format preparation log (newline output)
+    输出统一格式的准备日志（换行输出）
     
-    Format: ✨ 🟡 {source}{task} Ready | Service:{service} | Model:{model} | Rule:{rule} | ID:{id}
+    格式: ✨ 🟡 {来源}{任务}准备 | 服务:{service} | 模型:{model} | 规则:{rule} | ID:{id}
     """
-    # Force carriage return and clear current line to avoid conflict with previous progress
+    # 强制回到行首并清除当前行，确保不与之前的 progress 冲突
     print(f"\r{_ANSI_CLEAR_EOL}", end="")
     
-    parts = [f"{PREFIX} 🟡 {source}{task_type} Ready"]
-    parts.append(f"Service:{service_name}")
+    parts = [f"{PREFIX} 🟡 {source}{task_type}准备"]
+    parts.append(f"服务:{service_name}")
     
     if model_name:
-        parts.append(f"Model:{model_name}")
+        parts.append(f"模型:{model_name}")
     if rule_name:
-        parts.append(f"Rule:{rule_name}")
+        parts.append(f"规则:{rule_name}")
     
     parts.append(f"ID:{request_id}")
     
-    # Handle extra fields
+    # 处理额外字段
     if extra:
         for key, value in extra.items():
             parts.append(f"{key}:{value}")
@@ -112,24 +112,24 @@ def log_complete(
     source: str = None
 ) -> None:
     """
-    Output unified format completion log (newline output)
+    输出统一格式的完成日志（换行输出）
     
-    Format: ✨ ✅ {source}{task} Complete | Service:{service} | ID:{id} | Chars:{count} | Time:{time}
+    格式: ✨ ✅ {来源}{任务}完成 | 服务:{service} | ID:{id} | 字符:{count} | 耗时:{time}
     """
-    # Force carriage return without newline, clear current line, then output new message
+    # 强制回到行首且不换行清空当前行，然后输出新消息
     print(f"\r{_ANSI_CLEAR_EOL}", end="")
     
     elapsed_str = format_elapsed_time(elapsed_ms)
     source_str = source if source else ""
-    parts = [f"{PREFIX} ✅ {source_str}{task_type} Complete"]
-    parts.append(f"Service:{service_name}")
+    parts = [f"{PREFIX} ✅ {source_str}{task_type}完成"]
+    parts.append(f"服务:{service_name}")
     parts.append(f"ID:{request_id}")
-    parts.append(f"Chars:{char_count}")
-    parts.append(f"Time:{elapsed_str}")
+    parts.append(f"字符:{char_count}")
+    parts.append(f"耗时:{elapsed_str}")
     
-    # Ollama model unload status
+    # Ollama 模型卸载状态
     if model_unloaded is not None:
-        unload_text = "Model Unloaded" if model_unloaded else "Model Kept"
+        unload_text = "模型已卸载" if model_unloaded else "模型保留"
         parts.append(unload_text)
     
     print(f"{parts[0]} | {' | '.join(parts[1:])}", flush=True)
@@ -142,19 +142,19 @@ def log_error(
     source: str = None
 ) -> None:
     """
-    Output unified format error log (newline output)
+    输出统一格式的错误日志（换行输出）
     """
-    # Force carriage return and clear current line
+    # 强制回到行首并清除当前行
     print(f"\r{_ANSI_CLEAR_EOL}", end="")
     source_str = source if source else ""
-    print(f"{PREFIX} ❌ {source_str}{task_type} Failed | ID:{request_id} | Error:{error_msg}", flush=True)
+    print(f"{PREFIX} ❌ {source_str}{task_type}失败 | ID:{request_id} | 错误:{error_msg}", flush=True)
 
 
 def generate_request_id(req_type: str, service_type: Optional[str] = None, node_id: str = "0") -> str:
     """
-    Generate unified format request ID
-    Format: request_type_service_type(optional)_NodeID_4-digit_timestamp
-    Example: trans_llm_12_3456
+    生成统一格式的请求ID
+    格式: 请求类型_服务类型(可选)_NodeID_四位时间戳
+    示例: trans_llm_12_3456
     """
     timestamp = str(int(time.time()))[-4:]
     parts = [req_type]
@@ -165,41 +165,41 @@ def generate_request_id(req_type: str, service_type: Optional[str] = None, node_
     return "_".join(parts)
 
 
-# ---Log formatting helper functions---
+# ---日志格式化辅助函数---
 
 def simplify_model_name(model: str) -> str:
     """
-    Simplify model name display
+    简化模型名称显示
     
-    Examples:
+    示例:
         huihui_ai/qwen3-vl-abliterated:8b -> qwen3-vl-8b
         huihui_ai/qwen3-abliterated:14b -> qwen3-14b
     
-    Args:
-        model: Full model name
+    参数:
+        model: 完整模型名称
     
-    Returns:
-        Simplified model name
+    返回:
+        简化后的模型名称
     """
     if '/' in model:
         model = model.split('/')[-1]
     if ':' in model:
         name, size = model.split(':')
-        # Remove common suffixes
+        # 移除常见后缀
         name = name.replace('-abliterated', '').replace('-instruct', '').replace('-chat', '')
         return f"{name}-{size}"
     return model
 
 def format_model_with_thinking(model: str, thinking_disabled: bool = False) -> str:
     """
-    Format model name, add 🗯 indicator if thinking is disabled
+    格式化模型名称，如果关闭思维链则添加🗯标识
     
-    Args:
-        model: Model name
-        thinking_disabled: Whether thinking chain is disabled
+    参数:
+        model: 模型名称
+        thinking_disabled: 是否关闭思维链
     
-    Returns:
-        Formatted model name
+    返回:
+        格式化后的模型名称
     """
     simplified = simplify_model_name(model)
     if thinking_disabled:
@@ -208,33 +208,33 @@ def format_model_with_thinking(model: str, thinking_disabled: bool = False) -> s
 
 def format_elapsed_time(elapsed_ms: int) -> str:
     """
-    Format elapsed time display
+    格式化耗时显示
     
-    Args:
-        elapsed_ms: Milliseconds
+    参数:
+        elapsed_ms: 毫秒数
     
-    Returns:
-        Formatted time string (e.g., "6.5s")
+    返回:
+        格式化后的时间字符串（如 "6.5s"）
     """
     return f"{elapsed_ms/1000:.1f}s"
 
 
-# ====================Progress log system====================
-# Unified progress bar manager, supports single-line overwrite refresh
+# ====================进度日志系统====================
+# 统一的进度条管理器，支持单行覆盖刷新
 
-# ---ANSI control sequences---
-_ANSI_CLEAR_EOL = "\033[K"  # Clear from cursor to end of line
+# ---ANSI 控制序列---
+_ANSI_CLEAR_EOL = "\033[K"  # 清除从光标位置到行末的内容
 
-# ---Global state: track last output length (with lock for concurrency)---
+# ---全局状态：追踪上一次输出长度（使用锁保护以支持并发）---
 _global_last_output_len = 0
 _progress_lock = threading.Lock()
 
 
-# ---Windows virtual terminal initialization---
+# ---Windows 虚拟终端初始化---
 def _enable_windows_vt():
     """
-    Enable Windows virtual terminal processing
-    Resolve ANSI escape sequence compatibility issues in Windows CMD/PowerShell
+    启用 Windows 虚拟终端处理
+    解决 Windows CMD/PowerShell 中 ANSI 转义序列兼容性问题
     """
     if os.name == 'nt':
         try:
@@ -252,17 +252,17 @@ _enable_windows_vt()
 
 class ProgressBar:
     """
-    Unified progress bar manager
+    统一进度条管理器
     
-    Manages the complete lifecycle of a request: Waiting -> Generating -> Complete
-    Controls refresh frequency via streaming parameter:
-    - streaming=True: High-frequency refresh (refreshes on every update)
-    - streaming=False: Only refreshes on state changes (waiting->generating->complete)
+    管理请求的完整生命周期：等待 → 生成 → 完成
+    通过 streaming 参数控制刷新频率：
+    - streaming=True: 高频刷新（每次更新都刷新）
+    - streaming=False: 仅在状态变化时刷新（等待→生成→完成）
     
-    Both modes use single-line overwrite (\r), the difference is only in refresh frequency
+    两种模式都使用单行覆盖（\r），区别仅在于刷新频率
     """
     
-    # State constants
+    # 状态常量
     STATE_WAITING = "waiting"
     STATE_GENERATING = "generating"
     STATE_DONE = "done"
@@ -276,15 +276,15 @@ class ProgressBar:
         source: str = None
     ):
         """
-        Create progress bar
+        创建进度条
         
-        Args:
-            request_id: Request ID
-            service_name: Service name (e.g., Ollama, OpenAI)
-            extra_info: Extra info (e.g., Context:2048 | Timeout:60s)
-            streaming: True=high-frequency refresh, False=refresh on state changes only
-            task_type: Task type (for unified logging)
-            source: Source (frontend/node)
+        参数:
+            request_id: 请求ID
+            service_name: 服务名称（如 Ollama, OpenAI）
+            extra_info: 额外信息（如 Context:2048 | Timeout:60s）
+            streaming: True=高频刷新，False=仅状态变化时刷新
+            task_type: 任务类型（用于统一日志）
+            source: 来源（前端/节点）
         """
         self._request_id = request_id
         self._service_name = service_name
@@ -296,26 +296,26 @@ class ProgressBar:
         self._state = self.STATE_WAITING
         self._char_count = 0
         self._start_time = time.perf_counter()
-        self._last_refresh_time = 0.0  # New: record last refresh time for rate limiting
+        self._last_refresh_time = 0.0  # 新增：记录最后一次刷新时间，用于限流
         self._closed = False
         self._stop_event = threading.Event()
         self._timer_thread = None
         
-        # 1. Reset global length, start new progress tracking
+        # 1. 重置全局长度，开始新一轮进度跟踪
         with _progress_lock:
             global _global_last_output_len
             _global_last_output_len = 0
         
-        # Immediately show "waiting for response"
+        # 立即显示"等待响应"
         self._refresh(force=True)
         
-        # Start timer refresh thread only in streaming mode (static mode uses static logs, no second-precision refresh needed)
+        # 仅在流式模式下启动定时刷新线程（非流式模式采用静态日志，无需跳秒刷新）
         if self._streaming:
             self._timer_thread = threading.Thread(target=self._timer_loop, daemon=True)
             self._timer_thread.start()
     
     def _format_elapsed(self) -> str:
-        """Format elapsed time"""
+        """格式化耗时"""
         elapsed_sec = time.perf_counter() - self._start_time
         if elapsed_sec < 60:
             return f"{elapsed_sec:.1f}s"
@@ -325,13 +325,13 @@ class ProgressBar:
             return f"{minutes}m{seconds}s"
     
     def _render(self) -> str:
-        """Render current progress bar content"""
+        """渲染当前进度条内容"""
         elapsed = self._format_elapsed()
         
         if self._state == self.STATE_WAITING:
-            # Waiting for response: ✨ 🟠 Waiting for Ollama response...
-            # Add timer in streaming mode, keep static in non-streaming mode
-            base = f"{PREFIX} 🟠 Waiting for {self._service_name} response..."
+            # 等待响应：✨ 🟠 等待Ollama响应...
+            # 流式模式下添加计时，非流式模式保持静态
+            base = f"{PREFIX} 🟠 等待{self._service_name}响应..."
             if not self._streaming:
                 return base
             
@@ -341,22 +341,22 @@ class ProgressBar:
                 return f"{base} | {elapsed}"
         
         elif self._state == self.STATE_GENERATING:
-            # Streaming mode: show char count and time
-            # Static mode: show simple "Generating..."
+            # 流式模式：显示字符数和时间
+            # 静态模式：只显示简单的 "生成中..."
             if self._streaming:
-                return f"{PREFIX} 🔵 Generating | {self._char_count} chars | {elapsed}"
+                return f"{PREFIX} 🔵 生成中 | {self._char_count}字符 | {elapsed}"
             else:
-                return f"{PREFIX} 🔵 Generating..."
+                return f"{PREFIX} 🔵 生成中..."
         
         else:
             return ""
     
     def _refresh(self, force: bool = False) -> None:
-        """Internal refresh method: single-line overwrite output"""
+        """内部刷新方法：单行覆盖输出"""
         if self._closed:
             return
             
-        # Rate limiting: if not forced, limit max frequency to 0.3 seconds to avoid excessive screen scrolling when environment doesn't support dynamic overwrite
+        # 降频处理：如果非强制刷新，则限制最高频率为 0.3 秒一次，避免因环境不支持动态覆盖而疯狂刷屏
         now = time.perf_counter()
         if not force and (now - self._last_refresh_time < 0.3):
             return
@@ -369,83 +369,83 @@ class ProgressBar:
         
         with _progress_lock:
             global _global_last_output_len
-            # Calculate display width of current content (fix len() inaccuracy with Chinese/emoji)
+            # 计算当前内容的显示宽度（解决中文/emoji 导致的 len() 不准问题）
             current_width = get_display_width(output)
             
-            # Fill with spaces to overwrite previous longer output (fallback when ANSI fails)
+            # 用空格填充以覆盖上一次更长的输出（兜底方案，应对 ANSI 失效）
             padding = ""
             if _global_last_output_len > current_width:
                 padding = " " * (_global_last_output_len - current_width)
             
-            # Use \r to return to start of line, send ANSI clear first (instant if supported)
-            # Then output content + space padding (for ANSI failure) + clear again (prevent trailing residue)
-            # Add 2 space buffer to avoid clashing with other logs
+            # 使用 \r 回到行首，先发一次 ANSI 清行（如果环境支持，瞬间清空）
+            # 再输出内容 + 空格填充（应对 ANSI 失效）+ 再次清行（防止尾部残留）
+            # 增加 2 个空格缓冲避免与其他日志粘连
             print(f"\r{_ANSI_CLEAR_EOL}{output}{padding}{_ANSI_CLEAR_EOL}  ", end='', flush=True)
             
-            # Record display width (including buffer spaces)
+            # 记录本次显示的宽度（包含缓冲空格）
             _global_last_output_len = current_width + len(padding)
 
     def _stop_timer(self):
-        """Stop timer thread"""
+        """停止计时器线程"""
         self._stop_event.set()
-        # Force state to closed to prevent re-entry
+        # 强制将状态标为已关闭，防止重入
         self._closed = True
 
     def _timer_loop(self):
-        """Background thread: periodically refresh timer only in streaming mode"""
+        """后台线程：仅在流式模式下定期刷新计时"""
         try:
             while not self._stop_event.is_set() and not self._closed:
-                # Periodically refresh current content (mainly for updating WAITING phase time)
+                # 定时刷新当前内容（主要用于更新 WAITING 阶段的时间）
                 self._refresh(force=True)
                 
-                # Lower refresh frequency: every 0.3 seconds, significantly reduce screen scrolling when dynamic overwrite is unsupported
+                # 降低刷新频率：每 0.3 秒刷新一次，大幅减少不支持动态覆盖时的刷屏
                 if self._stop_event.wait(0.3):
                     break
         except Exception:
-            pass  # Daemon thread exceptions should not affect main flow
+            pass # 守护线程异常不应影响主流程
     
     def set_generating(self, char_count: int = 0) -> None:
         """
-        Switch to "generating" state
+        切换到"生成中"状态
         
-        Args:
-            char_count: Current character count
+        参数:
+            char_count: 当前字符数
         """
         if self._closed or self._state == self.STATE_GENERATING:
             return
         
         self._state = self.STATE_GENERATING
         self._char_count = char_count
-        self._refresh(force=True)  # Always force refresh on state change
+        self._refresh(force=True)  # 状态变化时总是强制刷新
     
     def update(self, char_count: int) -> None:
         """
-        Update character count
+        更新字符数
         
-        Streaming mode: refresh on every call
-        Static mode: no refresh (avoid screen scrolling)
+        流式模式：每次调用都刷新
+        静态模式：不刷新（避免刷屏）
         
-        Args:
-            char_count: Current character count
+        参数:
+            char_count: 当前字符数
         """
         if self._closed:
             return
         
         self._char_count = char_count
         
-        # Streaming mode: high-frequency refresh (actual frequency limited by _refresh rate limiting)
+        # 流式模式：高频刷新 (实际频率受 _refresh 内的降频限制)
         if self._streaming:
             self._refresh(force=False)
-        # Static mode: don't refresh here, only refresh on state change
+        # 静态模式：不在这里刷新，只有状态变化时才刷新
     
     def done(self, message: str = None, char_count: int = None, elapsed_ms: int = None) -> None:
         """
-        Complete request
+        完成请求
         
-        Args:
-            message: Custom completion message (optional)
-            char_count: Final character count (optional)
-            elapsed_ms: Elapsed time in ms (optional, auto-calculated if not provided)
+        参数:
+            message: 自定义完成消息（可选）
+            char_count: 最终字符数（可选）
+            elapsed_ms: 耗时毫秒（可选，不传则自动计算）
         """
         if self._closed:
             return
@@ -454,15 +454,15 @@ class ProgressBar:
         self._state = self.STATE_DONE
 
         
-        # Reset global length
+        # 重置全局长度
         with _progress_lock:
             global _global_last_output_len
             _global_last_output_len = 0
 
-        # If task_type is provided, use unified log
+        # 如果提供了 task_type，则使用统一日志
         if hasattr(self, '_task_type') and self._task_type:
             log_complete(
-                self._task_type or "Task", 
+                self._task_type or "任务", 
                 self._request_id, 
                 self._service_name, 
                 char_count if char_count is not None else self._char_count,
@@ -471,31 +471,31 @@ class ProgressBar:
             )
             return
 
-        # Backward compatibility: original done logic
-        # Calculate elapsed time
+        # 降级兼容：原始 done 逻辑
+        # 计算耗时
         if elapsed_ms is not None:
             elapsed = format_elapsed_time(elapsed_ms)
         else:
             elapsed = self._format_elapsed()
         
-        # Use passed char count or current char count
+        # 使用传入的字符数或当前记录的字符数
         final_count = char_count if char_count is not None else self._char_count
         
-        # Generate completion message
+        # 生成完成消息
         if message:
             final_msg = message
         else:
-            final_msg = f"{PREFIX} ✅ Complete | Service:{self._service_name} | ID:{self._request_id} | Chars:{final_count} | Time:{elapsed}"
+            final_msg = f"{PREFIX} ✅ 完成 | 服务:{self._service_name} | ID:{self._request_id} | 字符:{final_count} | 耗时:{elapsed}"
         
-        # Directly call the concept of log_complete: newline output, don't overwrite previous content
+        # 直接调用 log_complete 的思想：换行输出，不覆盖之前的内容
         print(f"\r{_ANSI_CLEAR_EOL}{final_msg}", flush=True)
     
     def error(self, message: str) -> None:
         """
-        Output error message (newline output, not overwriting)
+        输出错误消息（换行输出，不覆盖）
         
-        Args:
-            message: Error message
+        参数:
+            message: 错误消息
         """
         if self._closed:
             return
@@ -503,25 +503,25 @@ class ProgressBar:
         self._stop_timer()
 
         
-        # Reset global length
+        # 重置全局长度
         with _progress_lock:
             global _global_last_output_len
             _global_last_output_len = 0
             
-        # If task_type is provided, use unified log
+        # 如果提供了 task_type，则使用统一日志
         if hasattr(self, '_task_type') and self._task_type:
-            log_error(self._task_type or "Task", self._request_id, message, source=getattr(self, '_source', None))
+            log_error(self._task_type or "任务", self._request_id, message, source=getattr(self, '_source', None))
             return
 
-        # Legacy mode
+        # 降级模式
         print(f"\r{_ANSI_CLEAR_EOL}{message}", flush=True)
     
     def cancel(self, message: str = None) -> None:
         """
-        Cancel request (newline output, not overwriting)
+        取消请求（换行输出，不覆盖）
         
-        Args:
-            message: Custom cancel message (optional)
+        参数:
+            message: 自定义取消消息（可选）
         """
         if self._closed:
             return
@@ -529,19 +529,19 @@ class ProgressBar:
         self._stop_timer()
 
         
-        # Reset global length
+        # 重置全局长度
         with _progress_lock:
             global _global_last_output_len
             _global_last_output_len = 0
             
-        cancel_msg = message or "Task Cancelled"
+        cancel_msg = message or "任务被取消"
         
-        # If task_type is provided, use unified log
+        # 如果提供了 task_type，则使用统一日志
         if hasattr(self, '_task_type') and self._task_type:
-            log_error(self._task_type or "Task", self._request_id, cancel_msg, source=getattr(self, '_source', None))
+            log_error(self._task_type or "任务", self._request_id, cancel_msg, source=getattr(self, '_source', None))
             return
 
-        # Legacy mode
+        # 降级模式
         print(f"\r{_ANSI_CLEAR_EOL}{WARN_PREFIX} {cancel_msg} | ID:{self._request_id}", flush=True)
     
     def __enter__(self):
@@ -549,62 +549,68 @@ class ProgressBar:
     
     def __exit__(self, *args):
         if not self._closed:
-            # On context exit, if done/error wasn't explicitly called, consider it successful
+            # 退出上下文时，如果没有显式调用 done/error，则视为成功完成
             self.done()
 
     def __del__(self):
-        """Destructor: ensure timer stops when object is garbage collected"""
+        """析构函数：确保对象被回收时停止计时器"""
         try:
-            # Only stop if timer is still running
+            # 仅在计时器还在运行时尝试停止
             if hasattr(self, '_stop_event') and not self._stop_event.is_set():
                 self._stop_timer()
         except:
             pass
 
 
-# HTTP status code to English error message mapping
+
+
+
+
+
+
+# HTTP状态码到中文错误信息的映射
 HTTP_STATUS_CODE_MESSAGES = {
-    400: "Bad Request",
-    401: "Authentication Failed - Please check if your API Key is correct.",
-    403: "Access Denied - You do not have permission to access this resource.",
-    404: "Requested resource not found",
-    429: "Rate Limit Exceeded - You have exceeded the rate limit, please try again later.",
-    500: "Internal Server Error - An unknown issue occurred on the service provider side.",
-    502: "Bad Gateway",
-    503: "Service Unavailable - The server is currently unable to process the request, please try again later.",
-    504: "Gateway Timeout",
+    400: "请求无效",
+    401: "身份验证失败-请检查您的API Key是否正确。",
+    403: "无权限访问-您没有权限访问此资源。",
+    404: "请求的资源不存在",
+    429: "请求频率过高-您已超出速率限制，请稍后再试。",
+    500: "服务器内部错误- 服务提供商端发生未知问题。",
+    502: "网关错误",
+    503: "服务不可用- 服务器当前无法处理请求，请稍后重试。",
+    504: "网关超时",
 }
 
-# Baidu Translate API error code mapping
+# 百度翻译API的错误码映射
 BAIDU_ERROR_CODE_MESSAGES = {
-    '52001': 'Request timeout, please retry',
-    '52002': 'System error, please retry',
-    '52003': 'Unauthorized user, please check if appid is correct or if the service is activated',
-    '54000': 'Required parameter is empty, please check if any parameters are missing',
-    '54001': 'Signature error, please check if appid and secret_key are correct',
-    '54003': 'Access frequency limited, please reduce your call frequency, or switch to Advanced/Enterprise version after identity authentication',
-    '54004': 'Insufficient account balance, please recharge in the management console',
-    '54005': 'Frequent long query requests, please reduce the sending frequency of long queries, retry after 3s',
-    '58000': 'Illegal client IP, check if the IP address filled in your profile is correct',
-    '58001': 'Translation language direction not supported, check if the target language is in the language list',
-    '58002': 'Service is currently closed, please enable the service in Baidu management console',
-    '58003': 'This IP has been banned',
-    '90107': 'Authentication failed or not yet effective, please check the authentication progress in My Certifications',
-    '20003': 'Request content has security risks',
+    '52001': '请求超时，请重试',
+    '52002': '系统错误，请重试',
+    '52003': '未授权用户，请检查appid是否正确或服务是否开通',
+    '54000': '必填参数为空，请检查是否少传参数',
+    '54001': '签名错误，请检查appid和secret_key是否正确',
+    '54003': '访问频率受限，请降低您的调用频率，或进行身份认证后切换为高级版/尊享版',
+    '54004': '账户余额不足，请前往管理控制台充值',
+    '54005': '长query请求频繁，请降低长query的发送频率，3s后再试',
+    '58000': '客户端IP非法，检查个人资料里填写的IP地址是否正确，可前往开发者信息-基本信息修改',
+    '58001': '译文语言方向不支持，检查译文语言是否在语言列表里',
+    '58002': '服务当前已关闭，请前往百度管理控制台开启服务',
+    '58003': '此IP已被封禁',
+    '90107': '认证未通过或未生效，请前往我的认证查看认证进度',
+    '20003': '请求内容存在安全风险',
 }
 
 
-# ---Error handling functions---
+# ---错误处理函数---
 
 def _is_auth_error(error_text: str) -> bool:
     """
-    Check if error message is authentication related
+    检查错误信息是否为认证相关错误
     
-    Args:
-        error_text: Error text (lowercase)
+    参数:
+        error_text: 错误文本（小写）
     
-    Returns:
-        bool: Whether it's an auth error
+    返回:
+        bool: 是否为认证错误
     """
     auth_keywords = [
         'invalid token',
@@ -617,34 +623,34 @@ def _is_auth_error(error_text: str) -> bool:
         'invalid key',
         'missing key',
         'invalid credentials',
-        'authentication',
-        'auth error',
+        '身份验证',
+        '认证失败',
         'token'
     ]
     return any(keyword in error_text for keyword in auth_keywords)
 
 def format_api_error(e: Exception, provider_display_name: str) -> str:
     """
-    Format error message from API
-    Pure httpx implementation, does not depend on openai library
+    格式化来自API的错误信息
+    纯httpx实现，不依赖openai库
     
-    Args:
-        e: Exception object
-        provider_display_name: Provider display name
+    参数:
+        e: 异常对象
+        provider_display_name: 服务商显示名称
     
-    Returns:
-        str: Formatted error message
+    返回:
+        str: 格式化后的错误信息
     """
-    # Handle encoding exception
+    # 处理编码异常
     if isinstance(e, UnicodeEncodeError):
-        return f"{provider_display_name} Network request encoding exception: Illegal characters detected. Please check if the API Key or URL in the provider config contains extraneous ellipsis, quotes, or spaces."
+        return f"{provider_display_name} 网络请求编码异常: 检测到非法字符 (\u2026 或其他非 ASCII 字符)。请检查服务商配置中的 API Key 或 URL 是否包含多余的省略号、引号或空格。"
 
-    # Handle httpx HTTP errors
+    # 处理httpx的HTTP错误
     try:
         import httpx
         if isinstance(e, httpx.HTTPStatusError):
             status_code = e.response.status_code
-            message = HTTP_STATUS_CODE_MESSAGES.get(status_code, "Unknown HTTP Error")
+            message = HTTP_STATUS_CODE_MESSAGES.get(status_code, "未知HTTP错误")
             
             error_details_str = ""
             detail_msg = ""
@@ -656,129 +662,129 @@ def format_api_error(e: Exception, provider_display_name: str) -> str:
                     detail_msg = error_details["error"].get("message", detail_msg)
                 
                 if detail_msg:
-                    error_details_str = f" | Details: {detail_msg}"
+                    error_details_str = f" | 详情: {detail_msg}"
             except (json.JSONDecodeError, AttributeError):
                 try:
                     if hasattr(e.response, 'text') and e.response.text:
                         detail_msg = e.response.text[:200]
-                        error_details_str = f" | Raw Response: {detail_msg}"
+                        error_details_str = f" | 原始响应: {detail_msg}"
                 except Exception:
                     pass
             
-            # ---Intelligent auth error detection with friendly prompt---
+            # ---智能识别认证错误并提供友好提示---
             combined_error_text = f"{message} {detail_msg}".lower()
             if status_code == 401 or _is_auth_error(combined_error_text):
-                return f"{provider_display_name} Authentication failed: No API Key configured or API Key is invalid. Please fill in the correct API Key in provider settings."
+                return f"{provider_display_name} 认证失败: 未配置API Key或API Key无效，请在服务商配置中填写正确的API Key"
                     
-            return f"{provider_display_name} API Error: {message} (Status Code: {status_code}){error_details_str}"
+            return f"{provider_display_name} API错误: {message} (状态码: {status_code}){error_details_str}"
     except Exception:
         pass
         
-    # For other types of exceptions, return type and basic info
-    return f"{provider_display_name} Service request exception: ({type(e).__name__}) {str(e)}"
+    # 对于其他类型的异常，返回其类型和基本信息
+    return f"{provider_display_name} 服务请求异常: ({type(e).__name__}) {str(e)}"
 
 
 def format_baidu_translate_error(error_data: dict) -> str:
     """
-    Format Baidu Translate API error message
+    格式化百度翻译API的错误信息
     
-    Args:
-        error_data: Baidu API returned error data
+    参数:
+        error_data: 百度API返回的错误数据
     
-    Returns:
-        str: Formatted error message
+    返回:
+        str: 格式化后的错误信息
     """
     if not isinstance(error_data, dict):
-        return "Unknown Baidu Translate error format"
+        return "未知的百度翻译错误格式"
         
     error_code = str(error_data.get('error_code'))
     if error_code in BAIDU_ERROR_CODE_MESSAGES:
-        return f"Baidu Translate Error: {BAIDU_ERROR_CODE_MESSAGES[error_code]} (Code: {error_code})"
+        return f"百度翻译错误: {BAIDU_ERROR_CODE_MESSAGES[error_code]} (代码: {error_code})"
     
-    error_msg = error_data.get('error_msg', 'Unknown error')
-    return f"Baidu Translate Error: {error_msg} (Code: {error_code})"
+    error_msg = error_data.get('error_msg', '未知错误')
+    return f"百度翻译错误: {error_msg} (代码: {error_code})"
 
 
-# ---Image processing functions---
+# ---图像处理函数---
 
 def get_optimal_image_params(image_count: int = 1) -> tuple:
     """
-    Intelligently calculate optimal resolution and quality parameters based on image count
-    Goal: Ensure API can return complete results while maintaining image quality as much as possible
+    根据图像数量智能计算最佳的分辨率和质量参数
+    目标：保证API能返回完整结果，同时尽可能保持图像质量
     
-    Args:
-        image_count: Number of images (1-32)
+    参数:
+        image_count: 图像数量 (1-32)
     
-    Returns:
+    返回:
         tuple: (max_size: tuple, quality: int, compression_level: str)
     """
     if image_count <= 1:
-        # Single image: use medium quality
-        return (1024, 1024), 75, "Medium"
+        # 单图：使用中等质量
+        return (1024, 1024), 75, "中等"
     elif image_count <= 3:
-        # 1-3 frames: maintain relatively high quality
-        return (1024, 1024), 70, "High"
+        # 1-3帧：保持较高质量
+        return (1024, 1024), 70, "较高"
     elif image_count <= 6:
-        # 4-6 frames: lower resolution, maintain medium quality
-        return (768, 768), 70, "Medium"
+        # 4-6帧：降低分辨率，保持中等质量
+        return (768, 768), 70, "中等"
     elif image_count <= 10:
-        # 7-10 frames: further lower resolution and quality
-        return (640, 640), 65, "Low"
+        # 7-10帧：进一步降低分辨率和质量
+        return (640, 640), 65, "较低"
     elif image_count <= 16:
-        # 11-16 frames: use low resolution
-        return (512, 512), 60, "Lower"
+        # 11-16帧：使用低分辨率
+        return (512, 512), 60, "低"
     else:
-        # 17-32 frames: maximum compression, ensure processable
-        return (480, 480), 55, "Lowest"
+        # 17-32帧：最大压缩，保证能处理
+        return (480, 480), 55, "极低"
 
 
 def preprocess_image(
     image_data: str,
-    max_size: tuple = None,  # Changed to optional, supports auto-computation
-    quality: int = None,  # Changed to optional, supports auto-computation
+    max_size: tuple = None,  # 改为可选，支持自动计算
+    quality: int = None,  # 改为可选，支持自动计算
     request_id: Optional[str] = None,
     silent: bool = False,
-    image_count: int = 1  # New: total number of images, used for dynamic adjustment
+    image_count: int = 1  # 新增：总图像数量，用于动态调整
 ) -> str:
     """
-    Preprocess image data (compress and resize)
+    预处理图像数据（压缩和调整大小）
     
-    Args:
-        image_data: Base64 encoded image data
-        max_size: Maximum size, default None (auto-computed)
-        quality: JPEG compression quality (1-100), default None (auto-computed)
-        request_id: Request ID for log output
-        silent: Silent mode (no log output)
-        image_count: Total image count for intelligent optimization in multi-image scenarios
+    参数:
+        image_data: Base64编码的图像数据
+        max_size: 最大尺寸，默认为None（自动计算）
+        quality: JPEG压缩质量 (1-100)，默认为None（自动计算）
+        request_id: 请求ID，用于日志输出
+        silent: 是否静默模式（不输出日志）
+        image_count: 总图像数量，用于多图场景的智能优化
     
-    Returns:
-        str: Processed image data
+    返回:
+        str: 处理后的图像数据
     """
     try:
-        # Intelligently calculate optimal parameters
+        # 智能计算最佳参数
         if max_size is None or quality is None:
             optimal_size, optimal_quality, compression_level = get_optimal_image_params(image_count)
             max_size = max_size or optimal_size
             quality = quality or optimal_quality
         else:
-            compression_level = "Custom"
+            compression_level = "自定义"
         
-        # Check if data is base64 encoded image
+        # 检查是否为base64编码的图像数据
         if image_data.startswith('data:image'):
-            # Extract base64 data
+            # 提取base64数据
             header, encoded = image_data.split(",", 1)
             image_bytes = base64.b64decode(encoded)
             original_bytes = len(image_bytes)
             
-            # Open image
+            # 打开图像
             img = Image.open(BytesIO(image_bytes))
             original_size = img.size
             
-            # Calculate scale ratio
+            # 计算缩放比例
             if img.size[0] > max_size[0] or img.size[1] > max_size[1]:
                 img.thumbnail(max_size, Image.Resampling.LANCZOS)
             
-            # Convert to RGB (if RGBA)
+            # 转换为RGB（如果是RGBA）
             if img.mode in ('RGBA', 'LA', 'P'):
                 background = Image.new('RGB', img.size, (255, 255, 255))
                 if img.mode == 'P':
@@ -786,94 +792,94 @@ def preprocess_image(
                 background.paste(img, mask=img.split()[-1] if img.mode in ('RGBA', 'LA') else None)
                 img = background
             
-            # Compress image
+            # 压缩图像
             buffer = BytesIO()
             img.save(buffer, format="JPEG", quality=quality, optimize=True)
             compressed_bytes = buffer.getvalue()
             compressed_size = len(compressed_bytes)
             
-            # Encode to base64
+            # 编码为base64
             compressed_b64 = base64.b64encode(compressed_bytes).decode('utf-8')
             processed_image_data = f"data:image/jpeg;base64,{compressed_b64}"
             
-            # Output log
+            # 输出日志
             if not silent:
                 compression_ratio = (1 - compressed_size / original_bytes) * 100 if original_bytes > 0 else 0
                 
-                # Multi-image scenario shows compression level
+                # 多图场景显示压缩等级
                 if image_count > 1:
                     print(
-                        f"{REQUEST_PREFIX} 🟡 Image Preprocessing | "
-                        f"Size:{original_size}->{img.size} | "
-                        f"Bytes:{original_bytes/1024:.1f}KB->{compressed_size/1024:.1f}KB | "
-                        f"Ratio:{compression_ratio:.1f}% | "
-                        f"Level:{compression_level} ({image_count} frames)"
+                        f"{REQUEST_PREFIX} 🟡 图像预处理 | "
+                        f"尺寸:{original_size}→{img.size} | "
+                        f"大小:{original_bytes/1024:.1f}KB→{compressed_size/1024:.1f}KB | "
+                        f"压缩率:{compression_ratio:.1f}% | "
+                        f"等级:{compression_level} ({image_count}帧)"
                     )
                 else:
                     print(
-                        f"{REQUEST_PREFIX} 🟡 Image Preprocessing Complete | "
-                        f"Size:{original_size}->{img.size} | "
-                        f"Bytes:{original_bytes/1024:.1f}KB->{compressed_size/1024:.1f}KB | "
-                        f"Ratio:{compression_ratio:.1f}%"
+                        f"{REQUEST_PREFIX} 🟡 图像预处理完成 | "
+                        f"尺寸:{original_size}→{img.size} | "
+                        f"大小:{original_bytes/1024:.1f}KB→{compressed_size/1024:.1f}KB | "
+                        f"压缩率:{compression_ratio:.1f}%"
                     )
             
             return processed_image_data
         
-        # If not base64 encoded image data, return as-is
+        # 如果不是base64编码的图像数据，直接返回
         return image_data
     
     except Exception as e:
         if not silent:
-            print(f"{WARN_PREFIX} ❌Image preprocessing failed | Request ID:{request_id} | Error:{str(e)}")
-        # Return original image data if preprocessing fails
+            print(f"{WARN_PREFIX} ❌图像预处理失败 | 请求ID:{request_id} | 错误:{str(e)}")
+        # 预处理失败时返回原始图像数据
         return image_data
 
 
 def get_model_max_images(model: str) -> int:
     """
-    Infer maximum supported image count based on model name
+    根据模型名称推断最大支持图像数
     
-    Strategy: Optimistic default, precise limits for known models, safe default (10) for unknown models
+    策略：乐观默认，已知模型给精确上限，未知模型给安全默认值(10)
     """
     model_lower = (model or "").lower()
     
-    # Gemini series: large context supports many images
+    # Gemini系列：超大上下文支持大量图像
     if "gemini" in model_lower or "google" in model_lower:
         return 3000
     
-    # Qwen series: give 100 image limit
+    # Qwen系列：直接给予 100 张上限
     if "qwen" in model_lower:
         return 100
         
-    # Zhipu GLM series
+    # 智谱GLM系列
     if "glm" in model_lower:
         if "4.6v" in model_lower:
             return 100
         return 5
         
-    # GPT-4 / GPT-5 series
+    # GPT-4 / GPT-5 系列
     if "gpt-4" in model_lower or "gpt-5" in model_lower:
         return 100
         
-    # Claude series
+    # Claude 系列
     if "claude" in model_lower:
         return 20
         
-    # Grok series
+    # Grok 系列
     if "grok" in model_lower:
         return 20
         
-    # Models with vision keywords (fallback)
+    # 含视觉关键词的模型（兜底）
     if any(keyword in model_lower for keyword in ["vision", "visual", "vl", "multimodal"]):
         return 100
         
-    # Default: optimistic allowance, safe upper limit 10
+    # 默认：乐观允许，给安全上限 10
     return 10
 
 
 def check_multi_image_support(provider: str, model: str) -> tuple:
     """
-    Backward compatible preserved old API, internally routes to get_model_max_images.
+    兼容保留的旧 API，内部路由到 get_model_max_images。
     """
     limit = get_model_max_images(model)
     return (True, limit)

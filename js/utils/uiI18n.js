@@ -8,9 +8,9 @@ export const UI_LANGUAGE_STORAGE_KEY = "PromptAssistant.Settings.InterfaceLangua
 const SUPPORTED_LANGUAGES = new Set(["zh", "en", "zh-TW", "ja", "ko", "ar", "es", "fa", "fr", "pt-BR", "ru", "tr"]);
 
 export const LANGUAGE_OPTIONS = [
-    { text: "Simplified Chinese", value: "zh" },
+    { text: "简体中文", value: "zh" },
     { text: "English", value: "en" },
-    { text: "Traditional Chinese", value: "zh-TW" },
+    { text: "繁體中文", value: "zh-TW" },
     { text: "日本語", value: "ja" },
     { text: "한국어", value: "ko" },
     { text: "Русский", value: "ru" },
@@ -37,22 +37,21 @@ const DOM_SKIP_SELECTOR = [
     ".model-tag-name"
 ].join(",");
 
-let currentLanguage = "zh";
+let currentLanguage = "en";
 let currentMessages = {};
 let isToastPatched = false;
 let stopGlobalLocalizationObserver = null;
 
 export function normalizeUiLanguage(value) {
-    return SUPPORTED_LANGUAGES.has(value) ? value : "zh";
+    return SUPPORTED_LANGUAGES.has(value) ? value : "en";
 }
 
 export function getStoredUiLanguage() {
     try {
-        return normalizeUiLanguage(localStorage.getItem(UI_LANGUAGE_STORAGE_KEY) || "zh");
+        return normalizeUiLanguage(localStorage.getItem(UI_LANGUAGE_STORAGE_KEY) || "en");
     } catch {
-        return "zh";
+        return "en";
     }
-}
 
 export function getCurrentUiLanguage() {
     const settingValue = app?.ui?.settings?.getSettingValue?.(UI_LANGUAGE_SETTING_ID);
@@ -106,10 +105,10 @@ export async function ensureUiLocaleLoaded(force = false) {
             LOCALE_CACHE.set(language, await fetchUiLocale(language));
         } catch (error) {
             logger.warn(`[uiI18n] ${error.message}`);
-            if (language !== "zh") {
+            if (language !== "en") {
                 try {
-                    if (!LOCALE_CACHE.has("zh") || force) {
-                        LOCALE_CACHE.set("zh", await fetchUiLocale("zh"));
+                    if (!LOCALE_CACHE.has("en") || force) {
+                        LOCALE_CACHE.set("en", await fetchUiLocale("en"));
                     }
                 } catch (fallbackError) {
                     logger.warn(`[uiI18n] ${fallbackError.message}`);
@@ -119,7 +118,7 @@ export async function ensureUiLocaleLoaded(force = false) {
     }
 
     currentLanguage = language;
-    currentMessages = LOCALE_CACHE.get(language) || LOCALE_CACHE.get("zh") || {};
+    currentMessages = LOCALE_CACHE.get(language) || LOCALE_CACHE.get("en") || {};
     return currentMessages;
 }
 

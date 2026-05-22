@@ -1,20 +1,20 @@
 /**
- * Markdown Note Translation Helper (Zero Dependencies)
- * - HTML -> Placeholder -> Translate backfill -> HTML
- * - Protect code blocks/inline code and URL attributes of links/images, only translate visible text and optional img.alt
+ * Markdown Note 翻译辅助工具（零依赖）
+ * - HTML -> 占位 -> 翻译回填 -> HTML
+ * - 保护代码块/内联代码与链接/图片的 URL 属性，只翻译可见文本与可选的 img.alt
  */
 
-// --- Configuration items---
+// ---配置项---
 const DEFAULT_OPTIONS = {
-  translateImageAlt: true, // Whether to translate <img alt>
-  keepSurroundingPunctuation: false // Whether to keep surrounding punctuation untranslated
+  translateImageAlt: true, // 是否翻译 <img alt>
+  keepSurroundingPunctuation: false // 是否保持两端标点不翻译
 };
 
-// Placeholder generation
+// 占位符生成
 const PH_PREFIX = "⟪T";
 const PH_SUFFIX = "⟫";
 
-// Determine if inside code context
+// 判断是否在 code 上下文中
 function isInCodeContext(node) {
   while (node) {
     if (node.nodeType === Node.ELEMENT_NODE) {
@@ -26,14 +26,14 @@ function isInCodeContext(node) {
   return false;
 }
 
-// Determine if attribute is URL/non-translatable attribute
+// 判断属性是否为 URL/不翻译属性
 function isNonTranslatableAttr(name) {
   if (!name) return true;
   const n = name.toLowerCase();
   return n === 'href' || n === 'src' || n.startsWith('data-') || n === 'title';
 }
 
-// Split leading and trailing whitespace and punctuation
+// 拆分前后空白与标点
 function splitLeadingTrailing(text, keepPunct) {
   if (!text) return { lead: '', core: '', trail: '' };
   let leadWS = text.match(/^\s+/)?.[0] || '';
@@ -55,7 +55,7 @@ function splitLeadingTrailing(text, keepPunct) {
   return { lead: leadWS, core, trail: trailWS };
 }
 
-// Traverse text nodes and protect placeholders
+// 遍历文本节点并占位
 function protectAndExtract(html, options = {}) {
   const opts = { ...DEFAULT_OPTIONS, ...options };
   const parser = new DOMParser();
@@ -69,11 +69,11 @@ function protectAndExtract(html, options = {}) {
   const walker = doc.createTreeWalker(body, NodeFilter.SHOW_TEXT, {
     acceptNode(node) {
       if (!node || !node.nodeValue) return NodeFilter.FILTER_REJECT;
-      // Skip pure whitespace
+      // 跳过纯空白
       if (!node.nodeValue.trim()) return NodeFilter.FILTER_REJECT;
-      // Skip code context
+      // 代码上下文跳过
       if (isInCodeContext(node)) return NodeFilter.FILTER_REJECT;
-      // Attribute text does not appear in TreeWalker, only filter visible text nodes here
+      // 属性文本不在 TreeWalker 中出现，这里只过滤可见文本节点
       return NodeFilter.FILTER_ACCEPT;
     }
   });
@@ -82,19 +82,19 @@ function protectAndExtract(html, options = {}) {
 
   while (walker.nextNode()) {
     const node = walker.currentNode;
-    // If inside a link or image etc., only translate visible text
+    // 如果在链接或图片等标签内，仅翻译可见文本
     const parentEl = node.parentElement;
     if (parentEl) {
       const tag = parentEl.tagName?.toLowerCase();
       if (tag === 'a') {
-        // Only translate node text, skip attributes
+        // 仅翻译节点文本，属性跳过
       } else if (tag === 'img') {
-        // Text nodes generally do not appear under <img>, skip here
+        // 文本节点一般不出现在 <img> 下，这里忽略
       }
     }
 
     const { lead, core, trail } = splitLeadingTrailing(node.nodeValue, opts.keepSurroundingPunctuation);
-    if (!core) continue; // All whitespace or punctuation with keepPunct set
+    if (!core) continue; // 全是空白或标点且设置保持
 
     const ph = `${PH_PREFIX}${index}${PH_SUFFIX}`;
     texts.push(core);
@@ -103,12 +103,12 @@ function protectAndExtract(html, options = {}) {
     index++;
   }
 
-  // Replace text nodes with placeholder structure: lead + PH + trail
+  // 将文本节点替换为 占位结构：lead + PH + trail
   for (const rec of nodeRecords) {
     rec.node.nodeValue = `${rec.lead}${rec.ph}${rec.trail}`;
   }
 
-  // Optional: Process <img alt>
+  // 可选：处理 <img alt>
   const imgList = Array.from(body.querySelectorAll('img[alt]'));
   const imgAltRecords = [];
   if (opts.translateImageAlt && imgList.length) {
@@ -130,7 +130,7 @@ function protectAndExtract(html, options = {}) {
     rec.el.setAttribute('alt', `${rec.lead}${rec.ph}${rec.trail}`);
   }
 
-  // Return placeholder HTML and text arrays
+  // 返回占位后的 HTML 与文本数组
   return {
     placeholderHTML: body.innerHTML,
     texts,
@@ -138,13 +138,13 @@ function protectAndExtract(html, options = {}) {
   };
 }
 
-// Backfill translations
+// 回填翻译
 function restoreWithTranslations(placeholderHTML, placeholders, translations) {
   let html = placeholderHTML;
   for (let i = 0; i < placeholders.length; i++) {
     const ph = placeholders[i];
     const tr = translations[i] ?? '';
-    // Replace only once to maintain order
+    // 只替换一次以保持顺序
     html = html.replace(ph, tr);
   }
   return html;

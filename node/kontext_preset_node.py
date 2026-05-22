@@ -1,5 +1,5 @@
 """
-Prompt content extraction preset node - V3 version
+提示词内容提取预设节点 - V3 版本
 """
 
 import hashlib
@@ -11,18 +11,17 @@ from .base.base_node import BaseNode
 
 class KontextPresetNode(BaseNode, io.ComfyNode):
     """
-    Prompt content extraction preset node (V3)
-    Allows the user to select a KonText, read its configuration and format output
-    as the preset system prompt, also outputting the selected parameter group
-    (including model and temperature) as mandatory input parameters for subsequent nodes.
+    提示词内容提取预设节点（V3）
+    允许用户选择一个 KonText（上下文），读取其配置并格式化输出预设的系统提示词，
+    将选定的参数组（包含模型和温度）也输出，作为后续节点的强制输入参数。
     """
     
-    # Static cache
+    # 静态缓存
     _cached_config: Dict[str, Any] = {}
     
     @classmethod
     def _load_config(cls) -> Dict[str, Any]:
-        """Load config on demand, still usable with V3 class method caching mechanism"""
+        """按需获取配置，V3由于有类方法缓存机制，依然可以使用"""
         from ..config_manager import config_manager
         
         config = config_manager.get_system_prompts()
@@ -36,13 +35,13 @@ class KontextPresetNode(BaseNode, io.ComfyNode):
         config = cls._load_config()
         kontext_options = []
         
-        # Parse available kontext options
+        # 解析可用的 kontext 选项
         if config and "kontexts" in config:
             for kontext in config["kontexts"]:
                 kontext_options.append(kontext["name"])
                 
         if not kontext_options:
-            kontext_options = ["Default Extraction Preset"]
+            kontext_options = ["Default Extract Preset"]
             
         return io.Schema(
             node_id="KontextPresetNode",
@@ -53,7 +52,8 @@ class KontextPresetNode(BaseNode, io.ComfyNode):
                 io.Combo.Input(
                     "kontext",
                     options=kontext_options,
-                    default=kontext_options[0] if kontext_options else None
+                    default=kontext_options[0] if kontext_options else None,
+                    tooltip="Choose a KonText preset to extract and format",
                 ),
             ],
             outputs=[

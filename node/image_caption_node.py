@@ -1,18 +1,18 @@
 """
-Image captioning (image-to-prompt reverse inference) node - V3 version
+图像反推（图片反推提示词）节点 - V3 版本
 
-V3 Migration Notes:
-    - Inherits VLMNodeBase + io.ComfyNode
-    - INPUT_TYPES -> define_schema()
-    - IS_CHANGED -> fingerprint_inputs()
-    - def analyze_image(self, ...) -> @classmethod execute(cls, ...)
+V3 迁移说明：
+    - 继承 VLMNodeBase + io.ComfyNode
+    - INPUT_TYPES → define_schema()
+    - IS_CHANGED → fingerprint_inputs()
+    - def analyze_image(self, ...) → @classmethod execute(cls, ...)
 
-Feature Description:
-    - Supports single image input
-    - Supports IMAGE batch input: processes each frame independently via VLM, outputs merged text + string list
-    - Two output ports:
-        · caption_text  (STRING)      - All frame results merged with "\\n---\\n" into complete text
-        · caption_list  (STRING List) - Independent result string list per frame (is_output_list=True)
+功能说明：
+    - 支持单张图像输入
+    - 支持 IMAGE batch 输入：逐帧独立调用 VLM，输出合并文本 + 字符串列表
+    - 两个输出端口：
+        · caption_text  (STRING)      - 所有帧结果用 "\\n---\\n" 合并的完整文本
+        · caption_list  (STRING List) - 每帧独立结果的字符串列表（is_output_list=True）
 """
 
 from comfy.model_management import InterruptProcessingException
@@ -28,15 +28,15 @@ from .base import VLMNodeBase
 
 
 class ImageCaptionNode(VLMNodeBase, io.ComfyNode):
-    """Image captioning node (V3), supports single/batch image input, outputs merged text and string list"""
+    """图像反推节点（V3），支持单张/批量图像输入，输出合并文本与字符串列表"""
 
     @classmethod
     def define_schema(cls):
-        # Dynamically get service list
+        # 动态获取服务列表
         service_options = cls.get_vlm_service_options()
         default_service = service_options[0] if service_options else "Zhipu"
 
-        # Get templates
+        # 获取模板
         from ..config_manager import config_manager
         system_prompts = config_manager.get_system_prompts()
 
@@ -58,12 +58,12 @@ class ImageCaptionNode(VLMNodeBase, io.ComfyNode):
             id_to_display_name[key] = display_name
             prompt_template_options.append(display_name)
 
-        default_template_name = prompt_template_options[0] if prompt_template_options else "Caption-Natural Language"
+        default_template_name = prompt_template_options[0] if prompt_template_options else "Image Caption - Natural Language"
         if active_vision_id and active_vision_id in id_to_display_name:
             default_template_name = id_to_display_name[active_vision_id]
 
         if not prompt_template_options:
-            prompt_template_options = ["Caption-Natural Language"]
+            prompt_template_options = ["Image Caption - Natural Language"]
 
         return io.Schema(
             node_id="ImageCaptionNode",
@@ -123,16 +123,16 @@ class ImageCaptionNode(VLMNodeBase, io.ComfyNode):
                 ),
             ],
             outputs=[
-                # Merged text (single image: direct output; batch: joined with "\\n---\\n")
+                # 合并文本（单张直接输出；batch 时用 "\n---\n" 拼接）
                 io.String.Output("caption_text"),
-                # Per-frame independent result list (single image: single-element list)
+                # 每帧独立结果列表（单张时为单元素列表）
                 io.String.Output("caption_list", is_output_list=True),
             ],
             hidden=[io.Hidden.unique_id],
         )
 
     # -------------------------------------------------------------------------
-    # fingerprint_inputs (replaces IS_CHANGED)
+    # fingerprint_inputs（替代 IS_CHANGED）
     # -------------------------------------------------------------------------
 
     @classmethod
@@ -141,7 +141,7 @@ class ImageCaptionNode(VLMNodeBase, io.ComfyNode):
         image=None, rule=None, custom_rule=None, custom_rule_content=None,
         user_prompt=None, vlm_service=None, ollama_auto_unload=None, seed=None
     ):
-        """Replaces V1 IS_CHANGED"""
+        """替代 V1 IS_CHANGED"""
         import hashlib
         temp_rule_hash = hashlib.md5((custom_rule_content or "").encode('utf-8')).hexdigest()
         user_hint_hash = hashlib.md5((user_prompt or "").encode('utf-8')).hexdigest()
@@ -159,7 +159,7 @@ class ImageCaptionNode(VLMNodeBase, io.ComfyNode):
         ))
 
     # -------------------------------------------------------------------------
-    # Internal helper: analyze single image
+    # 内部辅助：分析单张图像
     # -------------------------------------------------------------------------
 
     @classmethod
@@ -175,20 +175,20 @@ class ImageCaptionNode(VLMNodeBase, io.ComfyNode):
         frame_index=None
     ) -> str:
         """
-        Call VLM to analyze a single image and return text result.
+        对单张图像调用 VLM 进行分析，返回文本结果。
 
-        Args:
-            image_data    : Base64 encoded image data URL
-            prompt_to_send: Concatenated prompt (system + user_prompt)
-            rule_name     : Current rule name (for logging)
-            service_id    : Service ID
-            service       : Service config dict
-            provider_config: API call parameter dict
-            request_id    : Current request ID
-            frame_index   : Current frame index in batch mode (None for single image mode)
+        参数：
+            image_data    : base64 编码的图像 data URL
+            prompt_to_send: 拼接好的提示词（system + user_prompt）
+            rule_name     : 当前规则名称（用于日志）
+            service_id    : 服务 ID
+            service       : 服务配置字典
+            provider_config: API 调用参数字典
+            request_id    : 本次请求 ID
+            frame_index   : batch 模式下当前帧序号（None 表示单张模式）
 
-        Returns:
-            Analysis result text string
+        返回：
+            分析结果文本字符串
         """
         frame_label = f" [Frame {frame_index + 1}]" if frame_index is not None else ""
         model_full_name = provider_config.get('model')
@@ -218,7 +218,7 @@ class ImageCaptionNode(VLMNodeBase, io.ComfyNode):
 
         if result and result.get('success'):
             data = result.get('data', {})
-            # V3 refactoring returns key named description, compatible with old caption
+            # V3 重构后返回键名为 description，兼容旧版 caption
             caption_text = data.get('description', data.get('caption', '')).strip()
             if not caption_text:
                 error_msg = 'API returned empty result'
@@ -230,13 +230,13 @@ class ImageCaptionNode(VLMNodeBase, io.ComfyNode):
                 result.get('error', 'Unknown error') if result
                 else 'No result returned'
             )
-            if error_msg == "Task interrupted":
+            if error_msg == "任务被中断":
                 raise InterruptProcessingException()
             log_error(TASK_IMAGE_CAPTION, request_id, error_msg, source=SOURCE_NODE)
             raise RuntimeError(f"Analysis failed: {error_msg}")
 
     # -------------------------------------------------------------------------
-    # execute (V3 main execution method)
+    # execute（V3 主执行方法）
     # -------------------------------------------------------------------------
 
     @classmethod
@@ -253,7 +253,7 @@ class ImageCaptionNode(VLMNodeBase, io.ComfyNode):
                 raise ValueError("No image provided. Please connect an image to the 'image' input.")
 
             # ------------------------------------------------------------------
-            # 1. Build prompt
+            # 1. 构建提示词
             # ------------------------------------------------------------------
             rule_name = "Custom Rule" if (custom_rule and custom_rule_content) else rule
             system_message = None
@@ -279,7 +279,7 @@ class ImageCaptionNode(VLMNodeBase, io.ComfyNode):
                         break
 
                 if not template_found or not system_message or not system_message.get('content'):
-                    system_message = {"role": "system", "content": "Please describe this image in detail."}
+                    system_message = {"role": "system", "content": "请详细描述这张图片的内容"}
                     rule_name = "Default Rule"
 
             system_text = (
@@ -290,7 +290,7 @@ class ImageCaptionNode(VLMNodeBase, io.ComfyNode):
             prompt_to_send = f"{system_text}\n\n{user_prompt}".strip() if user_prompt else system_text
 
             # ------------------------------------------------------------------
-            # 2. Parse service and model
+            # 2. 解析服务与模型
             # ------------------------------------------------------------------
             service_id, model_name = cls.parse_service_model(vlm_service)
             if not service_id:
@@ -331,24 +331,24 @@ class ImageCaptionNode(VLMNodeBase, io.ComfyNode):
                 raise ValueError(f"Please configure API key and model for {vlm_service}")
 
             # ------------------------------------------------------------------
-            # 3. Analyze image: supports batch (per-frame independent call)
+            # 3. 分析图像：支持 batch（逐帧独立调用）
             # ------------------------------------------------------------------
             request_id = generate_request_id("vlm", None, unique_id)
 
-            # Check if multi-frame batch [N, H, W, C] and N > 1
+            # 检查是否为多帧 batch [N, H, W, C] 且 N > 1
             if len(image.shape) == 4 and image.shape[0] > 1:
-                # Batch mode: call VLM independently for each frame
+                # Batch 模式：逐帧独立调用 VLM
                 batch_size = image.shape[0]
                 results: list[str] = []
 
                 for i in range(batch_size):
-                    single_frame = image[i:i + 1]  # Keep 4D shape [1, H, W, C]
+                    single_frame = image[i:i + 1]  # 保持 4D 形状 [1, H, W, C]
                     image_data = cls._image_to_base64(single_frame)
                     frame_provider_config = provider_config
                     if service.get('type') == 'ollama':
                         frame_provider_config = provider_config.copy()
                         frame_provider_config['auto_unload'] = bool(ollama_auto_unload) and i == batch_size - 1
-                    # Generate independent request_id per frame for log tracking
+                    # 为每帧生成独立的 request_id，便于日志追踪
                     frame_request_id = generate_request_id("vlm", None, f"{unique_id}_f{i}")
                     description = cls._analyze_single_image(
                         image_data=image_data,
@@ -362,12 +362,12 @@ class ImageCaptionNode(VLMNodeBase, io.ComfyNode):
                     )
                     results.append(description)
 
-                # Merge text (consistent with legacy version)
+                # 合并文本（与旧版保持一致）
                 combined_text = "\n---\n".join(results)
                 return io.NodeOutput(combined_text, results)
 
             else:
-                # Single image mode
+                # 单张模式
                 image_data = cls._image_to_base64(image)
                 description = cls._analyze_single_image(
                     image_data=image_data,
@@ -379,7 +379,7 @@ class ImageCaptionNode(VLMNodeBase, io.ComfyNode):
                     request_id=request_id,
                     frame_index=None
                 )
-                # Single image: caption_list is a single-element list
+                # 单张时 caption_list 为单元素列表
                 return io.NodeOutput(description, [description])
 
         except InterruptProcessingException:

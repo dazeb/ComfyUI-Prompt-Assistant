@@ -192,12 +192,12 @@ class OllamaNativeAdapter:
                     pbar.error(result.get("error", "Unknown Ollama error"))
                 return result
             except asyncio.CancelledError:
-                pbar.cancel(f"Task interrupted | Service:{provider_label}")
-                return {"success": False, "error": "Task interrupted", "interrupted": True}
+                pbar.cancel(f"任务被中断 | 服务:{provider_label}")
+                return {"success": False, "error": "任务被中断", "interrupted": True}
             except Exception as req_err:
                 if pbar:
-                    pbar.error(f"{provider_label} request error: {req_err}")
-                return {"success": False, "error": f"{provider_label} request error: {req_err}"}
+                    pbar.error(f"{provider_label} 请求异常: {req_err}")
+                return {"success": False, "error": f"{provider_label} 请求异常: {req_err}"}
             finally:
                 if not monitor_task.done():
                     monitor_task.cancel()

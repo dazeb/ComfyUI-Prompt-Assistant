@@ -5,7 +5,7 @@ from . import server
 
 from comfy_api.latest import io, ComfyExtension
 
-# Import all refactored V3 nodes
+# 导入所有重构后的 V3 节点
 from .node.translate_node import PromptTranslate
 from .node.image_caption_node import ImageCaptionNode
 from .node.kontext_preset_node import KontextPresetNode
@@ -16,7 +16,7 @@ WEB_DIRECTORY = "./js"
 
 def get_version():
     """
-    Read version number from pyproject.toml
+    从pyproject.toml文件中读取版本号
     """
     try:
         toml_path = os.path.join(os.path.dirname(__file__), "pyproject.toml")
@@ -25,14 +25,14 @@ def get_version():
             version_match = re.search(r'version\s*=\s*"([^"]+)"', content)
             if version_match:
                 return version_match.group(1)
-            raise ValueError("Version number not found in pyproject.toml")
+            raise ValueError("未在pyproject.toml中找到版本号")
     except Exception as e:
-        print(f"Failed to read version: {str(e)}")
+        print(f"读取版本号失败: {str(e)}")
         raise
 
 def inject_version_to_frontend():
     """
-    Inject version number into frontend global variable
+    将版本号注入到前端全局变量
     """
     js_code = f"""
 window.PromptAssistant_Version = "{VERSION}";
@@ -46,26 +46,26 @@ window.PromptAssistant_Version = "{VERSION}";
     with open(version_file, "w", encoding='utf-8') as f:
         f.write(js_code)
 
-# Initialize version number
+# 初始化版本号
 VERSION = get_version()
 
-# Execute initialization
+# 执行初始化操作
 inject_version_to_frontend()
 
-# Disable httpx verbose logging to avoid interrupting single-line dynamic display
+# 禁用httpx的详细日志，避免打断单行动态显示
 logging.getLogger("httpx").setLevel(logging.WARNING)
 
-# Print initialization info
-print(f"✨Prompt Assistant V{VERSION} started")
+# 打印初始化信息
+print(f"✨提示词小助手 V{VERSION} 已启动")
 
 # =========================================================================
-# ComfyUI V3 API Extension Registration Mechanism
+# ComfyUI V3 API 扩展注册机制
 # =========================================================================
 
 class PromptAssistantExtension(ComfyExtension):
     """
-    Extension class for Prompt Assistant component
-    Registers all V3 nodes with the system via get_node_list
+    Prompt Assistant 组件的扩展类
+    通过 get_node_list 方法向系统注册所有 V3 节点
     """
     async def get_node_list(self) -> list[type[io.ComfyNode]]:
         return [
@@ -78,7 +78,7 @@ class PromptAssistantExtension(ComfyExtension):
 
 async def comfy_entrypoint() -> PromptAssistantExtension:
     """
-    Entry point function for V3 module, automatically called by ComfyUI on startup
-    Replaces the old NODE_CLASS_MAPPINGS and NODE_DISPLAY_NAME_MAPPINGS
+    V3 模块的入口函数，由 ComfyUI 启动时自动调用
+    替代了旧的 NODE_CLASS_MAPPINGS 和 NODE_DISPLAY_NAME_MAPPINGS
     """
     return PromptAssistantExtension()

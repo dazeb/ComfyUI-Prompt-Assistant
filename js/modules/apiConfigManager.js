@@ -1,6 +1,6 @@
 /**
- * API Configuration Manager v2.0
- * Supports dynamic provider management and multi-model configuration
+ * API配置管理器 v2.0
+ * 支持动态服务商管理和多模型配置
  */
 
 import { app } from "../../../../scripts/app.js";
@@ -20,46 +20,46 @@ import {
 import { APIService } from "../services/api.js";
 import { tUI } from "../utils/uiI18n.js";
 
-// Sortable library is already loaded via script tag, use global variable directly
+// Sortable库已通过script标签加载，直接使用全局变量
 
 class APIConfigManager {
-    // Preset provider IDs (not editable/deletable)
+    // 预置服务商ID列表（不可编辑/删除）
     static PRESET_SERVICE_IDS = ['zhipu', 'xFlow', 'ollama'];
 
     constructor() {
-        // Provider data
+        // 服务商数据
         this.services = [];
         this.currentServices = { llm: null, vlm: null };
 
-        // Baidu Translate config
+        // 百度翻译配置
         this.baiduConfig = { app_id: '', secret_key: '' };
     }
 
     /**
-     * Notify the system that API config has been updated
-     * Triggers the pa-config-updated event to notify settings.js and other modules to refresh
+     * 通知系统 API 配置已更新
+     * 触发 pa-config-updated 事件，通知 settings.js 等模块刷新
      */
     notifyConfigChange() {
-        logger.debug('Dispatching API config update event: pa-config-updated');
+        logger.debug('分发 API 配置更新事件: pa-config-updated');
         window.dispatchEvent(new CustomEvent('pa-config-updated'));
     }
 
     /**
-     * Show API configuration modal
+     * 显示API配置弹窗
      */
     async showAPIConfigModal() {
         try {
-            logger.debug('Opening API configuration modal v2.0');
+            logger.debug('打开API配置弹窗 v2.0');
 
             createSettingsDialog({
-                title: `<i class="pi pi-cog" style="margin-right: 8px;"></i>${tUI('API Manager')}`,
+                title: `<i class="pi pi-cog" style="margin-right: 8px;"></i>${tUI('API管理器')}`,
                 dialogClassName: 'api-config-dialog-v2',
                 disableBackdropAndCloseOnClickOutside: true,
-                hideFooter: true,  // Do not show save/cancel buttons at the bottom
+                hideFooter: true,  // 不显示底部的保存/取消按钮
                 renderNotice: (noticeArea) => {
                     const subtitle = document.createElement('div');
                     subtitle.className = 'api-config-warning';
-                    subtitle.textContent = `*${tUI('Disclaimer: This plugin only provides API calling tools. Third-party service responsibilities are unrelated to this plugin. All user configuration information related to the plugin is stored locally. This plugin assumes no responsibility for any issues arising from account usage!')}`;
+                    subtitle.textContent = `*${tUI('免责声明：本插件仅提供 API 调用工具，第三方服务责任与本插件无关，插件所涉用户配置信息均存储于本地。对于因账号使用产生的任何问题，本插件不承担责任！')}`;
                     noticeArea.appendChild(subtitle);
                 },
                 renderContent: async (container) => {
@@ -67,14 +67,14 @@ class APIConfigManager {
                     this._createAPIConfigUI(container);
                 },
                 onSave: async () => {
-                    // Manual save is no longer needed because it is already saved in real-time
+                    // 不再需要手动保存，因为已经实时保存了
                 }
             });
         } catch (error) {
-            logger.error(`Failed to open API configuration modal: ${error.message}`);
+            logger.error(`打开API配置弹窗失败: ${error.message}`);
             app.extensionManager.toast.add({
                 severity: "error",
-                summary: "Failed to open configuration",
+                summary: "打开配置失败",
                 detail: error.message,
                 life: 3000
             });
@@ -82,11 +82,11 @@ class APIConfigManager {
     }
 
     /**
-     * Load all configurations
+     * 加载所有配置
      */
     async _loadAllConfigs() {
         try {
-            // Load provider list
+            // 加载服务商列表
             const servicesRes = await fetch(APIService.getApiUrl('/services'));
             const servicesData = await servicesRes.json();
 
@@ -94,11 +94,11 @@ class APIConfigManager {
                 this.services = servicesData.services || [];
             }
 
-            // Load Baidu Translate config
+            // 加载百度翻译配置
             const baiduRes = await fetch(APIService.getApiUrl('/config/baidu_translate'));
             this.baiduConfig = await baiduRes.json();
 
-            // Load current service config to get current_services
+            // 加载当前服务配置以获取current_services
             const llmRes = await fetch(APIService.getApiUrl('/config/llm'));
             const llmConfig = await llmRes.json();
             if (llmConfig.provider) {
@@ -111,23 +111,23 @@ class APIConfigManager {
                 this.currentServices.vlm = vlmConfig.provider;
             }
 
-            logger.debug('Configuration loaded successfully', {
+            logger.debug('配置加载完成', {
                 services: this.services.length,
                 currentLLM: this.currentServices.llm,
                 currentVLM: this.currentServices.vlm
             });
         } catch (error) {
-            logger.error('Failed to load configuration', error);
+            logger.error('加载配置失败', error);
             throw error;
         }
     }
 
     /**
-     * Save all configurations
+     * 保存所有配置
      */
     async _saveAllConfigs() {
         try {
-            // Save Baidu Translate config
+            // 保存百度翻译配置
             await fetch(APIService.getApiUrl('/config/baidu_translate'), {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -136,14 +136,14 @@ class APIConfigManager {
 
             app.extensionManager.toast.add({
                 severity: "success",
-                summary: "Configuration saved",
+                summary: "配置已保存",
                 life: 3000
             });
         } catch (error) {
-            logger.error('Failed to save configuration', error);
+            logger.error('保存配置失败', error);
             app.extensionManager.toast.add({
                 severity: "error",
-                summary: "Save failed",
+                summary: "保存失败",
                 detail: error.message,
                 life: 3000
             });
@@ -152,7 +152,7 @@ class APIConfigManager {
     }
 
     /**
-     * Save Baidu Translate config
+     * 保存百度翻译配置
      */
     async _saveBaiduConfig() {
         try {
@@ -162,22 +162,22 @@ class APIConfigManager {
                 body: JSON.stringify(this.baiduConfig)
             });
 
-            logger.debug('Baidu Translate config saved');
+            logger.debug('百度翻译配置已保存');
 
-            // Trigger config sync event
+            // 触发配置同步事件
             this.notifyConfigChange();
 
-            // Show success notification
+            // 显示成功提示
             app.extensionManager.toast.add({
                 severity: "success",
-                summary: "Baidu Translate config saved",
+                summary: "百度翻译配置已保存",
                 life: 2000
             });
         } catch (error) {
-            logger.error('Failed to save Baidu Translate config', error);
+            logger.error('保存百度翻译配置失败', error);
             app.extensionManager.toast.add({
                 severity: "error",
-                summary: "Save failed",
+                summary: "保存失败",
                 detail: error.message,
                 life: 3000
             });
@@ -185,26 +185,26 @@ class APIConfigManager {
     }
 
     /**
-     * Create API configuration UI
+     * 创建API配置UI
      */
     _createAPIConfigUI(container) {
-        // Create tab container
+        // 创建标签页容器
         const tabContainer = document.createElement('div');
         tabContainer.className = 'api-config-tabs';
 
-        // Create tab header (dynamically generate all provider tabs)
+        // 创建标签页头部（动态生成所有服务商标签）
         const tabHeader = this._createTabHeader();
         tabContainer.appendChild(tabHeader);
 
-        // Create tab content container
+        // 创建标签页内容容器
         const tabContent = document.createElement('div');
         tabContent.className = 'tab-content';
 
-        // Create Baidu Translate tab
+        // 创建百度翻译标签页
         const baiduContent = this._createBaiduTab();
         tabContent.appendChild(baiduContent);
 
-        // Dynamically create tab content for each provider
+        // 动态创建每个服务商的标签页内容
         this.services.forEach(service => {
             const serviceContent = this._createServiceContentTab(service);
             tabContent.appendChild(serviceContent);
@@ -213,43 +213,43 @@ class APIConfigManager {
         tabContainer.appendChild(tabContent);
         container.appendChild(tabContainer);
 
-        // Display the first tab by default
+        // 默认显示第一个标签页
         this._switchTab('baidu', tabHeader, tabContent);
     }
 
     /**
-     * Create tab header (includes all providers)
+     * 创建标签页头部（包含所有服务商）
      */
     _createTabHeader() {
         const header = document.createElement('div');
         header.className = 'tab-header';
 
-        // Baidu Translate tab
-        const baiduTab = this._createTabButton('baidu', tUI('Baidu Translate'), tUI('Machine Translation'));
+        // 百度翻译标签
+        const baiduTab = this._createTabButton('baidu', tUI('百度翻译'), tUI('机器翻译'));
         header.appendChild(baiduTab);
 
-        // Dynamically create provider tabs
+        // 动态创建服务商标签
         this.services.forEach(service => {
             const tabButton = this._createTabButton(
                 service.id,
-                service.name || tUI('Unnamed Service'),
+                service.name || '未命名服务',
                 service.description || ''
             );
             header.appendChild(tabButton);
         });
 
-        // Create "+" add tab button
+        // 创建"+"新增标签按钮
         const addButton = document.createElement('button');
         addButton.className = 'service-tab-add';
         addButton.innerHTML = '<i class="pi pi-plus"></i>';
         addButton.addEventListener('click', () => this._addNewService(header, header.nextElementSibling));
         header.appendChild(addButton);
 
-        // Initialize drag-and-drop sorting
+        // 初始化拖拽排序
         new Sortable(header, {
             handle: '.tab-button',
             draggable: '.tab-button',
-            filter: '.service-tab-add',  // Exclude the "+" button
+            filter: '.service-tab-add',  // 排除"+"按钮
             animation: 150,
             onEnd: async (evt) => {
                 await this._updateServicesOrder();
@@ -260,24 +260,24 @@ class APIConfigManager {
     }
 
     /**
-     * Update provider order
+     * 更新服务商顺序
      */
     async _updateServicesOrder() {
         try {
-            // Read current tab order from DOM
+            // 从DOM读取当前标签顺序
             const header = document.querySelector('.tab-header');
             const buttons = header.querySelectorAll('.tab-button');
             const serviceIds = [];
 
             buttons.forEach(btn => {
                 const tabId = btn.dataset.tab;
-                // Exclude special tabs (e.g., Baidu Translate)
+                // 排除特殊标签(如百度翻译)
                 if (tabId && tabId !== 'baidu') {
                     serviceIds.push(tabId);
                 }
             });
 
-            // Call backend API to save order
+            // 调用后端API保存顺序
             const res = await fetch(APIService.getApiUrl('/services/order'), {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
@@ -287,7 +287,7 @@ class APIConfigManager {
             const result = await res.json();
 
             if (result.success) {
-                // Update local service list order
+                // 更新本地服务列表顺序
                 const orderedServices = [];
                 serviceIds.forEach(id => {
                     const service = this.services.find(s => s.id === id);
@@ -296,7 +296,7 @@ class APIConfigManager {
                     }
                 });
 
-                // Add services not in orderedServices
+                // 添加未在orderedServices中的服务
                 this.services.forEach(s => {
                     if (!orderedServices.find(os => os.id === s.id)) {
                         orderedServices.push(s);
@@ -305,18 +305,18 @@ class APIConfigManager {
 
                 this.services = orderedServices;
 
-                logger.debug('Provider order updated', { order: serviceIds });
+                logger.debug('服务商顺序已更新', { order: serviceIds });
 
-                // Trigger config sync event
+                // 触发配置同步事件
                 this.notifyConfigChange();
             } else {
-                throw new Error(result.error || 'Failed to update order');
+                throw new Error(result.error || '更新顺序失败');
             }
         } catch (error) {
-            logger.error('Failed to update provider order', error);
+            logger.error('更新服务商顺序失败', error);
             app.extensionManager.toast.add({
                 severity: "error",
-                summary: "Failed to update order",
+                summary: "更新顺序失败",
                 detail: error.message,
                 life: 3000
             });
@@ -325,20 +325,20 @@ class APIConfigManager {
 
 
     /**
-     * Create a single tab button
+     * 创建单个标签按钮
      */
     _createTabButton(tabId, title, subtitle) {
         const button = document.createElement('button');
         button.className = 'tab-button';
         button.dataset.tab = tabId;
 
-        // Tab title
+        // 标签标题
         const titleEl = document.createElement('div');
         titleEl.className = 'tab-title';
         titleEl.textContent = title;
         button.appendChild(titleEl);
 
-        // Tab subtitle (description)
+        // 标签小字（介绍）
         if (subtitle) {
             const subtitleEl = document.createElement('div');
             subtitleEl.className = 'tab-subtitle';
@@ -346,13 +346,13 @@ class APIConfigManager {
             button.appendChild(subtitleEl);
         }
 
-        // Click to switch tab
+        // 点击切换标签
         button.addEventListener('click', () => {
             this._switchTab(tabId, button.parentElement, button.parentElement.nextElementSibling);
         });
 
-        // Attach right-click menu for provider tabs (except Baidu Translate and preset providers)
-        // Preset providers cannot be edited/deleted; only user-defined providers have right-click menu
+        // 为服务商标签添加右键菜单（百度翻译和预置服务商除外）
+        // 预置服务商不可编辑/删除，只有用户自定义的服务商才能使用右键菜单
         const isPresetService = APIConfigManager.PRESET_SERVICE_IDS.includes(tabId);
         if (tabId !== 'baidu' && !isPresetService) {
             this._attachServiceContextMenu(button, tabId, title);
@@ -362,10 +362,10 @@ class APIConfigManager {
     }
 
     /**
-     * Switch tab
+     * 切换标签页
      */
     _switchTab(tabId, header, contentContainer) {
-        // Update tab button state
+        // 更新标签按钮状态
         header.querySelectorAll('.tab-button').forEach(btn => {
             if (btn.dataset.tab === tabId) {
                 btn.classList.add('active');
@@ -374,21 +374,21 @@ class APIConfigManager {
             }
         });
 
-        // Show corresponding content
+        // 显示对应内容
         contentContainer.querySelectorAll('.tab-pane').forEach(pane => {
             pane.style.display = pane.dataset.tab === tabId ? 'block' : 'none';
         });
     }
 
     /**
-     * Attach right-click menu for service tab
+     * 为服务标签附加右键菜单
      */
     _attachServiceContextMenu(button, serviceId, serviceName) {
         createContextMenu({
             target: button,
             items: [
                 {
-                    label: tUI('Edit provider name'),
+                    label: '修改服务商名称',
                     icon: 'pi-pencil',
                     onClick: () => {
                         this._editServiceName(button, serviceId, serviceName);
@@ -398,9 +398,9 @@ class APIConfigManager {
                     separator: true
                 },
                 {
-                    label: tUI('Delete service'),
+                    label: '删除服务',
                     icon: 'pi-trash',
-                    danger: true,  // Mark as dangerous action, icon shown in red
+                    danger: true,  // 标记为危险操作，图标显示红色
                     onClick: () => {
                         this._deleteService(serviceId, serviceName);
                     }
@@ -410,7 +410,7 @@ class APIConfigManager {
     }
 
     /**
-     * Edit provider name
+     * 修改服务商名称
      */
     _editServiceName(triggerButton, serviceId, currentName) {
         const service = this.services.find(s => s.id === serviceId);
@@ -418,20 +418,20 @@ class APIConfigManager {
 
         createConfirmPopup({
             target: triggerButton,
-            message: tUI('Edit provider information'),
+            message: '修改服务商信息',
             icon: 'pi-pencil',
             position: 'bottom',
-            confirmLabel: tUI('Save'),
-            cancelLabel: tUI('Cancel'),
+            confirmLabel: '保存',
+            cancelLabel: '取消',
             renderFormContent: (formContainer) => {
-                // Provider name input
-                const nameInput = createInputGroup(tUI('Provider Name'), tUI('Please enter provider name'));
+                // 服务商名称输入框
+                const nameInput = createInputGroup('服务商名称', '请输入服务商名称');
                 nameInput.input.value = service.name || currentName;
                 nameInput.input.dataset.fieldName = 'serviceName';
                 formContainer.appendChild(nameInput.group);
 
-                // Provider description input
-                const descInput = createInputGroup(tUI('Provider Description'), tUI('Please enter provider description (optional)'));
+                // 服务商介绍输入框
+                const descInput = createInputGroup('服务商介绍', '请输入服务商介绍（可选）');
                 descInput.input.value = service.description || '';
                 descInput.input.dataset.fieldName = 'serviceDescription';
                 formContainer.appendChild(descInput.group);
@@ -447,19 +447,19 @@ class APIConfigManager {
                     if (!newName) {
                         app.extensionManager.toast.add({
                             severity: "warn",
-                            summary: tUI("Please enter provider name"),
+                            summary: "请输入服务商名称",
                             life: 2000
                         });
-                        throw new Error(tUI('Provider name cannot be empty'));
+                        throw new Error('服务商名称不能为空');
                     }
 
-                    // Update provider information
+                    // 更新服务商信息
                     await this._updateService(serviceId, {
                         name: newName,
                         description: newDescription
                     });
 
-                    // Update button display
+                    // 更新按钮显示
                     const titleEl = triggerButton.querySelector('.tab-title');
                     const subtitleEl = triggerButton.querySelector('.tab-subtitle');
 
@@ -470,7 +470,7 @@ class APIConfigManager {
                     if (subtitleEl) {
                         subtitleEl.textContent = newDescription;
                     } else if (newDescription) {
-                        // If there was no subtitle before, add one now
+                        // 如果之前没有副标题，现在添加一个
                         const newSubtitleEl = document.createElement('div');
                         newSubtitleEl.className = 'tab-subtitle';
                         newSubtitleEl.textContent = newDescription;
@@ -479,15 +479,15 @@ class APIConfigManager {
 
                     app.extensionManager.toast.add({
                         severity: "success",
-                        summary: tUI("Provider information updated"),
-                        detail: `${newName} ${tUI('updated successfully')}`,
+                        summary: "服务商信息已更新",
+                        detail: `${newName} ${tUI('更新成功')}`,
                         life: 2000
                     });
                 } catch (error) {
-                    logger.error('Failed to update provider information', error);
+                    logger.error('更新服务商信息失败', error);
                     app.extensionManager.toast.add({
                         severity: "error",
-                        summary: tUI("Update failed"),
+                        summary: "更新失败",
                         detail: error.message,
                         life: 3000
                     });
@@ -499,7 +499,7 @@ class APIConfigManager {
 
 
     /**
-     * Create provider content tab
+     * 创建服务商内容标签页
      */
     _createServiceContentTab(service) {
         const pane = document.createElement('div');
@@ -508,7 +508,7 @@ class APIConfigManager {
         pane.style.display = 'none';
         pane.style.padding = '16px';
 
-        // Provider configuration card (reuse existing card creation logic)
+        // 服务商配置卡片（复用现有的卡片创建逻辑）
         const card = this._createServiceCard(service);
         pane.appendChild(card);
 
@@ -516,35 +516,35 @@ class APIConfigManager {
     }
 
     /**
-     * Add new provider
+     * 新增服务商
      */
     async _addNewService(headerElement, contentElement) {
-        // Get the trigger button as positioning reference
+        // 获取触发按钮作为定位参考
         const triggerButton = headerElement.querySelector('.service-tab-add');
 
-        // Show confirmation bubble
+        // 显示确认气泡框
         createConfirmPopup({
             target: triggerButton,
-            message: tUI('Create new provider'),
+            message: '创建新的服务商',
             icon: 'pi-plus-circle',
             position: 'left',
-            confirmLabel: tUI('Create'),
-            cancelLabel: tUI('Cancel'),
+            confirmLabel: '创建',
+            cancelLabel: '取消',
             renderFormContent: (formContainer) => {
-                // Provider name input
-                const nameInput = createInputGroup(tUI('Provider Name'), tUI('Please enter provider name'));
-                nameInput.input.value = tUI('New Provider');
+                // 服务商名称输入框
+                const nameInput = createInputGroup('服务商名称', '请输入服务商名称');
+                nameInput.input.value = tUI('新服务商');
                 nameInput.input.dataset.fieldName = 'serviceName';
                 formContainer.appendChild(nameInput.group);
 
-                // Provider description input
-                const descInput = createInputGroup(tUI('Provider Description'), tUI('Please enter provider description (optional)'));
+                // 服务商介绍输入框
+                const descInput = createInputGroup('服务商介绍', '请输入服务商介绍（可选）');
                 descInput.input.dataset.fieldName = 'serviceDescription';
                 formContainer.appendChild(descInput.group);
             },
             onConfirm: async (formContainer) => {
                 try {
-                    // Get form data
+                    // 获取表单数据
                     const nameInput = formContainer.querySelector('[data-field-name="serviceName"]');
                     const descInput = formContainer.querySelector('[data-field-name="serviceDescription"]');
 
@@ -554,13 +554,13 @@ class APIConfigManager {
                     if (!serviceName) {
                         app.extensionManager.toast.add({
                             severity: "warn",
-                            summary: tUI("Please enter provider name"),
+                            summary: "请输入服务商名称",
                             life: 2000
                         });
-                        throw new Error(tUI('Provider name cannot be empty'));
+                        throw new Error('服务商名称不能为空');
                     }
 
-                    // Create provider
+                    // 创建服务商
                     const res = await fetch(APIService.getApiUrl('/services'), {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
@@ -578,44 +578,44 @@ class APIConfigManager {
                     if (result.success) {
                         app.extensionManager.toast.add({
                             severity: "success",
-                            summary: tUI("New provider created"),
-                            detail: `${serviceName} ${tUI('created successfully')}`,
+                            summary: "新服务商已创建",
+                            detail: `${serviceName} ${tUI('创建成功')}`,
                             life: 3000
                         });
 
-                        // Reload configuration
+                        // 重新加载配置
                         await this._loadAllConfigs();
 
-                        // Get newly created service
+                        // 获取新创建的服务
                         const newService = this.services.find(s => s.id === result.service_id);
                         if (newService) {
-                            // Create new tab button (insert before the "+" button)
+                            // 创建新标签按钮（插入到"+"按钮前）
                             const addButton = headerElement.querySelector('.service-tab-add');
                             const newTabButton = this._createTabButton(
                                 newService.id,
-                                newService.name || tUI('Unnamed Service'),
+                                newService.name || '未命名服务',
                                 newService.description || ''
                             );
                             headerElement.insertBefore(newTabButton, addButton);
 
-                            // Create new content tab
+                            // 创建新内容标签页
                             const newContentPane = this._createServiceContentTab(newService);
                             contentElement.appendChild(newContentPane);
 
-                            // Switch to the new tab
+                            // 切换到新标签
                             this._switchTab(newService.id, headerElement, contentElement);
                         }
 
-                        // Trigger config sync event
+                        // 触发配置同步事件
                         this.notifyConfigChange();
                     } else {
-                        throw new Error(result.error || tUI('Creation failed'));
+                        throw new Error(result.error || '创建失败');
                     }
                 } catch (error) {
-                    logger.error('Failed to create provider', error);
+                    logger.error('创建服务商失败', error);
                     app.extensionManager.toast.add({
                         severity: "error",
-                        summary: tUI("Creation failed"),
+                        summary: "创建失败",
                         detail: error.message,
                         life: 3000
                     });
@@ -626,19 +626,19 @@ class APIConfigManager {
     }
 
     /**
-     * Create Baidu Translate tab
+     * 创建百度翻译标签页
      */
     _createBaiduTab() {
         const pane = document.createElement('div');
         pane.className = 'tab-pane';
         pane.dataset.tab = 'baidu';
 
-        const section = createFormGroup(tUI('Baidu Translate Configuration'), [
-            { text: tUI('Activate Baidu Translation Service'), url: 'https://fanyi-api.baidu.com/' }
+        const section = createFormGroup('百度翻译配置', [
+            { text: '开通百度翻译服务', url: 'https://fanyi-api.baidu.com/' }
         ]);
         section.classList.add('baidu-translate-section');
 
-        // Add icon to the link, keeping consistent with other services
+        // 为链接添加图标,与其他服务保持统一
         const linkElement = section.querySelector('.settings-service-link');
         if (linkElement) {
             const icon = document.createElement('i');
@@ -647,23 +647,23 @@ class APIConfigManager {
             linkElement.insertBefore(icon, linkElement.firstChild);
         }
 
-        const appIdInput = createInputGroup(tUI('AppID'), tUI('Please enter Baidu Translate AppID'));
+        const appIdInput = createInputGroup('AppID', '请输入百度翻译 AppID');
         appIdInput.input.value = this.baiduConfig.app_id || '';
         appIdInput.input.addEventListener('input', (e) => {
             this.baiduConfig.app_id = e.target.value;
         });
-        // Add save on blur
+        // 添加失焦保存
         appIdInput.input.addEventListener('blur', async () => {
             await this._saveBaiduConfig();
         });
 
-        const secretInput = createInputGroup(tUI('Secret Key'), tUI('Please enter Baidu Translate secret key'));
+        const secretInput = createInputGroup('Secret Key', '请输入百度翻译密钥');
         secretInput.input.type = 'password';
         secretInput.input.value = this.baiduConfig.secret_key || '';
         secretInput.input.addEventListener('input', (e) => {
             this.baiduConfig.secret_key = e.target.value;
         });
-        // Add save on blur
+        // 添加失焦保存
         secretInput.input.addEventListener('blur', async () => {
             await this._saveBaiduConfig();
         });
@@ -676,58 +676,58 @@ class APIConfigManager {
     }
 
     /**
-     * Create generic provider tab (sub-tab structure)
+     * 创建通用服务商标签页（二级标签页结构）
      */
     _createServicesTab() {
         const pane = document.createElement('div');
         pane.className = 'tab-pane services-tab-pane';
         pane.dataset.tab = 'services';
-        // Style moved to CSS
+        // 样式已移至CSS
 
-        // Sub-tab navigation
+        // 二级标签页导航
         const subTabNav = document.createElement('div');
         subTabNav.className = 'service-sub-tabs';
-        // Style moved to CSS
+        // 样式已移至CSS
 
-        // Sub-tab content container
+        // 二级标签页内容容器
         const subTabContent = document.createElement('div');
         subTabContent.className = 'service-sub-content';
 
-        // Get generic providers
+        // 获取通用服务商
         const genericServices = this.services.filter(s => s.type === 'openai_compatible');
 
-        // Create provider tabs
+        // 创建服务商标签
         genericServices.forEach((service, index) => {
-            // Create tab button
+            // 创建标签按钮
             const tabButton = this._createServiceTabButton(service);
             subTabNav.appendChild(tabButton);
 
-            // Create tab content
+            // 创建标签内容
             const tabContentPane = this._createServiceTabContent(service);
             subTabContent.appendChild(tabContentPane);
 
-            // Select the first one by default
+            // 默认选中第一个
             if (index === 0) {
                 tabButton.classList.add('active');
                 tabContentPane.style.display = 'block';
             }
         });
 
-        // Create "+" add tab button
+        // 创建"+"新增标签按钮
         const addTabButton = document.createElement('button');
         addTabButton.className = 'service-tab-add';
         addTabButton.textContent = '+';
         addTabButton.addEventListener('click', () => this._addNewServiceTab(subTabNav, subTabContent));
         subTabNav.appendChild(addTabButton);
 
-        // If there are no providers, show empty state
+        // 如果没有任何服务商，显示空状态
         if (genericServices.length === 0) {
             const emptyHint = document.createElement('div');
             emptyHint.className = 'empty-state-hint';
             emptyHint.innerHTML = `
                 <div style="font-size: 48px; margin-bottom: 16px;">📦</div>
-                <div style="font-size: 16px; margin-bottom: 8px;">${tUI('No providers yet')}</div>
-                <div style="font-size: 14px;">${tUI('Click the "+" button in the top right to add the first provider')}</div>
+                <div style="font-size: 16px; margin-bottom: 8px;">暂无服务商</div>
+                <div style="font-size: 14px;">点击右上角"+"按钮新增第一个服务商</div>
             `;
             subTabContent.appendChild(emptyHint);
         }
@@ -738,19 +738,19 @@ class APIConfigManager {
     }
 
     /**
-     * Create provider tab button
+     * 创建服务商标签按钮
      */
     _createServiceTabButton(service) {
         const button = document.createElement('button');
         button.className = 'service-tab-button';
         button.dataset.serviceId = service.id;
 
-        // Tab title
+        // 标签标题
         const title = document.createElement('div');
         title.className = 'service-tab-title';
-        title.textContent = service.name || tUI('Unnamed Service');
+        title.textContent = service.name || '未命名服务';
 
-        // Tab subtitle (description)
+        // 标签小字（介绍）
         const subtitle = document.createElement('div');
         subtitle.className = 'service-tab-subtitle';
         subtitle.textContent = service.description || '';
@@ -760,7 +760,7 @@ class APIConfigManager {
             button.appendChild(subtitle);
         }
 
-        // Click to switch
+        // 点击切换
         button.addEventListener('click', () => {
             this._switchServiceTab(service.id);
         });
@@ -769,13 +769,13 @@ class APIConfigManager {
     }
 
     /**
-     * Switch provider tab
+     * 切换服务商标签
      */
     _switchServiceTab(serviceId) {
         const container = document.querySelector('.services-tab-pane');
         if (!container) return;
 
-        // Update tab button state
+        // 更新标签按钮状态
         const buttons = container.querySelectorAll('.service-tab-button');
         buttons.forEach(btn => {
             if (btn.dataset.serviceId === serviceId) {
@@ -799,7 +799,7 @@ class APIConfigManager {
             }
         });
 
-        // Update content display
+        // 更新内容显示
         const panes = container.querySelectorAll('.service-content-pane');
         panes.forEach(pane => {
             pane.style.display = pane.dataset.serviceId === serviceId ? 'block' : 'none';
@@ -807,7 +807,7 @@ class APIConfigManager {
     }
 
     /**
-     * Create provider tab content
+     * 创建服务商标签内容
      */
     _createServiceTabContent(service) {
         const contentPane = document.createElement('div');
@@ -817,7 +817,7 @@ class APIConfigManager {
             display: none;
         `;
 
-        // Create a simple placeholder content here; will be improved later
+        // 这里先创建一个简单的占位内容，后续会完善
         const card = this._createServiceCard(service);
         contentPane.appendChild(card);
 
@@ -825,17 +825,17 @@ class APIConfigManager {
     }
 
     /**
-     * Add new provider tab
+     * 添加新服务商标签
      */
     async _addNewServiceTab(navContainer, contentContainer) {
-        // Call backend API to create new provider
+        // 调用后端API创建新服务商
         try {
             const res = await fetch(APIService.getApiUrl('/services'), {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     type: 'openai_compatible',
-                    name: tUI('New Provider'),
+                    name: tUI('新服务商'),
                     description: '',
                     base_url: 'https://api.example.com/v1',
                     api_key: ''
@@ -847,43 +847,43 @@ class APIConfigManager {
             if (result.success) {
                 app.extensionManager.toast.add({
                     severity: "success",
-                    summary: tUI("New provider created"),
-                    detail: tUI("Please fill in the configuration information"),
+                    summary: "新服务商已创建",
+                    detail: tUI("请填写配置信息"),
                     life: 3000
                 });
 
-                // Reload configuration
+                // 重新加载配置
                 await this._loadAllConfigs();
 
-                // Get newly created service
+                // 获取新创建的服务
                 const newService = this.services.find(s => s.id === result.service_id);
                 if (newService) {
-                    // Create new tab button (insert before the "+" button)
+                    // 创建新标签按钮（插入到"+"按钮前）
                     const newTabButton = this._createServiceTabButton(newService);
                     const addButton = navContainer.querySelector('.service-tab-add');
                     navContainer.insertBefore(newTabButton, addButton);
 
-                    // Create new content
+                    // 创建新内容
                     const newContentPane = this._createServiceTabContent(newService);
                     contentContainer.appendChild(newContentPane);
 
-                    // Remove empty state hint (if any)
+                    // 移除空状态提示（如果有）
                     const emptyHint = contentContainer.querySelector('.empty-state-hint');
                     if (emptyHint) {
                         emptyHint.remove();
                     }
 
-                    // Switch to the new tab
+                    // 切换到新标签
                     this._switchServiceTab(newService.id);
                 }
             } else {
-                throw new Error(result.error || tUI('Creation failed'));
+                throw new Error(result.error || '创建失败');
             }
         } catch (error) {
-            logger.error('Failed to create provider', error);
+            logger.error('创建服务商失败', error);
             app.extensionManager.toast.add({
                 severity: "error",
-                summary: tUI("Creation failed"),
+                summary: "创建失败",
                 detail: error.message,
                 life: 3000
             });
@@ -891,13 +891,13 @@ class APIConfigManager {
     }
 
     /**
-     * Create Ollama tab
+     * 创建Ollama标签页
      */
     _createOllamaTab() {
         const pane = document.createElement('div');
         pane.className = 'tab-pane';
         pane.dataset.tab = 'ollama';
-        // Style moved to CSS
+        // 样式已移至CSS
 
         const ollamaService = this.services.find(s => s.type === 'ollama');
 
@@ -907,7 +907,7 @@ class APIConfigManager {
         } else {
             const hint = document.createElement('div');
             hint.className = 'empty-state-hint-small';
-            hint.textContent = tUI('Ollama service not configured');
+            hint.textContent = 'Ollama服务未配置';
             pane.appendChild(hint);
         }
 
@@ -915,59 +915,59 @@ class APIConfigManager {
     }
 
     /**
-     * Create provider card
+     * 创建服务商卡片
      */
     _createServiceCard(service) {
         const card = document.createElement('div');
         card.className = 'service-card';
-        card.dataset.serviceId = service.id;  // Add serviceId to dataset
+        card.dataset.serviceId = service.id;  // 添加serviceId到dataset
 
-        // Provider title - detect if external link is needed based on service name
+        // 服务商标题 - 根据服务名称检测是否需要添加外部链接
         const titleText = service.name || service.id;
-        const descText = service.description ? ` ${tUI('Configuration')}` : '';
+        const descText = service.description ? ` ${tUI('信息配置')}` : '';
         const fullTitle = `1️⃣ ${titleText}${descText}`;
 
-        // Detect service name, add corresponding application links
+        // 检测服务名称,添加对应的申请链接
         const links = [];
         const serviceName = (service.name || '').toLowerCase();
         const serviceId = (service.id || '').toLowerCase();
         const searchText = `${serviceName} ${serviceId}`.toLowerCase();
 
-        // Zhipu service detection
-        if (searchText.includes('zhipu') || searchText.includes('zhipu')) {
+        // 智谱服务检测
+        if (searchText.includes('智谱') || searchText.includes('zhipu')) {
             links.push({
-                text: tUI('Activate Zhipu API Service'),
+                text: '开通智谱API服务',
                 url: 'https://www.bigmodel.cn/invite?icode=Wz1tQAT40T9M8vwp%2F1db7nHEaazDlIZGj9HxftzTbt4%3D',
                 icon: 'pi-star'
             });
         }
 
-        // SiliconFlow service detection
-        if (searchText.includes('silicon') || searchText.includes('siliconflow') || searchText.includes('silicon')) {
+        // 硅基流动服务检测
+        if (searchText.includes('硅基') || searchText.includes('siliconflow') || searchText.includes('silicon')) {
             links.push({
-                text: tUI('Activate SiliconFlow API Service'),
+                text: '开通硅基流动API服务',
                 url: 'https://cloud.siliconflow.cn/i/FCDL2zBQ',
                 icon: 'pi-star'
             });
         }
 
-        // xflow service detection
+        // xflow服务检测
         if (searchText.includes('xflow')) {
             links.push({
-                text: tUI('Activate xflow API Service'),
+                text: '开通xflow API服务',
                 url: 'https://api.xflow.cc/register?aff=Z063',
                 icon: 'pi-star'
             });
         }
 
-        // Use createFormGroup for titled section with links, or plain title
+        // 使用createFormGroup创建带链接的标题,或者普通标题
         let titleSection;
         if (links.length > 0) {
             titleSection = createFormGroup(fullTitle, links.map(link => ({
                 text: link.text,
                 url: link.url
             })));
-            // Add icons to links
+            // 为链接添加图标
             const linkElements = titleSection.querySelectorAll('.settings-service-link');
             linkElements.forEach((linkElem, index) => {
                 if (links[index] && links[index].icon) {
@@ -978,7 +978,7 @@ class APIConfigManager {
                 }
             });
         } else {
-            // No links, create plain title
+            // 没有链接时,创建普通标题
             titleSection = document.createElement('div');
             titleSection.className = 'settings-form-section';
             const titleElement = document.createElement('h3');
@@ -987,11 +987,11 @@ class APIConfigManager {
             titleSection.appendChild(titleElement);
         }
 
-        // If it's an Ollama service, add a tooltip hint after the title
+        // 如果是 Ollama 服务，在标题后方添加提示 tooltip
         if (service.type === 'ollama') {
             const titleElement = titleSection.querySelector('.settings-form-section-title');
             if (titleElement) {
-                // Ensure h3 can contain other elements, set to flex for alignment
+                // 确保 h3 可以包含其他元素，设置为 flex 以对齐图标
                 titleElement.style.display = 'inline-flex';
                 titleElement.style.alignItems = 'center';
 
@@ -1005,7 +1005,7 @@ class APIConfigManager {
                 
                 createTooltip({
                     target: icon,
-                    content: tUI('It is recommended not to add /v1 at the end of the address. Without /v1, it will use the native Ollama API; with /v1, it will use the OpenAI compatible request format.'),
+                    content: '建议不要在地址后方添加 /v1。不加 /v1 会走原生 Ollama API，加了 /v1 则会走 OpenAI 兼容请求格式。',
                     position: 'top'
                 });
             }
@@ -1013,13 +1013,13 @@ class APIConfigManager {
 
         card.appendChild(titleSection);
 
-        // Basic information
-        const baseUrlInput = createInputGroup(tUI('Base URL'), 'https://api.example.com/v1');
+        // 基本信息
+        const baseUrlInput = createInputGroup('Base URL', 'https://api.example.com/v1');
         baseUrlInput.input.value = service.base_url || '';
-        // Disable modification for Zhipu and xflow services' Base URL
+        // 智谱和 xflow 服务的 Base URL 禁用修改
         if (service.id === 'zhipu' || service.id === 'xFlow') {
             baseUrlInput.input.disabled = true;
-            baseUrlInput.input.title = tUI('The Base URL of this preset provider cannot be modified');
+            baseUrlInput.input.title = tUI('该预置服务商的 Base URL 不可修改');
             baseUrlInput.input.classList.add('pa-input-disabled');
         }
 
@@ -1027,12 +1027,12 @@ class APIConfigManager {
             await this._updateService(service.id, { base_url: e.target.value });
         });
 
-        // API Key input (simplified, using plain text)
-        const apiKeyInput = createInputGroup(tUI('API Key'), tUI('Please enter API Key'));
+        // API Key输入框（简化版，直接使用明文）
+        const apiKeyInput = createInputGroup('API Key', '请输入API Key');
         apiKeyInput.input.type = 'password';
         apiKeyInput.input.value = service.api_key || '';
 
-        // Save on blur
+        // 失焦时保存
         apiKeyInput.input.addEventListener('blur', async (e) => {
             const newApiKey = e.target.value.trim();
             if (newApiKey !== service.api_key) {
@@ -1044,26 +1044,26 @@ class APIConfigManager {
         card.appendChild(baseUrlInput.group);
         card.appendChild(apiKeyInput.group);
 
-        // === Service configuration area (simplified) ===
-        // Create configuration items container
+        // === 服务配置区域（简化版） ===
+        // 创建配置项容器
         const settingsInlineContainer = document.createElement('div');
         settingsInlineContainer.className = 'service-settings-inline';
 
-        // Thinking chain control switch
+        // 思维链控制开关
         const thinkingContainer = document.createElement('div');
         thinkingContainer.className = 'service-setting-item';
 
         const thinkingLabel = document.createElement('span');
         thinkingLabel.className = 'service-setting-label';
-        thinkingLabel.textContent = tUI('Disable Thinking Chain');
+        thinkingLabel.textContent = tUI('关闭思维链');
 
         const thinkingIcon = document.createElement('i');
         thinkingIcon.className = 'pi pi-info-circle service-setting-info-icon';
 
-        // Add tooltip
+        // 添加 tooltip
         createTooltip({
             target: thinkingIcon,
-            content: tUI('Disable thinking chain for models that support it. ⚠️: Not all models support this; disabled models will have a "✏️" symbol after the model info in logs.'),
+            content: '针对部分支持关闭思维链的模型进行关闭。⚠️：并不是所有模型都支持，关闭思维链的模型会在日志中的模型信息后面多出一个“✏️”符号。',
             position: 'top'
         });
 
@@ -1072,7 +1072,7 @@ class APIConfigManager {
         thinkingLabelWrapper.appendChild(thinkingLabel);
         thinkingLabelWrapper.appendChild(thinkingIcon);
 
-        // Create switch
+        // 创建开关
         const thinkingSwitchWrapper = document.createElement('label');
         thinkingSwitchWrapper.className = 'switch-wrapper';
 
@@ -1107,21 +1107,21 @@ class APIConfigManager {
         thinkingContainer.appendChild(thinkingSwitchWrapper);
         settingsInlineContainer.appendChild(thinkingContainer);
 
-        // ---Enable advanced parameters switch---
+        // ---启用高级参数开关---
         const advancedParamsContainer = document.createElement('div');
         advancedParamsContainer.className = 'service-setting-item';
 
         const advancedParamsLabel = document.createElement('span');
         advancedParamsLabel.className = 'service-setting-label';
-        advancedParamsLabel.textContent = tUI('Enable Advanced Parameters');
+        advancedParamsLabel.textContent = tUI('启用高级参数');
 
         const advancedParamsIcon = document.createElement('i');
         advancedParamsIcon.className = 'pi pi-info-circle service-setting-info-icon';
 
-        // Add tooltip
+        // 添加 tooltip
         createTooltip({
             target: advancedParamsIcon,
-            content: tUI('When enabled, sends temperature, top_p, max_tokens parameters for fine control of model behavior; limits max tokens to increase speed. Disable for better compatibility.'),
+            content: '启用后将发送 temperature、top_p、max_tokens 参数以精细控制模型行为,限制最大tonken数来提升速度。如果关闭则可以提升兼容性。',
             position: 'top'
         });
 
@@ -1130,7 +1130,7 @@ class APIConfigManager {
         advancedParamsLabelWrapper.appendChild(advancedParamsLabel);
         advancedParamsLabelWrapper.appendChild(advancedParamsIcon);
 
-        // Create switch
+        // 创建开关
         const advancedParamsSwitchWrapper = document.createElement('label');
         advancedParamsSwitchWrapper.className = 'switch-wrapper';
 
@@ -1165,21 +1165,21 @@ class APIConfigManager {
         advancedParamsContainer.appendChild(advancedParamsSwitchWrapper);
         settingsInlineContainer.appendChild(advancedParamsContainer);
 
-        // ---Filter thinking chain output switch---
+        // ---过滤思维链输出开关---
         const filterThinkingContainer = document.createElement('div');
         filterThinkingContainer.className = 'service-setting-item';
 
         const filterThinkingLabel = document.createElement('span');
         filterThinkingLabel.className = 'service-setting-label';
-        filterThinkingLabel.textContent = tUI('Filter Thinking Chain Output');
+        filterThinkingLabel.textContent = tUI('过滤思维链输出');
 
         const filterThinkingIcon = document.createElement('i');
         filterThinkingIcon.className = 'pi pi-info-circle service-setting-info-icon';
 
-        // Add tooltip
+        // 添加 tooltip
         createTooltip({
             target: filterThinkingIcon,
-            content: tUI('For models that cannot disable thinking chain, removes the thinking process content. Enabled by default.'),
+            content: '针对无法关闭思维链模型，移除思考过程内容。默认开启。',
             position: 'top'
         });
 
@@ -1188,7 +1188,7 @@ class APIConfigManager {
         filterThinkingLabelWrapper.appendChild(filterThinkingLabel);
         filterThinkingLabelWrapper.appendChild(filterThinkingIcon);
 
-        // Create switch
+        // 创建开关
         const filterThinkingSwitchWrapper = document.createElement('label');
         filterThinkingSwitchWrapper.className = 'switch-wrapper';
 
@@ -1223,22 +1223,22 @@ class APIConfigManager {
         filterThinkingContainer.appendChild(filterThinkingSwitchWrapper);
         settingsInlineContainer.appendChild(filterThinkingContainer);
 
-        // Ollama-specific: Auto unload model switch (frontend UI only)
+        // Ollama专属:自动释放模型开关(仅前端UI)
         if (service.type === 'ollama') {
             const autoUnloadContainer = document.createElement('div');
             autoUnloadContainer.className = 'service-setting-item';
 
             const autoUnloadLabel = document.createElement('span');
             autoUnloadLabel.className = 'service-setting-label';
-            autoUnloadLabel.textContent = tUI('Auto Unload Model');
+            autoUnloadLabel.textContent = tUI('自动释放模型');
 
             const autoUnloadIcon = document.createElement('i');
             autoUnloadIcon.className = 'pi pi-info-circle service-setting-info-icon';
 
-            // Add tooltip
+            // 添加 tooltip
             createTooltip({
                 target: autoUnloadIcon,
-                content: tUI('Automatically unload the model after request to free VRAM. ⚠️ This option applies to the frontend assistant; nodes have their own options.'),
+                content: '请求完成后自动卸载模型以释放显存。⚠️该选项对针对前端小助手生效，节点有独立的选项。',
                 position: 'top'
             });
 
@@ -1247,7 +1247,7 @@ class APIConfigManager {
             autoUnloadLabelWrapper.appendChild(autoUnloadLabel);
             autoUnloadLabelWrapper.appendChild(autoUnloadIcon);
 
-            // Create switch
+            // 创建开关
             const autoUnloadSwitchWrapper = document.createElement('label');
             autoUnloadSwitchWrapper.className = 'switch-wrapper';
 
@@ -1285,11 +1285,11 @@ class APIConfigManager {
 
         card.appendChild(settingsInlineContainer);
 
-        // LLM model section
+        // LLM模型部分
         const llmSection = this._createModelSection(service, 'llm');
         card.appendChild(llmSection);
 
-        // VLM model section
+        // VLM模型部分
         const vlmSection = this._createModelSection(service, 'vlm');
         card.appendChild(vlmSection);
 
@@ -1298,14 +1298,14 @@ class APIConfigManager {
 
 
     /**
-     * Create model configuration section
+     * 创建模型配置部分
      */
     _createModelSection(service, modelType) {
         const section = document.createElement('div');
         section.className = 'settings-form-section';
         section.style.marginTop = '16px';
 
-        // Title row (contains model type and + button)
+        // 标题行（包含模型类型和+按钮）
         const titleRow = document.createElement('div');
         titleRow.style.cssText = `
             display: flex;
@@ -1317,8 +1317,8 @@ class APIConfigManager {
         const title = document.createElement('h5');
         title.className = 'settings-form-section-title';
         title.textContent = modelType === 'llm'
-            ? tUI('2️⃣ Add Large Language Model (LLM) for translation and prompt optimization')
-            : tUI('3️⃣ Add Vision Model (VLM) for image and video captioning');
+            ? tUI('2️⃣ 添加翻译、提示词优化的大语言模型 (LLM)')
+            : tUI('3️⃣ 添加图像、视频反推的视觉模型 (VLM)');
         title.style.margin = '0';
         title.style.display = 'inline-flex';
         title.style.alignItems = 'center';
@@ -1333,21 +1333,21 @@ class APIConfigManager {
 
         createTooltip({
             target: modelHintIcon,
-            content: tUI('It is recommended to prioritize non-thinking models or instruction-tuned (-instruct) models to reduce thinking chain output, truncation, and response instability.'),
+            content: '建议优先选择非思考模型或指令型（-instruct）模型，以减少思维链输出、截断和响应不稳定的问题。',
             position: 'top'
         });
 
-        // Add model button
+        // 添加模型按钮
         const addButton = document.createElement('button');
         addButton.className = 'p-button p-component p-button-sm';
-        addButton.innerHTML = `<span class="p-button-icon-left pi pi-plus"></span><span class="p-button-label">${tUI('Add Model')}</span>`;
+        addButton.innerHTML = `<span class="p-button-icon-left pi pi-plus"></span><span class="p-button-label">${tUI('添加模型')}</span>`;
         addButton.addEventListener('click', () => this._showAddModelDialog(service, modelType, modelsContainer));
 
         titleRow.appendChild(title);
         titleRow.appendChild(addButton);
         section.appendChild(titleRow);
 
-        // Model tag container (draggable sorting)
+        // 模型标签容器（可拖动排序）
         const modelsContainer = document.createElement('div');
         modelsContainer.className = 'models-container';
         modelsContainer.dataset.serviceId = service.id;
@@ -1361,20 +1361,20 @@ class APIConfigManager {
                 modelsContainer.appendChild(modelTag);
             });
 
-            // Initialize Sortable drag-and-drop and save instance
+            // 初始化Sortable拖动排序并保存实例
             modelsContainer.sortableInstance = new Sortable(modelsContainer, {
                 animation: 150,
                 ghostClass: 'sortable-ghost',
-                handle: '.model-tag',  // Entire tag is draggable
+                handle: '.model-tag',  // 整个标签都可以拖动
                 onEnd: async (evt) => {
-                    // Update model order after drag ends
+                    // 拖动结束后更新模型顺序
                     await this._updateModelOrder(service.id, modelType, modelsContainer);
                 }
             });
         } else {
             const emptyHint = document.createElement('div');
             emptyHint.className = 'empty-hint';
-            emptyHint.textContent = tUI('No models configured yet. Click "+ Add Model" to start.');
+            emptyHint.textContent = tUI('暂无配置模型，点击"+ 添加模型"开始配置');
             emptyHint.style.cssText = `
                 font-size: 12px;
                 color: var(--p-text-muted-color);
@@ -1385,13 +1385,13 @@ class APIConfigManager {
 
         section.appendChild(modelsContainer);
 
-        // Removed fixed advanced settings area - now editing appears in bubble when clicking model tag
+        // 移除固定的高级设置区域 - 现在点击模型标签时弹出气泡框编辑
 
         return section;
     }
 
     /**
-     * Create model tag
+     * 创建模型标签
      */
     _createModelTag(model, service, modelType) {
         const tag = document.createElement('div');
@@ -1399,26 +1399,26 @@ class APIConfigManager {
         tag.dataset.modelName = model.name;
         tag.dataset.selected = 'false';
 
-        // Model icon
+        // 模型图标
         const iconSpan = document.createElement('i');
         iconSpan.className = 'pi pi-sparkles model-tag-icon';
         tag.appendChild(iconSpan);
 
-        // Model name
+        // 模型名称
         const nameSpan = document.createElement('span');
         nameSpan.className = 'model-tag-name';
         nameSpan.textContent = model.name;
         tag.appendChild(nameSpan);
 
-        // Default badge
+        // 默认标记
         if (model.is_default) {
             const defaultBadge = document.createElement('span');
             defaultBadge.className = 'model-tag-badge';
-            defaultBadge.textContent = tUI('Default');
+            defaultBadge.textContent = tUI('默认');
             tag.appendChild(defaultBadge);
         }
 
-        // Delete button
+        // 删除按钮
         const deleteBtn = document.createElement('button');
         deleteBtn.innerHTML = '×';
         deleteBtn.className = 'model-delete-btn';
@@ -1428,43 +1428,43 @@ class APIConfigManager {
         });
         tag.appendChild(deleteBtn);
 
-        // ---Click selection state---
+        // ---点击选中状态---
         tag.addEventListener('click', (e) => {
-            // If clicking the delete button, do not trigger selection
+            // 如果点击的是删除按钮,不触发选中
             if (e.target.closest('.model-delete-btn')) {
                 return;
             }
-            // Remove selected state from other tags in the same container
+            // 移除同容器内其他标签的选中状态
             const container = tag.parentElement;
             if (container) {
                 container.querySelectorAll('.model-tag.selected').forEach(t => {
                     t.classList.remove('selected');
                 });
             }
-            // Add selected state to current tag
+            // 添加当前标签的选中状态
             tag.classList.add('selected');
         });
 
-        // ---Right-click menu---
-        // Use function form to dynamically get menu items, ensuring latest model state each time menu is displayed
+        // ---右键菜单---
+        // 使用函数形式动态获取菜单项,确保每次显示菜单时都能获取最新的模型状态
         const getMenuItems = () => {
-            // Get latest model state from local data
+            // 从本地数据中获取最新的模型状态
             const models = modelType === 'llm' ? service.llm_models : service.vlm_models;
             const currentModel = models.find(m => m.name === model.name);
             const isDefault = currentModel ? currentModel.is_default : false;
 
             return [
                 {
-                    label: tUI('Set as Default Model'),
+                    label: '设为默认模型',
                     icon: 'pi-star',
-                    disabled: isDefault, // Dynamically get whether it's default
+                    disabled: isDefault, // 动态获取当前是否为默认模型
                     onClick: () => {
                         this._setDefaultModel(service, modelType, model.name, tag);
                     }
                 },
-                { separator: true }, // Separator line
+                { separator: true }, // 分隔线
                 {
-                    label: tUI('Edit Model Parameter Settings'),
+                    label: '修改模型参数设置',
                     icon: 'pi-cog',
                     onClick: () => {
                         this._selectModelForEdit(service, modelType, model.name, tag);
@@ -1482,32 +1482,32 @@ class APIConfigManager {
     }
 
     /**
-     * Select model for editing (popup bubble)
+     * 选中模型进行编辑（弹出气泡框）
      */
     _selectModelForEdit(service, modelType, modelName, tagElement) {
-        // Save this reference
+        // 保存this引用
         const self = this;
 
-        // Get model data
+        // 获取模型数据
         const models = modelType === 'llm' ? service.llm_models : service.vlm_models;
         const selectedModel = models.find(m => m.name === modelName);
 
         if (!selectedModel) return;
 
-        // Popup bubble to edit parameters
+        // 弹出气泡框编辑参数
         createConfirmPopup({
             target: tagElement,
-            message: tUI('Model Parameter Settings'),
+            message: `模型参数设置`,
             icon: 'pi-cog',
             position: 'top',
-            confirmLabel: tUI('Save'),
-            cancelLabel: tUI('Cancel'),
+            confirmLabel: '保存',
+            cancelLabel: '取消',
             renderFormContent: (formContainer) => {
-                // Add horizontal layout class to form container
+                // 为表单容器添加横向布局类
                 formContainer.classList.add('model-params-form');
 
-                // Temperature
-                const tempInput = createInputGroup(tUI('Temperature'), tUI('0.0 - 2.0'), 'number');
+                // 温度 (Temperature)
+                const tempInput = createInputGroup('温度 (Temperature)', '0.0 - 2.0', 'number');
                 tempInput.input.min = '0';
                 tempInput.input.max = '2';
                 tempInput.input.step = '0.1';
@@ -1516,8 +1516,8 @@ class APIConfigManager {
                 tempInput.group.style.width = '135px';
                 formContainer.appendChild(tempInput.group);
 
-                // Top-P
-                const topPInput = createInputGroup(tUI('Top-P'), tUI('0.0 - 1.0'), 'number');
+                // 核采样 (Top-P)
+                const topPInput = createInputGroup('核采样 (Top-P)', '0.0 - 1.0', 'number');
                 topPInput.input.min = '0';
                 topPInput.input.max = '1';
                 topPInput.input.step = '0.1';
@@ -1526,8 +1526,8 @@ class APIConfigManager {
                 topPInput.group.style.width = '135px';
                 formContainer.appendChild(topPInput.group);
 
-                // Max Tokens
-                const maxTokensInput = createInputGroup(tUI('Max Tokens'), tUI('1 - 8192'), 'number');
+                // 最大Token数
+                const maxTokensInput = createInputGroup('最大Token数', '1 - 8192', 'number');
                 maxTokensInput.input.min = '1';
                 maxTokensInput.input.max = '8192';
                 maxTokensInput.input.step = '1';
@@ -1538,65 +1538,65 @@ class APIConfigManager {
             },
             onConfirm: async (formContainer) => {
                 try {
-                    // Get form data
+                    // 获取表单数据
                     const temperature = parseFloat(formContainer.querySelector('[data-field-name="temperature"]').value);
                     const top_p = parseFloat(formContainer.querySelector('[data-field-name="top_p"]').value);
                     const max_tokens = parseInt(formContainer.querySelector('[data-field-name="max_tokens"]').value);
 
-                    // Validate data
+                    // 验证数据
                     if (isNaN(temperature) || temperature < 0 || temperature > 2) {
                         app.extensionManager.toast.add({
                             severity: "warn",
-                            summary: tUI("Invalid temperature value"),
-                            detail: tUI("Temperature must be between 0 and 2"),
+                            summary: "温度值无效",
+                            detail: "温度值应在 0 到 2 之间",
                             life: 2000
                         });
-                        throw new Error(tUI('Invalid temperature value'));
+                        throw new Error('温度值无效');
                     }
 
                     if (isNaN(top_p) || top_p < 0 || top_p > 1) {
                         app.extensionManager.toast.add({
                             severity: "warn",
-                            summary: tUI("Invalid top-p value"),
-                            detail: tUI("Top-p must be between 0 and 1"),
+                            summary: "核采样值无效",
+                            detail: "核采样值应在 0 到 1 之间",
                             life: 2000
                         });
-                        throw new Error(tUI('Invalid top-p value'));
+                        throw new Error('核采样值无效');
                     }
 
                     if (isNaN(max_tokens) || max_tokens < 1 || max_tokens > 8192) {
                         app.extensionManager.toast.add({
                             severity: "warn",
-                            summary: tUI("Invalid max tokens value"),
-                            detail: tUI("Max tokens must be between 1 and 8192"),
+                            summary: "最大Token数无效",
+                            detail: "最大Token数应在 1 到 8192 之间",
                             life: 2000
                         });
-                        throw new Error(tUI('Invalid max tokens value'));
+                        throw new Error('最大Token数无效');
                     }
 
-                    // Use self instead of this to call method
+                    // 使用self代替this来调用方法
                     await self._updateModelParams(service.id, modelType, modelName, {
                         temperature,
                         top_p,
                         max_tokens
                     });
 
-                    // Update local data
+                    // 更新本地数据
                     selectedModel.temperature = temperature;
                     selectedModel.top_p = top_p;
                     selectedModel.max_tokens = max_tokens;
 
                     app.extensionManager.toast.add({
                         severity: "success",
-                        summary: tUI("Parameters updated"),
-                        detail: `${modelName} ${tUI(' parameters saved')}`,
+                        summary: "参数已更新",
+                        detail: `${modelName} ${tUI('的参数已保存')}`,
                         life: 2000
                     });
                 } catch (error) {
-                    logger.error('Failed to update model parameters', error);
+                    logger.error('更新模型参数失败', error);
                     app.extensionManager.toast.add({
                         severity: "error",
-                        summary: tUI("Update failed"),
+                        summary: "更新失败",
                         detail: error.message,
                         life: 3000
                     });
@@ -1607,18 +1607,18 @@ class APIConfigManager {
     }
 
     /**
-     * Batch update model parameters
+     * 批量更新模型参数
      */
     async _updateModelParams(serviceId, modelType, modelName, params) {
         if (!serviceId) {
-            logger.error("Failed to update model parameters: serviceId is empty");
-            throw new Error("Service ID cannot be empty");
+            logger.error("更新模型参数失败: serviceId为空");
+            throw new Error("服务ID不能为空");
         }
         try {
-            // Update each parameter sequentially
+            // 依次更新每个参数
             for (const [paramName, paramValue] of Object.entries(params)) {
                 const url = APIService.getApiUrl(`/services/${encodeURIComponent(serviceId)}/models/parameter`);
-                logger.debug(`[v2] Updating parameter: ${url}`, { modelType, modelName, paramName, paramValue });
+                logger.debug(`[v2] 正在更新参数: ${url}`, { modelType, modelName, paramName, paramValue });
 
                 const res = await fetch(url, {
                     method: 'PUT',
@@ -1633,79 +1633,79 @@ class APIConfigManager {
 
                 if (!res.ok) {
                     const text = await res.text();
-                    logger.error(`Parameter update request failed: ${res.status} ${res.statusText}`, text);
-                    throw new Error(`Request failed: ${res.status} ${res.statusText}`);
+                    logger.error(`更新参数请求失败: ${res.status} ${res.statusText}`, text);
+                    throw new Error(`请求失败: ${res.status} ${res.statusText}`);
                 }
 
                 const text = await res.text();
                 try {
                     const result = JSON.parse(text);
                     if (!result.success) {
-                        throw new Error(result.error || tUI('Parameter update failed'));
+                        throw new Error(result.error || '更新参数失败');
                     }
                 } catch (e) {
-                    logger.error(`Failed to parse response JSON: ${text}`, e);
-                    throw new Error(`Response parse failed: ${e.message}`);
+                    logger.error(`解析响应JSON失败: ${text}`, e);
+                    throw new Error(`解析响应失败: ${e.message}`);
                 }
             }
 
-            logger.debug(`Batch updated model parameters: ${modelName}`, params);
+            logger.debug(`已批量更新模型参数: ${modelName}`, params);
 
         } catch (error) {
-            logger.error('Failed to batch update model parameters', error);
+            logger.error('批量更新模型参数失败', error);
             throw error;
         }
     }
 
 
     /**
-     * Get available model list
+     * 获取可用模型列表
      */
     async _getAvailableModels(service, modelType) {
         try {
-            // Call backend API to get model list
+            // 调用后端API获取模型列表
             const res = await fetch(APIService.getApiUrl(`/services/${service.id}/models?model_type=${modelType}`));
             const result = await res.json();
 
-            // Result contains success, models or error
+            // 返回结果包含success、models或error
             return result;
 
         } catch (error) {
-            logger.error(`Exception while fetching model list: ${error.message}`);
+            logger.error(`获取模型列表异常: ${error.message}`);
             return {
                 success: false,
-                error: `Network error: ${error.message}`
+                error: `网络错误: ${error.message}`
             };
         }
     }
 
     /**
-     * Show add model list box (using multi-select component)
+     * 显示添加模型列表框（使用多选组件）
      */
     _showAddModelDialog(service, modelType, container) {
-        // Get trigger button
+        // 获取触发按钮
         const addBtn = event.target.closest('button');
 
-        // Use new multi-select listbox component
+        // 使用新的多选listbox组件
         createMultiSelectListbox({
             triggerElement: addBtn,
-            placeholder: `${tUI('Search')}${modelType === 'llm' ? 'LLM' : 'VLM'}${tUI(' models...')}`,
+            placeholder: `${tUI('搜索')}${modelType === 'llm' ? 'LLM' : 'VLM'}${tUI('模型...')}`,
             fetchItems: async () => {
                 const result = await this._getAvailableModels(service, modelType);
 
                 if (!result.success) {
-                    throw new Error(result.error || tUI('Failed to get model list'));
+                    throw new Error(result.error || '获取模型列表失败');
                 }
 
                 return result.models[modelType] || [];
             },
             onConfirm: async (selectedModels, searchInputValue) => {
-                // If no models are checked but search box has content, add the search box content as model name
+                // 如果没有勾选模型,但搜索框有内容,则将搜索框内容作为模型名称添加
                 if (selectedModels.length === 0 && searchInputValue && searchInputValue.trim()) {
                     const modelName = searchInputValue.trim();
                     await this._addModel(service, modelType, modelName, container);
                 } else {
-                    // Batch add selected models
+                    // 批量添加选中的模型
                     for (const modelName of selectedModels) {
                         await this._addModel(service, modelType, modelName, container);
                     }
@@ -1715,19 +1715,19 @@ class APIConfigManager {
     }
 
     /**
-     * Get recommended model list (removed, returns empty array)
+     * 获取推荐模型列表（已移除，返回空数组）
      */
     async _getRecommendedModels(modelType) {
-        // Recommended models removed; all models fetched from provider API
+        // 推荐模型已移除，所有模型从服务商API获取
         return [];
     }
 
     /**
-     * Add model
+     * 添加模型
      */
     async _addModel(service, modelType, modelName, container) {
         try {
-            // Call backend API to add model
+            // 调用后端API添加模型
             const res = await fetch(APIService.getApiUrl(`/services/${service.id}/models`), {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -1743,10 +1743,10 @@ class APIConfigManager {
             const result = await res.json();
 
             if (!result.success) {
-                throw new Error(result.error || tUI('Failed to add model'));
+                throw new Error(result.error || '添加模型失败');
             }
 
-            // Update local data
+            // 更新本地数据
             const modelList = modelType === 'llm' ? service.llm_models : service.vlm_models;
             if (!modelList) {
                 if (modelType === 'llm') {
@@ -1765,26 +1765,26 @@ class APIConfigManager {
                 max_tokens: 4096
             });
 
-            // Remove empty hint
+            // 移除空提示
             const emptyHint = container.querySelector('.empty-hint');
             if (emptyHint) {
                 emptyHint.remove();
             }
 
-            // Add new tag
+            // 添加新标签
             const newTag = this._createModelTag({
                 name: modelName,
                 is_default: updatedList.length === 1
             }, service, modelType);
             container.appendChild(newTag);
 
-            // Initialize or update Sortable (ensure newly added tag is draggable)
-            // Destroy old Sortable instance first (if exists)
+            // 初始化或更新Sortable（确保新添加的标签可以拖动）
+            // 先销毁旧的Sortable实例（如果存在）
             if (container.sortableInstance) {
                 container.sortableInstance.destroy();
             }
 
-            // Create new Sortable instance
+            // 创建新的Sortable实例
             container.sortableInstance = new Sortable(container, {
                 animation: 150,
                 ghostClass: 'sortable-ghost',
@@ -1796,15 +1796,15 @@ class APIConfigManager {
 
             app.extensionManager.toast.add({
                 severity: "success",
-                summary: tUI("Model added"),
+                summary: "模型已添加",
                 life: 2000
             });
 
         } catch (error) {
-            logger.error('Failed to add model', error);
+            logger.error('添加模型失败', error);
             app.extensionManager.toast.add({
                 severity: "error",
-                summary: tUI("Add failed"),
+                summary: "添加失败",
                 detail: error.message,
                 life: 3000
             });
@@ -1812,30 +1812,30 @@ class APIConfigManager {
     }
 
     /**
-     * Delete model
+     * 删除模型
      */
     async _deleteModel(service, modelType, modelName, tagElement) {
-        // Use createSettingsDialog to create confirmation window
+        // 使用createSettingsDialog创建确认窗口
         createSettingsDialog({
-            title: `<i class="pi pi-exclamation-triangle" style="margin-right: 8px; color: var(--p-orange-500);"></i>${tUI('Confirm Deletion')}`,
+            title: `<i class="pi pi-exclamation-triangle" style="margin-right: 8px; color: var(--p-orange-500);"></i>${tUI('确认删除')}`,
             isConfirmDialog: true,
             dialogClassName: 'confirm-dialog',
-            saveButtonText: tUI('Delete'),
+            saveButtonText: tUI('删除'),
             saveButtonIcon: 'pi-trash',
             isDangerButton: true,
-            cancelButtonText: tUI('Cancel'),
+            cancelButtonText: tUI('取消'),
             renderContent: (content) => {
                 content.className = 'confirm-dialog-content-simple';
 
                 const confirmMessage = document.createElement('p');
                 confirmMessage.className = 'confirm-dialog-message-simple';
-                confirmMessage.textContent = `${tUI('Are you sure you want to delete model')} "${modelName}" ${tUI('?')}`;
+                confirmMessage.textContent = `${tUI('确定要删除模型')} "${modelName}" ${tUI('吗？')}`;
 
                 content.appendChild(confirmMessage);
             },
             onSave: async () => {
                 try {
-                    // Call backend API to delete model
+                    // 调用后端API删除模型
                     const res = await fetch(APIService.getApiUrl(`/services/${service.id}/models/${modelType}/${encodeURIComponent(modelName)}`), {
                         method: 'DELETE'
                     });
@@ -1843,25 +1843,25 @@ class APIConfigManager {
                     const result = await res.json();
 
                     if (!result.success) {
-                        throw new Error(result.error || tUI('Failed to delete model'));
+                        throw new Error(result.error || '删除模型失败');
                     }
 
-                    // Update local data
+                    // 更新本地数据
                     const models = modelType === 'llm' ? service.llm_models : service.vlm_models;
                     const index = models.findIndex(m => m.name === modelName);
                     if (index >= 0) {
                         models.splice(index, 1);
                     }
 
-                    // Remove tag
+                    // 移除标签
                     tagElement.remove();
 
-                    // If empty after deletion, show empty hint
+                    // 如果删除后为空，显示空提示
                     const container = tagElement.parentElement;
                     if (container && container.children.length === 0) {
                         const emptyHint = document.createElement('div');
                         emptyHint.className = 'empty-hint';
-                        emptyHint.textContent = tUI('No models configured yet. Click "+ Add Model" to start.');
+                        emptyHint.textContent = tUI('暂无配置模型，点击"+ 添加模型"开始配置');
                         emptyHint.style.cssText = `
                             font-size: 12px;
                             color: var(--p-text-muted-color);
@@ -1872,32 +1872,32 @@ class APIConfigManager {
 
                     app.extensionManager.toast.add({
                         severity: "success",
-                        summary: tUI("Model deleted"),
+                        summary: "模型已删除",
                         life: 2000
                     });
 
-                    return true; // Allow dialog to close
+                    return true; // 允许关闭对话框
 
                 } catch (error) {
-                    logger.error('Failed to delete model', error);
+                    logger.error('删除模型失败', error);
                     app.extensionManager.toast.add({
                         severity: "error",
-                        summary: tUI("Delete failed"),
+                        summary: "删除失败",
                         detail: error.message,
                         life: 3000
                     });
-                    return false; // Prevent dialog from closing
+                    return false; // 阻止关闭对话框
                 }
             }
         });
     }
 
     /**
-     * Set default model
+     * 设置默认模型
      */
     async _setDefaultModel(service, modelType, modelName, tagElement) {
         try {
-            // Call backend API to set default model
+            // 调用后端API设置默认模型
             const res = await fetch(APIService.getApiUrl(`/services/${service.id}/models/default`), {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
@@ -1910,37 +1910,37 @@ class APIConfigManager {
             const result = await res.json();
 
             if (!result.success) {
-                throw new Error(result.error || tUI('Failed to set default model'));
+                throw new Error(result.error || '设置默认模型失败');
             }
 
-            // Update local data
+            // 更新本地数据
             const models = modelType === 'llm' ? service.llm_models : service.vlm_models;
             models.forEach(m => {
                 m.is_default = m.name === modelName;
             });
 
-            // ---Directly update DOM, no need to reload---
+            // ---直接更新DOM，无需重新加载---
             const container = tagElement?.parentElement;
             if (container) {
-                // Remove default state from all tags
+                // 移除所有标签的默认状态
                 container.querySelectorAll('.model-tag').forEach(tag => {
                     tag.classList.remove('default');
-                    // Remove old default badge
+                    // 移除旧的默认标记
                     const oldBadge = tag.querySelector('.model-tag-badge');
                     if (oldBadge) {
                         oldBadge.remove();
                     }
                 });
 
-                // Add style and badge to new default model
+                // 为新的默认模型添加样式和标记
                 if (tagElement) {
                     tagElement.classList.add('default');
-                    // Add default badge after name
+                    // 在名称后面添加默认标记
                     const nameSpan = tagElement.querySelector('.model-tag-name');
                     if (nameSpan) {
                         const defaultBadge = document.createElement('span');
                         defaultBadge.className = 'model-tag-badge';
-                        defaultBadge.textContent = tUI('Default');
+                        defaultBadge.textContent = tUI('默认');
                         nameSpan.after(defaultBadge);
                     }
                 }
@@ -1948,15 +1948,15 @@ class APIConfigManager {
 
             app.extensionManager.toast.add({
                 severity: "success",
-                summary: `${tUI('Set')} "${modelName}" ${tUI(' as default model')}`,
+                summary: `${tUI('已设置')} "${modelName}" ${tUI('为默认模型')}`,
                 life: 2000
             });
 
         } catch (error) {
-            logger.error('Failed to set default model', error);
+            logger.error('设置默认模型失败', error);
             app.extensionManager.toast.add({
                 severity: "error",
-                summary: tUI("Set failed"),
+                summary: "设置失败",
                 detail: error.message,
                 life: 3000
             });
@@ -1964,14 +1964,14 @@ class APIConfigManager {
     }
 
     /**
-     * Update model order
+     * 更新模型顺序
      */
     async _updateModelOrder(serviceId, modelType, container) {
         try {
             const modelTags = container.querySelectorAll('.model-tag');
             const newOrder = Array.from(modelTags).map(tag => tag.dataset.modelName);
 
-            // Call backend API to update order
+            // 调用后端API更新顺序
             const res = await fetch(APIService.getApiUrl(`/services/${serviceId}/models/order`), {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
@@ -1984,20 +1984,20 @@ class APIConfigManager {
             const result = await res.json();
 
             if (!result.success) {
-                throw new Error(result.error || tUI('Failed to update model order'));
+                throw new Error(result.error || '更新模型顺序失败');
             }
 
             app.extensionManager.toast.add({
                 severity: "success",
-                summary: tUI("Model order updated"),
+                summary: "模型顺序已更新",
                 life: 2000
             });
 
         } catch (error) {
-            logger.error('Failed to update model order', error);
+            logger.error('更新模型顺序失败', error);
             app.extensionManager.toast.add({
                 severity: "error",
-                summary: tUI("Update failed"),
+                summary: "更新失败",
                 detail: error.message,
                 life: 3000
             });
@@ -2005,28 +2005,28 @@ class APIConfigManager {
     }
 
     /**
-     * Delete provider
+     * 删除服务商
      */
     async _deleteService(serviceId) {
-        // Find service name
+        // 查找服务名称
         const service = this.services.find(s => s.id === serviceId);
         const serviceName = service ? service.name : serviceId;
 
-        // Use createSettingsDialog to create confirmation window
+        // 使用createSettingsDialog创建确认窗口
         createSettingsDialog({
-            title: `<i class="pi pi-exclamation-triangle" style="margin-right: 8px; color: var(--p-orange-500);"></i>${tUI('Confirm Deletion')}`,
+            title: `<i class="pi pi-exclamation-triangle" style="margin-right: 8px; color: var(--p-orange-500);"></i>${tUI('确认删除')}`,
             isConfirmDialog: true,
             dialogClassName: 'confirm-dialog',
-            saveButtonText: tUI('Delete'),
+            saveButtonText: tUI('删除'),
             saveButtonIcon: 'pi-trash',
             isDangerButton: true,
-            cancelButtonText: tUI('Cancel'),
+            cancelButtonText: tUI('取消'),
             renderContent: (content) => {
                 content.className = 'confirm-dialog-content-simple';
 
                 const confirmMessage = document.createElement('p');
                 confirmMessage.className = 'confirm-dialog-message-simple';
-                confirmMessage.textContent = `${tUI('Are you sure you want to delete provider')} "${serviceName}" ${tUI('?')}`;
+                confirmMessage.textContent = `${tUI('确定要删除服务商')} "${serviceName}" ${tUI('吗？')}`;
 
                 content.appendChild(confirmMessage);
             },
@@ -2041,14 +2041,14 @@ class APIConfigManager {
                     if (result.success) {
                         app.extensionManager.toast.add({
                             severity: "success",
-                            summary: tUI("Delete successful"),
+                            summary: "删除成功",
                             life: 3000
                         });
 
-                        // Reload configuration and refresh UI
+                        // 重新加载配置并刷新UI
                         await this._loadAllConfigs();
 
-                        // Find and remove corresponding tab and content
+                        // 查找并移除对应的标签和内容
                         const tabButton = document.querySelector(`.tab-button[data-tab="${serviceId}"]`);
                         if (tabButton) {
                             tabButton.remove();
@@ -2059,14 +2059,14 @@ class APIConfigManager {
                             tabPane.remove();
                         }
 
-                        // Auto switch to Baidu Translate tab
+                        // 自动切换到百度翻译标签
                         const header = document.querySelector('.tab-header');
                         const contentContainer = document.querySelector('.tab-content');
                         if (header && contentContainer) {
                             this._switchTab('baidu', header, contentContainer);
                         }
 
-                        // If it's the last provider, show empty hint
+                        // 如果是最后一个服务商，显示空提示
                         const listContainer = document.querySelector('.services-list');
                         if (listContainer && this.services.length === 0) {
                             const emptyHint = document.createElement('div');
@@ -2075,33 +2075,33 @@ class APIConfigManager {
                                 padding: 40px;
                                 color: var(--p-text-muted-color);
                             `;
-                            emptyHint.textContent = tUI('No providers yet. Click "Add New Provider" to start.');
+                            emptyHint.textContent = tUI('暂无服务商，点击"新增服务商"开始配置');
                             listContainer.appendChild(emptyHint);
                         }
 
-                        // Trigger config sync event
+                        // 触发配置同步事件
                         this.notifyConfigChange();
 
-                        return true; // Allow dialog to close
+                        return true; // 允许关闭对话框
                     } else {
-                        throw new Error(result.error || tUI('Delete failed'));
+                        throw new Error(result.error || '删除失败');
                     }
                 } catch (error) {
-                    logger.error('Failed to delete provider', error);
+                    logger.error('删除服务商失败', error);
                     app.extensionManager.toast.add({
                         severity: "error",
-                        summary: tUI("Delete failed"),
+                        summary: "删除失败",
                         detail: error.message,
                         life: 3000
                     });
-                    return false; // Prevent dialog from closing
+                    return false; // 阻止关闭对话框
                 }
             }
         });
     }
 
     /**
-     * Update provider configuration
+     * 更新服务商配置
      */
     async _updateService(serviceId, updates) {
         try {
@@ -2114,31 +2114,31 @@ class APIConfigManager {
             const result = await res.json();
 
             if (!result.success) {
-                throw new Error(result.error || tUI('Update failed'));
+                throw new Error(result.error || '更新失败');
             }
 
-            // Sync update local in-memory provider data
+            // 同步更新本地内存中的服务商数据
             const service = this.services.find(s => s.id === serviceId);
             if (service) {
                 Object.assign(service, updates);
             }
 
-            // Trigger config sync event
+            // 触发配置同步事件
             this.notifyConfigChange();
 
-            logger.debug('Provider configuration updated', serviceId);
+            logger.debug('服务商配置已更新', serviceId);
 
-            // Show success notification
+            // 显示成功提示
             app.extensionManager.toast.add({
                 severity: "success",
-                summary: tUI("Provider configuration updated"),
+                summary: "服务商配置已更新",
                 life: 2000
             });
         } catch (error) {
-            logger.error('Failed to update provider', error);
+            logger.error('更新服务商失败', error);
             app.extensionManager.toast.add({
                 severity: "error",
-                summary: tUI("Update failed"),
+                summary: "更新失败",
                 detail: error.message,
                 life: 3000
             });
@@ -2148,9 +2148,9 @@ class APIConfigManager {
 
 
     /**
-     * Load masked API Key
-     * @param {string} serviceId Provider ID
-     * @returns {Promise<string|null>} Masked API Key
+     * 加载掩码后的API Key
+     * @param {string} serviceId 服务商ID
+     * @returns {Promise<string|null>} 掩码后的API Key
      */
     async _loadMaskedApiKey(serviceId) {
         try {
@@ -2163,11 +2163,11 @@ class APIConfigManager {
 
             return null;
         } catch (error) {
-            logger.error('Failed to load masked API Key', error);
+            logger.error('加载掩码API Key失败', error);
             return null;
         }
     }
 }
 
-// Export API configuration manager instance
-export const apiConfigManager = new APIConfigManager();
+// 导出API配置管理器实例
+export const apiConfigManager = new APIConfigManager(); 

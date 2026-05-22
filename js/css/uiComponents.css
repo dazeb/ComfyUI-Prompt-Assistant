@@ -1,28 +1,28 @@
 /**
- * Settings interface styles
- *
- * Style classification description:
- * 1. Global base styles - CSS variables, Z-index hierarchy management
- * 2. Settings modal common styles - modals, forms, buttons shared by all settings modules
- * 3. API configuration manager exclusive styles - tab pages, service cards and other components in the API config interface
- * 4. Tag manager exclusive styles - drag, accordion and other components in the tag management interface
- * 5. Rule configuration exclusive styles - list, editor and other components in the prompt rule configuration interface
+ * 设置界面样式
+ * 
+ * 样式分类说明:
+ * 1. 全局基础样式 - CSS 变量、Z-index 层级管理
+ * 2. 设置弹窗通用样式 - 所有设置模块共用的弹窗、表单、按钮等样式
+ * 3. API 配置管理器专属样式 - API 配置界面的标签页、服务卡片等组件
+ * 4. 标签管理器专属样式 - 标签管理界面的拖拽、手风琴等组件
+ * 5. 规则配置专属样式 - 提示词规则配置界面的列表、编辑器等组件
  */
 
 /* ===================================================
-   1. Global base styles
+   1. 全局基础样式
    =================================================== */
 
-/* ---Z-index hierarchy management--- */
-/* Hierarchy planning:
- * - ComfyUI system modals: approximately 9000-9999
- * - This plugin overlay: 10199
- * - This plugin modal base: 10200
- * - Dropdown menu: 10205
- * - Context menu: 10215
- * - Multi-listbox: 10220
- * - Confirm popup: 10225
- * - Tooltip: 10230 (topmost)
+/* ---Z-index 层级管理--- */
+/* 层级规划：
+ * - ComfyUI 系统弹窗：约 9000-9999
+ * - 本插件遮罩层：10199
+ * - 本插件弹窗基础层级：10200
+ * - 下拉菜单：10205
+ * - 右键菜单：10215
+ * - 多选列表框：10220
+ * - 确认气泡框：10225
+ * - Tooltip：10230（最上层）
  */
 :root {
     --settings-modal-z-index: 10200;
@@ -35,10 +35,10 @@
 }
 
 /* ===================================================
-   2. Settings modal common styles (shared by all settings modules)
+   2. 设置弹窗通用样式 (所有设置模块共用)
    =================================================== */
 
-/* ---Overlay styles--- */
+/* ---遮罩层样式--- */
 .settings-modal-overlay {
     position: fixed;
     top: 0;
@@ -62,17 +62,17 @@
     visibility: hidden;
 }
 
-/* Settings panel container */
+/* 设置面板容器 */
 .settings-panel {
     padding: 1rem;
 }
 
-/* Settings item group */
+/* 设置项组 */
 .settings-group {
     margin-bottom: 1.5rem;
 }
 
-/* Settings item title */
+/* 设置项标题 */
 .settings-title {
     font-size: 1rem;
     font-weight: 600;
@@ -80,7 +80,7 @@
     color: var(--fg-color);
 }
 
-/* Service application link container styles */
+/* 服务申请链接容器样式 */
 .settings-service-links {
     display: inline-flex;
     align-items: center;
@@ -90,14 +90,14 @@
 }
 
 
-/* Service application prefix text styles (consistent with link font size) */
+/* 服务申请前缀文本样式（与链接字号一致） */
 .settings-service-prefix {
     color: var(--p-button-text-primary-color);
     font-size: 14px;
     padding: 2px 4px;
 }
 
-/* Service application link styles */
+/* 服务申请链接样式 */
 .settings-service-link {
     display: inline-block;
     padding: 4px 4px;
@@ -113,7 +113,7 @@
     text-decoration: none !important;
 }
 
-/* Service link separator */
+/* 服务链接分隔符 */
 .settings-service-separator {
     color: var(--p-button-text-primary-color);
     opacity: 0.5;
@@ -121,30 +121,30 @@
     user-select: none;
 }
 
-/* Settings item content */
+/* 设置项内容 */
 .settings-content {
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
 }
 
-/* Button group styles */
+/* 按钮组样式 */
 .button-group {
     display: flex;
     gap: 0.5rem;
     margin-top: 0.5rem;
 }
 
-/* ---Settings modal styles--- */
+/* ---设置弹窗样式--- */
 .settings-modal {
     position: fixed;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%) scale(0.8);
-    /* Responsive width setting */
+    /* 响应式宽度设置 */
     width: min(90vw, 1048px);
     min-width: 800px;
-    /* Responsive height setting */
+    /* 响应式高度设置 */
     max-height: 90vh;
     min-height: 600px;
     /* height: 760px; */
@@ -155,28 +155,28 @@
     border-radius: var(--p-dialog-border-radius);
     box-shadow: var(--p-dialog-shadow);
     color: var(--p-dialog-color);
-    /* Add flex layout */
+    /* 添加弹性布局 */
     display: flex;
     flex-direction: column;
-    /* Add animation properties */
+    /* 添加动画属性 */
     opacity: 0;
     visibility: hidden;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* ---Secondary confirmation dialog independent styles--- */
-/* Applicable to various scenarios requiring secondary confirmation: delete, modify, update, etc. */
+/* ---二次确认对话框独立样式--- */
+/* 适用于各种需要二次确认的场景:删除、修改、更新等 */
 .settings-modal.confirm-dialog {
-    /* Use max-width instead of width, let the dialog adapt width based on content */
+    /* 使用 max-width 而不是 width,让对话框根据内容自适应宽度 */
     width: fit-content;
     max-width: min(90vw, 600px);
-    /* Set reasonable minimum width to avoid dialog being too narrow */
+    /* 设置合理的最小宽度,避免对话框过窄 */
     min-width: min(400px, 80vw);
     min-height: auto;
     height: auto;
 }
 
-/* Confirmation dialog content styles */
+/* 确认对话框内容样式 */
 .confirm-dialog-content {
     text-align: center;
     padding: 2rem 1rem;
@@ -211,32 +211,32 @@
     color: var(--p-text-muted-color);
 }
 
-/* Modal show animation class */
+/* 弹窗显示动画类 */
 .settings-modal.modal-show {
     opacity: 1;
     visibility: visible;
     transform: translate(-50%, -50%) scale(1);
 }
 
-/* Modal hide animation class */
+/* 弹窗隐藏动画类 */
 .settings-modal.modal-hide {
     opacity: 0;
     visibility: hidden;
     transform: translate(-50%, -50%) scale(0.8);
 }
 
-/* Drag state */
+/* 拖动时的状态 */
 .settings-modal.dragging {
     transition: none;
     cursor: move;
 }
 
-/* Title bar styles */
+/* 标题栏样式 */
 .settings-modal .p-dialog-header {
     padding: var(--p-dialog-header-padding);
     border-bottom: 1px solid var(--p-dialog-border-color);
 
-    /* Fixed header */
+    /* 固定头部 */
     flex: 0 0 auto;
     user-select: none;
 }
@@ -244,18 +244,18 @@
 .settings-modal .p-dialog-content {
     padding: 10px 40px;
     position: relative;
-    /* As positioning reference for QR code, avoid being cropped by outer layer */
-    /* Content area adaptive */
+    /* 作为二维码的定位参照，避免被外层裁剪 */
+    /* 内容区域自适应 */
     flex: 1 1 auto;
     overflow-y: auto;
-    /* Add smooth scrolling */
+    /* 添加平滑滚动 */
     scroll-behavior: smooth;
-    /* Optimize scrollbar style */
+    /* 优化滚动条样式 */
     scrollbar-width: thin;
     scrollbar-color: var(--p-scrollpanel-bar-background) transparent;
 }
 
-/* Custom scrollbar styles */
+/* 自定义滚动条样式 */
 .settings-modal .p-dialog-content::-webkit-scrollbar {
     width: 10px;
 }
@@ -278,11 +278,11 @@
 
 
     gap: 0.9rem;
-    /* Fixed footer */
+    /* 固定底部 */
     flex: 0 0 auto;
 }
 
-/* Form section styles */
+/* 表单部分样式 */
 .settings-form-section {
     /* margin-bottom: 2rem; */
     /* padding-bottom: 0.5rem; */
@@ -307,12 +307,12 @@
     color: var(--p-text-muted-color);
 }
 
-/* Form group styles */
+/* 表单组样式 */
 .settings-form-group {
     margin-bottom: 1rem;
 }
 
-/* Horizontal layout form group */
+/* 水平布局的表单组 */
 .settings-form-group.horizontal {
     display: flex;
     gap: 1rem;
@@ -322,27 +322,27 @@
 .settings-form-group.horizontal>* {
     flex: 1;
     min-width: 0;
-    /* Prevent flex items from overflowing */
+    /* 防止flex项溢出 */
 }
 
-/* Adjust label styles in horizontal layout */
+/* 调整水平布局中标签的样式 */
 .settings-form-group.horizontal .settings-form-label {
     margin-bottom: 0.5rem;
 }
 
-/* Adjust dropdown selector styles in horizontal layout */
+/* 调整下拉选择器在水平布局中的样式 */
 .settings-form-group.horizontal .p-dropdown,
 .settings-form-group.horizontal .p-inputtext {
     width: 100%;
     min-width: 0;
 }
 
-/* Ensure dropdown container is not compressed */
+/* 确保下拉选择器的容器不会被挤压 */
 .settings-form-group.horizontal .p-dropdown-container {
     min-width: 150px;
 }
 
-/* Ensure input container is not compressed */
+/* 确保输入框容器不会被挤压 */
 .settings-form-group.horizontal .p-input-wrapper {
     min-width: 150px;
 }
@@ -358,7 +358,7 @@
     color: var(--p-text-color);
 }
 
-/* ---Floating label input styles (PrimeVue FloatLabel variant="on")--- */
+/* ---浮动标签输入框样式 (PrimeVue FloatLabel variant="on")--- */
 .float-label-container {
     position: relative;
     width: 100%;
@@ -402,7 +402,7 @@
     border-color: var(--p-inputtext-hover-border-color);
 }
 
-/* Floating state - when input has value or focus */
+/* 浮动状态 - 当输入框有值或获得焦点时 */
 .float-label-container input:focus~label,
 .float-label-container input:not(:placeholder-shown)~label {
     top: 0;
@@ -412,12 +412,12 @@
     font-weight: 500;
 }
 
-/* Password input styles */
+/* 密码输入框样式 */
 .float-label-container input[type="password"] {
     font-family: monospace;
 }
 
-/* ---Floating label textarea styles--- */
+/* ---浮动标签 textarea 样式--- */
 .float-label-container textarea {
     width: 100%;
     padding: 0.75rem;
@@ -440,13 +440,13 @@
     border-color: var(--p-inputtext-hover-border-color);
 }
 
-/* Initial label position for textarea (since textarea height is not fixed, use fixed top value) */
+/* textarea 的标签初始位置（因为 textarea 高度不固定，使用固定的 top 值） */
 .float-label-container textarea~label {
     top: 1rem;
     transform: translateY(0);
 }
 
-/* Floating state - when textarea has value or focus */
+/* 浮动状态 - 当 textarea 有值或获得焦点时 */
 .float-label-container textarea:focus~label,
 .float-label-container textarea:not(:placeholder-shown)~label {
     top: 0;
@@ -456,14 +456,14 @@
     font-weight: 500;
 }
 
-/* Input container styles - prefix with pa- to avoid polluting global flex-1 */
+/* 输入框容器样式 - 加上 pa- 前缀防止污染全局 flex-1 */
 .pa-flex-1 {
     flex: 1;
     width: 100%;
 }
 
-/* ---Floating label dropdown styles--- */
-/* Dropdown label floating state by default (because dropdown always has a value) */
+/* ---浮动标签 dropdown 样式--- */
+/* dropdown 的标签默认浮动状态（因为 dropdown 总是有值） */
 .float-label-container .pa-dropdown~label {
     top: 0;
     transform: translateY(-50%);
@@ -472,12 +472,12 @@
     font-weight: 500;
 }
 
-/* Dropdown focus label styles */
+/* dropdown 获得焦点时的标签样式 */
 .float-label-container .pa-dropdown.p-focus~label {
     color: var(--p-inputtext-focus-border-color);
 }
 
-/* Optimize close button hover effect */
+/* 优化关闭按钮悬停效果 */
 .settings-modal .p-dialog-header-icon.p-dialog-header-close {
     width: 2rem;
     height: 2rem;
@@ -504,8 +504,8 @@
 
 }
 
-/* ---Danger button styles--- */
-/* Used for dangerous operations like delete - scoped within plugin */
+/* ---危险按钮样式--- */
+/* 用于删除等危险操作的按钮 - 限定在插件作用域内 */
 .pa-settings-root .p-button-danger,
 .prompt-assistant-container .p-button-danger {
     background: var(--p-button-danger-background);
@@ -529,8 +529,8 @@
 }
 
 
-/* Independent dropdown selector component styles (not relying on PrimeVue global styles) */
-/* Only affects select boxes created by the assistant, does not change ComfyUI built-in components */
+/* 独立下拉选择组件样式（不依赖 PrimeVue 全局样式） */
+/* 仅影响通过小助手创建的选择框，不改变ComfyUI内置组件 */
 .pa-dropdown {
     display: inline-flex;
     align-items: center;
@@ -576,7 +576,7 @@
     height: 100%;
 }
 
-/* Dropdown panel (independent styles) */
+/* 下拉面板（独立样式） */
 .pa-dropdown-panel {
     z-index: var(--settings-dropdown-z-index);
     background: var(--p-select-overlay-background);
@@ -600,7 +600,7 @@
     pointer-events: auto;
 }
 
-/* Hidden accessible selector - scoped within plugin */
+/* 隐藏辅助可访问性选择器 - 限定在插件作用域内 */
 .pa-settings-root .p-hidden-accessible,
 .prompt-assistant-container .p-hidden-accessible {
     position: absolute !important;
@@ -615,14 +615,14 @@
     margin: -1px !important;
 }
 
-/* Panel content scroll container (independent styles) */
+/* 面板内容滚动容器（独立样式） */
 .pa-dropdown-panel .p-dropdown-items-wrapper {
     max-height: 240px;
     overflow: auto;
 }
 
 
-/* List and options (independent styles) */
+/* 列表与选项（独立样式） */
 .pa-dropdown-panel .p-dropdown-items {
     padding: 4px;
     list-style: none;
@@ -650,7 +650,7 @@
     color: var(--p-form-field-focus-border-color);
 }
 
-/* ---Editable dropdown (ComboBox) styles--- */
+/* ---可输入下拉框（ComboBox）样式--- */
 .pa-combobox {
     display: inline-flex;
     align-items: center;
@@ -675,7 +675,7 @@
     color: var(--p-text-muted-color);
 }
 
-/* ComboBox floating label: floats when input has value or focus */
+/* ComboBox 浮动标签：输入框有值或聚焦时上浮 */
 .float-label-container .pa-combobox~label {
     top: 0;
     transform: translateY(-50%);
@@ -688,7 +688,7 @@
     color: var(--p-inputtext-focus-border-color);
 }
 
-/* Width adaptation in horizontal form layout */
+/* 水平表单布局中的宽度适配 */
 .settings-form-group.horizontal .pa-dropdown,
 .pa-settings-root .settings-form-group.horizontal .p-inputtext {
     width: 100%;
@@ -700,7 +700,7 @@
 }
 
 
-/* Selector control styles */
+/* 选择器控件样式 */
 .settings-modal .p-dropdown:not(.pa-dropdown) {
     display: inline-flex;
     align-items: center;
@@ -749,7 +749,7 @@
     height: 100%;
 }
 
-/* Dropdown panel animation related styles (excluding assistant dropdown) */
+/* 下拉面板动画相关样式（排除小助手下拉） */
 .settings-modal .p-dropdown-panel:not(.pa-dropdown-panel),
 .settings-modal-dropdown-panel:not(.pa-dropdown-panel) {
     z-index: var(--settings-dropdown-z-index);
@@ -808,7 +808,7 @@
     color: var(--p-select-option-selected-color);
 }
 
-/* Responsive layout media query */
+/* 响应式布局媒体查询 */
 @media screen and (max-width: 640px) {
     .settings-modal {
         width: 95vw;
@@ -827,15 +827,15 @@
 }
 
 /* ===================================================
-   3. API configuration manager exclusive styles
+   3. API 配置管理器专属样式
    =================================================== */
 
-/* ---Tab container--- */
+/* ---标签页容器--- */
 .api-config-tabs {
     width: 100%;
 }
 
-/* ---Tab header--- */
+/* ---标签页头部--- */
 .tab-header {
     display: flex;
     gap: 8px;
@@ -846,7 +846,7 @@
     justify-content: flex-start;
 }
 
-/* ---Tab button--- */
+/* ---标签按钮--- */
 .tab-button {
     display: flex;
     flex-direction: column;
@@ -857,7 +857,7 @@
     cursor: pointer;
     border-radius: 4px;
     min-width: 100px;
-    /* Remove transform transition to avoid interfering with Sortable.js drag animation */
+    /* 移除 transform 过渡，避免干扰 Sortable.js 的拖拽动画 */
     transition: background 0.2s, color 0.2s, opacity 0.2s;
     flex-shrink: 0;
 }
@@ -881,7 +881,7 @@
     color: color-mix(in srgb, var(--p-button-primary-color), transparent 30%);
 }
 
-/* ---Tab title--- */
+/* ---标签标题--- */
 .tab-title {
     font-size: 16px;
     font-weight: 500;
@@ -890,7 +890,7 @@
     font-weight: 600;
 }
 
-/* ---Tab subtitle--- */
+/* ---标签副标题--- */
 .tab-subtitle {
     font-size: 12px;
     color: color-mix(in srgb, var(--p-text-muted-color), transparent 30%);
@@ -901,7 +901,7 @@
     max-width: 150px;
 }
 
-/* ---New service tab button--- */
+/* ---新增服务标签按钮--- */
 .service-tab-add {
     padding: 8px 16px;
     border: 1px dashed var(--p-divider-color);
@@ -920,12 +920,12 @@
     background: var(--p-list-option-focus-background);
 }
 
-/* ---Tab content container--- */
+/* ---标签内容容器--- */
 .tab-content {
     width: 100%;
 }
 
-/* ---Tab panel--- */
+/* ---标签页面板--- */
 .tab-pane {
     padding: 16px;
     display: none;
@@ -935,7 +935,7 @@
     display: block;
 }
 
-/* ---Service card--- */
+/* ---服务卡片--- */
 .service-card {
     border: 1px solid var(--p-divider-color);
     border-radius: 8px;
@@ -943,7 +943,7 @@
     background: var(--p-content-background);
 }
 
-/* Tab container general styles */
+/* 标签页容器通用样式 */
 .tab-pane {
     padding: 16px;
     display: none;
@@ -954,7 +954,7 @@
     color: white;
 }
 
-/* Service provider secondary tab navigation */
+/* 服务商二级标签导航 */
 .service-sub-tabs {
     display: flex;
     gap: 8px;
@@ -964,7 +964,7 @@
     overflow-x: auto;
 }
 
-/* Service provider secondary tab button */
+/* 服务商二级标签按钮 */
 .service-tab-button {
     display: flex;
     flex-direction: column;
@@ -1012,7 +1012,7 @@
     color: rgba(255, 255, 255, 0.8);
 }
 
-/* New service tab button */
+/* 新增服务标签按钮 */
 .service-tab-add {
     padding: 8px 16px;
     border: 1px dashed var(--p-divider-color);
@@ -1029,7 +1029,7 @@
     color: var(--p-primary-500);
 }
 
-/* Empty state hint */
+/* 空状态提示 */
 .empty-state-hint {
     text-align: center;
     padding: 60px 20px;
@@ -1064,7 +1064,7 @@
     font-size: 12px;
 }
 
-/* ---Simplified service configuration item--- */
+/* ---简化版服务配置项--- */
 .service-setting-item {
     display: inline-flex;
     align-items: center;
@@ -1099,7 +1099,7 @@
     color: var(--p-primary-500);
 }
 
-/* Configuration item container - right aligned */
+/* 配置项容器 - 右对齐 */
 .service-settings-inline {
     display: flex;
     justify-content: flex-end;
@@ -1111,7 +1111,7 @@
     border-bottom: 1px solid var(--p-dialog-border-color);
 }
 
-/* ---Switch control (simplified)--- */
+/* ---开关控件（简化版）--- */
 
 .switch-wrapper {
     position: relative;
@@ -1160,7 +1160,7 @@
     left: 23px;
 }
 
-/* ---Model configuration area--- */
+/* ---模型配置区域--- */
 .models-container {
     display: flex;
     flex-wrap: wrap;
@@ -1173,7 +1173,7 @@
     box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.05);
 }
 
-/* ---Model tag--- */
+/* ---模型标签--- */
 .model-tag {
     display: inline-flex;
     align-items: center;
@@ -1184,7 +1184,7 @@
     font-size: 13px;
     cursor: pointer;
     user-select: none;
-    /* Remove transform transition to avoid interfering with Sortable.js drag animation */
+    /* 移除 transform 过渡，避免干扰 Sortable.js 的拖拽动画 */
     transition: background 0.2s, color 0.2s, border-color 0.2s, box-shadow 0.2s;
     border: 2px solid transparent;
 }
@@ -1221,7 +1221,7 @@
     margin-right: 6px;
 }
 
-/* ---Model delete button--- */
+/* ---模型删除按钮--- */
 .model-delete-btn {
     background: none;
     border: none;
@@ -1242,14 +1242,14 @@
     color: var(--p-red-500);
 }
 
-/* ---Empty state hint--- */
+/* ---空状态提示--- */
 .empty-hint {
     font-size: 12px;
     color: var(--p-text-muted-color);
     padding: 8px;
 }
 
-/* ---Advanced settings--- */
+/* ---高级设置--- */
 .advanced-settings {
     margin-top: 12px;
     padding: 12px;
@@ -1296,7 +1296,7 @@
     font-size: 13px;
 }
 
-/* ---Add model dialog--- */
+/* ---添加模型对话框--- */
 .pa-settings-root .model-listbox {
     position: fixed;
     width: 320px;
@@ -1383,7 +1383,7 @@
     z-index: 10219;
 }
 
-/* ---New service dialog--- */
+/* ---新增服务对话框--- */
 .add-service-dialog {
     position: fixed;
     top: 0;
@@ -1437,10 +1437,10 @@
 }
 
 /* ===================================================
-   4. Tag manager exclusive styles
+   4. 标签管理器专属样式
    =================================================== */
 
-/* ---Drag and sort related styles--- */
+/* ---拖拽排序相关样式--- */
 .tags-manager-container .tag_accordion.dragging,
 .tags-manager-container .tag_item.dragging {
     opacity: 0.7;
@@ -1468,7 +1468,7 @@
     margin-right: -1px;
 }
 
-/* Tag management interface specific styles */
+/* 标签管理界面特有样式 */
 .tags-manager-container {
     width: 100%;
     display: flex;
@@ -1500,7 +1500,7 @@
     cursor: grabbing;
 }
 
-/* Tag configuration manager styles */
+/* 标签配置管理器样式 */
 .tags-config-container {
     width: 800px;
     height: 600px;
@@ -1516,7 +1516,7 @@
     overflow: hidden;
 }
 
-/* Tag management dialog size */
+/* 标签管理弹窗大小 */
 .tags-config-dialog {
     width: 760px;
     height: 600px;
@@ -1551,7 +1551,7 @@
     margin: 0 4px;
 }
 
-/* Delete button styles */
+/* 删除按钮样式 */
 
 .tag_delete_button {
     background: none;
@@ -1567,25 +1567,25 @@
     width: 24px;
     height: 24px;
     min-width: 24px;
-    /* Add min-width */
+    /* 添加最小宽度 */
     min-height: 24px;
-    /* Add min-height */
+    /* 添加最小高度 */
     transition: all 0.2s;
     opacity: 0.5;
     box-sizing: border-box;
-    /* Ensure padding does not affect overall size */
+    /* 确保padding不会影响整体大小 */
 }
 
 .tag_delete_button.small {
     width: 20px;
     height: 20px;
     min-width: 20px;
-    /* Add min-width */
+    /* 添加最小宽度 */
     min-height: 20px;
-    /* Add min-height */
+    /* 添加最小高度 */
     padding: 2px;
     box-sizing: border-box;
-    /* Ensure padding does not affect overall size */
+    /* 确保padding不会影响整体大小 */
 }
 
 .tag_delete_button:hover {
@@ -1598,25 +1598,25 @@
     width: 14px;
     height: 14px;
     min-width: 14px;
-    /* Add min-width */
+    /* 添加最小宽度 */
     min-height: 14px;
-    /* Add min-height */
+    /* 添加最小高度 */
     flex-shrink: 0;
-    /* Prevent icon from being compressed */
+    /* 防止图标被压缩 */
     display: block;
-    /* Ensure icon displays as block element */
+    /* 确保图标显示为块级元素 */
 }
 
 .tag_delete_icon.small {
     width: 12px;
     height: 12px;
     min-width: 12px;
-    /* Add min-width */
+    /* 添加最小宽度 */
     min-height: 12px;
-    /* Add min-height */
+    /* 添加最小高度 */
 }
 
-/* Edit button styles */
+/* 编辑按钮样式 */
 .tag_edit_button {
     background: none;
     border: none;
@@ -1631,25 +1631,25 @@
     width: 24px;
     height: 24px;
     min-width: 24px;
-    /* Add min-width */
+    /* 添加最小宽度 */
     min-height: 24px;
-    /* Add min-height */
+    /* 添加最小高度 */
     transition: all 0.2s;
     opacity: 0.5;
     box-sizing: border-box;
-    /* Ensure padding does not affect overall size */
+    /* 确保padding不会影响整体大小 */
 }
 
 .tag_edit_button.small {
     width: 20px;
     height: 20px;
     min-width: 20px;
-    /* Add min-width */
+    /* 添加最小宽度 */
     min-height: 20px;
-    /* Add min-height */
+    /* 添加最小高度 */
     padding: 2px;
     box-sizing: border-box;
-    /* Ensure padding does not affect overall size */
+    /* 确保padding不会影响整体大小 */
 }
 
 .tag_edit_button:hover {
@@ -1677,17 +1677,17 @@
 .tag_action_icon {
     font-size: 14px;
     width: 14px;
-    /* Add fixed width */
+    /* 添加固定宽度 */
     height: 14px;
-    /* Add fixed height */
+    /* 添加固定高度 */
     min-width: 14px;
-    /* Add min-width */
+    /* 添加最小宽度 */
     min-height: 14px;
-    /* Add min-height */
+    /* 添加最小高度 */
     flex-shrink: 0;
-    /* Prevent icon from being compressed */
+    /* 防止图标被压缩 */
     display: flex;
-    /* Use flex layout to ensure content centered */
+    /* 使用flex布局确保内容居中 */
     align-items: center;
     justify-content: center;
 }
@@ -1695,26 +1695,26 @@
 .tag_action_icon.small {
     font-size: 12px;
     width: 12px;
-    /* Add fixed width */
+    /* 添加固定宽度 */
     height: 12px;
-    /* Add fixed height */
+    /* 添加固定高度 */
     min-width: 12px;
-    /* Add min-width */
+    /* 添加最小宽度 */
     min-height: 12px;
-    /* Add min-height */
+    /* 添加最小高度 */
 }
 
-/* Ensure icon is centered in the button */
+/* 确保图标在按钮中居中显示 */
 .tag_accordion_icon {
     display: flex;
     align-items: center;
     justify-content: flex-end;
-    /* Add right alignment */
+    /* 添加右对齐 */
     gap: 4px;
     height: 24px;
-    /* Keep fixed height */
+    /* 保持固定高度 */
     min-width: 80px;
-    /* Ensure container has enough width to hold all icons */
+    /* 确保容器有足够的宽度容纳所有图标 */
 }
 
 .tag_accordion_icon .accordion_arrow_icon {
@@ -1743,7 +1743,7 @@
     transform: rotate(180deg);
 }
 
-/* Adjust icon container internal layout */
+/* 调整图标容器内部布局 */
 .tag_accordion_header {
     padding: 4px 14px;
     background-color: color-mix(in srgb, var(--comfy-menu-secondary-bg), transparent 60%);
@@ -1755,7 +1755,7 @@
     transition: all 0.2s ease;
     border-radius: 6px;
     min-height: 32px;
-    /* Ensure title bar has enough height */
+    /* 确保标题栏有足够的高度 */
 }
 
 .tag_accordion_title {
@@ -1764,13 +1764,13 @@
     color: var(--p-text-muted-color);
     font-weight: 500;
     margin-right: 8px;
-    /* Add right margin to keep distance from icons */
+    /* 添加右边距，与图标保持距离 */
     overflow: hidden;
-    /* Prevent text overflow */
+    /* 防止文本溢出 */
     text-overflow: ellipsis;
-    /* Show ellipsis when text overflows */
+    /* 文本溢出时显示省略号 */
     white-space: nowrap;
-    /* Keep single line */
+    /* 保持单行 */
 }
 
 .tags_container {
@@ -1782,7 +1782,7 @@
     border-radius: 0 0 4px 4px;
 }
 
-/* Use tag styles defined in popup.css, only modify cursor to grab */
+/* 使用popup.css中定义的标签样式，只修改cursor为grab */
 .tags-manager-container .tag_item {
     position: relative;
     display: flex;
@@ -1802,7 +1802,7 @@
     border-radius: 4px;
     transition: all 0.2s ease;
     cursor: default;
-    /* Use default pointer in tag management page */
+    /* 标签管理页面中使用默认指针 */
     user-select: none;
 }
 
@@ -1812,15 +1812,15 @@
 
 .tags-manager-container .tag_accordion_header {
     cursor: grab;
-    /* Only header can be dragged */
+    /* 只有标题部分可拖动 */
 }
 
 .tags-manager-container .tag_accordion_header:active {
     cursor: grabbing;
-    /* Show grab cursor when dragging */
+    /* 拖动时显示抓取光标 */
 }
 
-/* Drag state styles */
+/* 拖拽状态样式 */
 .tags-manager-container .tag_accordion.dragging,
 .tags-manager-container .tag_item.dragging {
     opacity: 0.5;
@@ -1828,17 +1828,17 @@
     z-index: 10;
 }
 
-/* New drag animation styles */
+/* 新增拖拽动画样式 */
 .tags-manager-container .tag-dragging,
 .tags-manager-container .category-dragging {
     opacity: 0.6 !important;
-    /* Remove scale effect */
+    /* 移除缩放效果 */
     /* transform: scale(1.02); */
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2) !important;
     z-index: 100 !important;
 }
 
-/* Target position indicator during drag */
+/* 拖拽过程中的目标位置指示器 */
 .tag-ghost,
 .category-ghost {
     opacity: 0.3;
@@ -1846,27 +1846,27 @@
     border: 1px dashed var(--p-primary-500) !important;
 }
 
-/* Selected element styles */
+/* 被选中的元素样式 */
 .tag-chosen,
 .category-chosen {
     background-color: color-mix(in srgb, var(--p-primary-500), transparent 90%);
     border-color: var(--p-primary-500) !important;
 }
 
-/* Drag styles */
+/* 拖拽时的样式 */
 .tag-drag,
 .category-drag {
     opacity: 0.8;
 }
 
-/* Add transition animation for element movement */
+/* 添加元素移动的过渡动画 */
 .tags-manager-container .tag_accordion,
 .tags-manager-container .tag_item {
-    /* Remove transform transition effect */
+    /* 移除transform过渡效果 */
     transition: opacity 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
 }
 
-/* Position indicator during drag sort */
+/* 拖拽排序时的位置指示 */
 .sortable-fallback {
     opacity: 0 !important;
 }
@@ -1904,19 +1904,19 @@
     border-right: 2px solid var(--p-primary-500);
 }
 
-/* Tooltip handling */
+/* tooltip处理 */
 .has-tooltip {
     position: relative;
 }
 
-/* Tag container layout */
+/* 标签容器布局 */
 .tags-manager-container {
     display: flex;
     flex-direction: column;
     gap: 10px;
 }
 
-/* Dialog form content styles */
+/* 弹窗表单内容样式 */
 .dialog-form-content {
     padding: 1.5rem;
     display: flex;
@@ -1933,14 +1933,14 @@
     margin-bottom: 0;
 }
 
-/* Ensure dropdown and input have appropriate width and spacing */
+/* 确保下拉框和输入框有合适的宽度和间距 */
 .dialog-form-content .p-dropdown,
 .dialog-form-content .p-inputtext {
     width: 100%;
     box-sizing: border-box;
 }
 
-/* Rule configuration form styles */
+/* 规则配置表单样式 */
 .rules-config-form {
     max-height: 70vh;
     overflow: auto;
@@ -1960,7 +1960,7 @@
     flex-grow: 1;
 }
 
-/* API config form styles */
+/* API配置表单样式 */
 .api-config-form {
     width: 100%;
     display: flex;
@@ -1968,7 +1968,7 @@
     gap: 1px;
 }
 
-/* Refresh button styles */
+/* 刷新按钮样式 */
 .settings-refresh-button {
     display: inline-flex;
     align-items: center;
@@ -1994,17 +1994,17 @@
     vertical-align: middle;
 }
 
-/* Form section spacing */
+/* 表单分组的间距 */
 .settings-form-section {
     margin-bottom: 10px;
 }
 
-/* Form input component styles */
+/* 表单输入组件的样式 */
 .settings-form-group {
     margin-bottom: 26px;
 }
 
-/* Horizontal layout group styles */
+/* 水平布局组的样式 */
 .settings-form-group.horizontal {
     display: flex;
     flex-wrap: wrap;
@@ -2016,7 +2016,7 @@
     min-width: 200px;
 }
 
-/* Add tag management section styles */
+/* 添加标签管理部分的样式 */
 .tag-management-section {
     width: 100%;
     max-width: 100%;
@@ -2047,14 +2047,14 @@
     overflow-x: hidden;
 }
 
-/* Ensure tag accordion adapts to width */
+/* 确保标签手风琴适配宽度 */
 .tag_accordion {
     width: 100%;
     max-width: 100%;
     overflow: hidden;
 }
 
-/* Ensure tag items do not cause container overflow */
+/* 确保标签项目不会导致容器溢出 */
 .tags_container {
     width: 100%;
     max-width: 100%;
@@ -2070,7 +2070,7 @@
     white-space: nowrap;
 }
 
-/* Fix dialog styles to ensure content does not overflow */
+/* 修复弹窗样式，确保内容不会溢出 */
 .settings-dialog {
     max-width: 90vw;
     width: 600px;
@@ -2090,10 +2090,10 @@
 
 
 /* ===================================================
-   5. Rule configuration exclusive styles
+   5. 规则配置专属样式
    =================================================== */
 
-/* ---Prompt list styles--- */
+/* ---提示词列表样式--- */
 .prompt-list-container {
     border: 1px solid var(--p-dialog-border-color);
     border-radius: 4px;
@@ -2106,14 +2106,14 @@
     flex-direction: column;
 }
 
-/* Vision prompt rule configuration list specific height */
+/* 反推规则配置列表特定高度 */
 .vision-prompt-list-container {
     height: 300px;
     min-height: 300px;
     max-height: 300px;
 }
 
-/* Video vision prompt rule configuration list fixed height */
+/* 视频反推规则配置列表固定高度 */
 .video-prompt-list-container {
     height: 300px;
     min-height: 300px;
@@ -2130,7 +2130,7 @@
     position: relative;
 }
 
-/* Remove vertical split lines in table header cells */
+/* 移除表头单元格的竖向分割线 */
 .prompt-list-header .prompt-list-cell {
     border-right: none;
 }
@@ -2202,7 +2202,7 @@
     min-width: 80px;
 }
 
-/* Column width adjustment handle */
+/* 列宽调整手柄 */
 .column-resizer {
     position: absolute;
     top: 0;
@@ -2225,12 +2225,12 @@
     opacity: 1;
 }
 
-/* Ensure column cells have relative positioning to support absolute positioned resize handles */
+/* 确保列单元格有相对定位以支持绝对定位的调整手柄 */
 .prompt-list-cell {
     position: relative;
 }
 
-/* Global styles during drag */
+/* 拖拽时的全局样式 */
 body.column-resizing {
     cursor: col-resize !important;
     user-select: none !important;
@@ -2241,7 +2241,7 @@ body.column-resizing * {
     user-select: none !important;
 }
 
-/* Drag sort styles */
+/* 拖拽排序样式 */
 .sortable-drag {
     opacity: 0.8;
     transform: rotate(2deg);
@@ -2258,7 +2258,7 @@ body.column-resizing * {
     border: 1px solid var(--p-primary-500);
 }
 
-/* Status icon styles optimization */
+/* 状态图标样式优化 */
 .status-cell .active-status {
     color: var(--p-green-500);
     cursor: pointer;
@@ -2279,7 +2279,7 @@ body.column-resizing * {
     color: var(--p-primary-500);
 }
 
-/* Status icon styles */
+/* 状态图标样式 */
 .active-status {
     color: var(--p-message-success-color);
 }
@@ -2288,7 +2288,7 @@ body.column-resizing * {
     color: var(--p-message-warn-color);
 }
 
-/* Action button styles */
+/* 操作按钮样式 */
 .prompt-action-btn {
     background: transparent;
     border: none;
@@ -2316,7 +2316,7 @@ body.column-resizing * {
     color: var(--p-message-error-color);
 }
 
-/* Rule configuration dialog styles */
+/* 规则配置对话框样式 */
 .rules-config-form {
     max-height: 70vh;
     overflow-y: auto;
@@ -2346,7 +2346,7 @@ body.column-resizing * {
     font-weight: 600;
 }
 
-/* Tab styles */
+/* 标签页样式 */
 .settings-modal .popup_tabs_container {
     margin-bottom: 10px;
 }
@@ -2400,7 +2400,7 @@ body.column-resizing * {
     display: block;
 }
 
-/* Dialog button styles */
+/* 对话框按钮样式 */
 .dialog-buttons {
     display: flex;
     justify-content: flex-end;
@@ -2439,11 +2439,11 @@ body.column-resizing * {
 
 
 
-/* WeChat badge hover QR code */
+/* 微信徽标悬浮二维码 */
 .pa-wechat-badge {
     position: relative;
-    /* As QR code positioning reference */
-    /* Let absolute positioning reference to content container */
+    /* 作为二维码定位参照 */
+    /* 让绝对定位参照到内容容器 */
 }
 
 .pa-wechat-qr {
@@ -2452,7 +2452,7 @@ body.column-resizing * {
     visibility: hidden;
     top: calc(100% + 6px);
     right: 10px;
-    /* Shift left to avoid being occluded by scrollbar */
+    /* 向左偏移，避免被滚动条遮挡 */
     transform: none;
     background: var(--p-dialog-background);
     border: 1px solid var(--p-dialog-border-color);
@@ -2460,7 +2460,7 @@ body.column-resizing * {
     padding: 6px;
     box-shadow: var(--p-dialog-shadow);
     z-index: calc(var(--settings-modal-z-index) + 5);
-    /* Fade in/out animation */
+    /* 淡入淡出动画 */
     transition: opacity 0.3s ease, visibility 0.3s ease;
 }
 
@@ -2476,10 +2476,10 @@ body.column-resizing * {
 }
 
 /* ===================================================
-   7. Confirm popup component styles (ConfirmPopup)
+   7. 确认气泡框组件样式 (ConfirmPopup)
    =================================================== */
 
-/* ---Popup container--- */
+/* ---气泡框容器--- */
 .pa-confirm-popup {
     position: fixed;
     z-index: var(--settings-confirm-popup-z-index);
@@ -2499,7 +2499,7 @@ body.column-resizing * {
     transform: scale(0.9);
 }
 
-/* ---Popup content--- */
+/* ---气泡框内容--- */
 .pa-confirm-popup-content {
     background: var(--p-dialog-background);
     border: 1px solid var(--p-dialog-border-color);
@@ -2510,12 +2510,12 @@ body.column-resizing * {
     max-width: 600px;
 }
 
-/* When containing model params form, use larger width */
+/* 当包含模型参数表单时,使用更大的宽度 */
 .pa-confirm-popup-content:has(.model-params-form) {
     min-width: 480px;
 }
 
-/* ---Message area--- */
+/* ---消息区域--- */
 .pa-confirm-popup-message {
     display: flex;
     align-items: flex-start;
@@ -2533,14 +2533,14 @@ body.column-resizing * {
     margin-top: 2px;
 }
 
-/* ---Divider--- */
+/* ---分割线--- */
 .pa-confirm-popup-divider {
     height: 1px;
     background-color: var(--p-dialog-border-color);
     margin: 0 -30px 16px -30px;
 }
 
-/* ---Form area--- */
+/* ---表单区域--- */
 .pa-confirm-popup-form {
     margin-bottom: 16px;
 }
@@ -2553,7 +2553,7 @@ body.column-resizing * {
     margin-bottom: 0;
 }
 
-/* ---Model params form horizontal layout--- */
+/* ---模型参数表单横向布局--- */
 .pa-confirm-popup-form.model-params-form {
     display: flex;
     gap: 20px;
@@ -2565,9 +2565,9 @@ body.column-resizing * {
     flex-shrink: 0;
 }
 
-/* ---Number input styles optimization--- */
+/* ---数字输入框样式优化--- */
 .pa-confirm-popup-form input[type="number"] {
-    /* Hide default up/down arrows */
+    /* 隐藏默认的上下箭头 */
     appearance: textfield;
     -moz-appearance: textfield;
 }
@@ -2578,17 +2578,17 @@ body.column-resizing * {
     margin: 0;
 }
 
-/* Custom number input up/down button container */
+/* 自定义数字输入框的上下调整按钮容器 */
 .pa-confirm-popup-form .float-label-container {
     position: relative;
 }
 
-/* Add custom up/down buttons for number input */
+/* 为数字输入框添加自定义上下按钮 */
 .pa-confirm-popup-form input[type="number"] {
     padding-right: 20px;
 }
 
-/* Number input button group */
+/* 数字输入框按钮组 */
 .pa-confirm-popup-form .number-input-buttons {
     position: absolute;
     right: 1px;
@@ -2643,7 +2643,7 @@ body.column-resizing * {
 
 
 
-/* ---Bottom button group--- */
+/* ---底部按钮组--- */
 .pa-confirm-popup-footer {
     display: flex;
     justify-content: flex-end;
@@ -2655,7 +2655,7 @@ body.column-resizing * {
     font-size: 13px;
 }
 
-/* ---Arrow pointer--- */
+/* ---箭头指针--- */
 .pa-confirm-popup-arrow {
     position: absolute;
     width: 0;
@@ -2663,7 +2663,7 @@ body.column-resizing * {
     border-style: solid;
 }
 
-/* Arrow at top (popup below) */
+/* 箭头在顶部（气泡在下方） */
 .pa-confirm-popup-arrow.top {
     top: -8px;
     border-width: 0 8px 8px 8px;
@@ -2682,7 +2682,7 @@ body.column-resizing * {
     border-color: transparent transparent var(--p-dialog-background) transparent;
 }
 
-/* Arrow at bottom (popup above) */
+/* 箭头在底部（气泡在上方） */
 .pa-confirm-popup-arrow.bottom {
     bottom: -8px;
     border-width: 8px 8px 0 8px;
@@ -2701,7 +2701,7 @@ body.column-resizing * {
     border-color: var(--p-dialog-background) transparent transparent transparent;
 }
 
-/* Arrow at left (popup right) */
+/* 箭头在左侧（气泡在右方） */
 .pa-confirm-popup-arrow.left {
     left: -8px;
     border-width: 8px 8px 8px 0;
@@ -2720,7 +2720,7 @@ body.column-resizing * {
     border-color: transparent var(--p-dialog-background) transparent transparent;
 }
 
-/* Arrow at right (popup left) */
+/* 箭头在右侧（气泡在左方） */
 .pa-confirm-popup-arrow.right {
     right: -8px;
     border-width: 8px 0 8px 8px;
@@ -2740,10 +2740,10 @@ body.column-resizing * {
 }
 
 /* ===================================================
-   8. Context menu component styles (ContextMenu)
+   8. 右键菜单组件样式 (ContextMenu)
    =================================================== */
 
-/* ---Menu container--- */
+/* ---菜单容器--- */
 .pa-context-menu {
     position: fixed;
     z-index: var(--settings-context-menu-z-index);
@@ -2767,7 +2767,7 @@ body.column-resizing * {
     transform: scale(0.95);
 }
 
-/* ---Menu list--- */
+/* ---菜单列表--- */
 .pa-context-menu-list {
     list-style: none;
     margin: 0;
@@ -2777,7 +2777,7 @@ body.column-resizing * {
     gap: 1px;
 }
 
-/* ---Menu item--- */
+/* ---菜单项--- */
 .pa-context-menu-item {
     position: relative;
     cursor: pointer;
@@ -2798,7 +2798,7 @@ body.column-resizing * {
     background-color: transparent;
 }
 
-/* ---Menu item content--- */
+/* ---菜单项内容--- */
 .pa-context-menu-item-content {
     display: flex;
     align-items: center;
@@ -2807,7 +2807,7 @@ body.column-resizing * {
     color: var(--p-dialog-color);
 }
 
-/* ---Menu item icon--- */
+/* ---菜单项图标--- */
 .pa-context-menu-item-icon {
     font-size: 16px;
     color: var(--p-text-muted-color);
@@ -2819,14 +2819,14 @@ body.column-resizing * {
     color: var(--p-primary-500);
 }
 
-/* ---Menu item text--- */
+/* ---菜单项文本--- */
 .pa-context-menu-item-label {
     font-size: 14px;
     white-space: nowrap;
 }
 
-/* ---Submenu styles--- */
-/* Menu item with submenu */
+/* ---二级子菜单样式--- */
+/* 有子菜单的菜单项 */
 .pa-context-menu-item-has-submenu {
     position: relative;
 }
@@ -2835,7 +2835,7 @@ body.column-resizing * {
     background-color: var(--p-form-field-filled-hover-background);
 }
 
-/* Submenu arrow icon */
+/* 子菜单箭头图标 */
 .pa-context-menu-submenu-icon {
     margin-left: auto;
     padding-left: 12px;
@@ -2848,12 +2848,12 @@ body.column-resizing * {
     opacity: 1;
 }
 
-/* Submenu panel */
+/* 子菜单面板 */
 .pa-context-submenu {
     min-width: 10rem;
 }
 
-/* ---Separator--- */
+/* ---分隔符--- */
 .pa-context-menu-separator {
     height: 1px;
     background-color: var(--p-dialog-border-color);
@@ -2861,7 +2861,7 @@ body.column-resizing * {
     list-style: none;
 }
 
-/* ---Danger action styles (e.g. delete)--- */
+/* ---危险操作样式（如删除）--- */
 .pa-context-menu-item.danger .pa-context-menu-item-icon {
     color: var(--p-red-500);
 }
@@ -2871,21 +2871,21 @@ body.column-resizing * {
 }
 
 /* ===================================================
-   9. Split button component styles (Split Button)
+   9. 分体按钮组件样式 (Split Button)
    =================================================== */
 
-/* ---Split button container--- */
+/* ---分体按钮容器--- */
 .p-splitbutton-compact {
     font-size: 0.85rem;
 }
 
-/* ---Split button general styles--- */
+/* ---分体按钮通用样式--- */
 .p-splitbutton-compact .p-button {
     padding: 0.25rem 0.5rem;
     white-space: nowrap;
 }
 
-/* ---Split button Primary theme--- */
+/* ---分体按钮 Primary 主题--- */
 .p-splitbutton-compact.p-splitbutton-primary .p-button {
     background: var(--p-button-primary-background);
     color: var(--p-button-primary-color);
@@ -2898,13 +2898,13 @@ body.column-resizing * {
     border-color: var(--p-button-primary-hover-border-color);
 }
 
-/* ---Dropdown trigger button--- */
+/* ---下拉触发按钮--- */
 .p-splitbutton-compact .p-splitbutton-menubutton {
     width: 23px;
     padding: 0.25rem 0.3rem;
 }
 
-/* ---Button text and icon--- */
+/* ---按钮文本和图标--- */
 .p-splitbutton-compact .p-button-label {
     font-size: 0.85rem;
 }
@@ -2917,7 +2917,7 @@ body.column-resizing * {
     background-color: rgba(239, 68, 68, 0.1);
 }
 
-/* ---Selected state styles (for dropdown selectors)--- */
+/* ---选中状态样式（用于下拉选择器）--- */
 .pa-context-menu-item.active {
     background-color: var(--p-form-field-filled-hover-background);
 }
@@ -2942,10 +2942,10 @@ body.column-resizing * {
 
 
 /* ===================================================
-   9. Tooltip component styles
+   9. Tooltip 提示框组件样式
    =================================================== */
 
-/* ---Tooltip container--- */
+/* ---Tooltip 容器--- */
 .pa-tooltip {
     position: fixed;
     z-index: var(--settings-tooltip-z-index);
@@ -2969,7 +2969,7 @@ body.column-resizing * {
     transform: scale(1);
 }
 
-/* ---Tooltip arrow--- */
+/* ---Tooltip 箭头--- */
 .pa-tooltip-arrow {
     position: absolute;
     width: 0;
@@ -2977,7 +2977,7 @@ body.column-resizing * {
     border-style: solid;
 }
 
-/* Arrow at top (tooltip below) */
+/* 箭头在顶部（tooltip 在下方） */
 .pa-tooltip-arrow.top {
     top: -6px;
     left: 50%;
@@ -2986,7 +2986,7 @@ body.column-resizing * {
     border-color: transparent transparent var(--p-surface-700) transparent;
 }
 
-/* Arrow at bottom (tooltip above) */
+/* 箭头在底部（tooltip 在上方） */
 .pa-tooltip-arrow.bottom {
     bottom: -6px;
     left: 50%;
@@ -2995,7 +2995,7 @@ body.column-resizing * {
     border-color: var(--p-surface-700) transparent transparent transparent;
 }
 
-/* Arrow at left (tooltip right) */
+/* 箭头在左侧（tooltip 在右方） */
 .pa-tooltip-arrow.left {
     left: -6px;
     top: 50%;
@@ -3004,7 +3004,7 @@ body.column-resizing * {
     border-color: transparent var(--p-surface-700) transparent transparent;
 }
 
-/* Arrow at right (tooltip left) */
+/* 箭头在右侧（tooltip 在左方） */
 .pa-tooltip-arrow.right {
     right: -6px;
     top: 50%;
@@ -3014,10 +3014,10 @@ body.column-resizing * {
 }
 
 /* ===================================================
-   Multi-select Listbox component styles
+   多选 Listbox 组件样式
    =================================================== */
 
-/* ---Listbox container--- */
+/* ---Listbox 容器--- */
 .pa-multi-listbox {
     position: fixed;
     width: 320px;
@@ -3032,7 +3032,7 @@ body.column-resizing * {
     overflow: hidden;
 }
 
-/* ---Search box container--- */
+/* ---搜索框容器--- */
 .pa-multi-listbox-search {
     padding: 12px;
     border-bottom: 1px solid var(--p-dialog-border-color);
@@ -3060,7 +3060,7 @@ body.column-resizing * {
     color: var(--p-text-muted-color);
 }
 
-/* Search icon */
+/* 搜索图标 */
 .pa-multi-listbox-search-wrapper {
     position: relative;
 }
@@ -3075,14 +3075,14 @@ body.column-resizing * {
     pointer-events: none;
 }
 
-/* ---List container--- */
+/* ---列表容器--- */
 .pa-multi-listbox-content {
     flex: 1;
     overflow-y: auto;
     padding: 4px;
 }
 
-/* ---List item--- */
+/* ---列表项--- */
 .pa-multi-listbox-item {
     display: flex;
     align-items: center;
@@ -3103,7 +3103,7 @@ body.column-resizing * {
     background: var(--p-dialog-border-color);
 }
 
-/* ---Checkbox styles (reference PrimeVue Checkbox)--- */
+/* ---复选框样式（参考 PrimeVue Checkbox）--- */
 .pa-multi-listbox-checkbox {
     width: 18px;
     height: 18px;
@@ -3120,24 +3120,24 @@ body.column-resizing * {
     justify-content: center;
 }
 
-/* Hover state */
+/* 悬停状态 */
 .pa-multi-listbox-item:hover .pa-multi-listbox-checkbox {
     border-color: var(--p-checkbox-hover-border-color, var(--p-primary-color));
 }
 
-/* Selected state */
+/* 选中状态 */
 .pa-multi-listbox-item.selected .pa-multi-listbox-checkbox {
     background: var(--p-checkbox-checked-background, var(--p-primary-color));
     border-color: var(--p-checkbox-checked-border-color, var(--p-primary-color));
 }
 
-/* Selected state hover */
+/* 选中状态悬停 */
 .pa-multi-listbox-item.selected:hover .pa-multi-listbox-checkbox {
     background: var(--p-checkbox-checked-hover-background, var(--p-primary-hover-color));
     border-color: var(--p-checkbox-checked-hover-border-color, var(--p-primary-hover-color));
 }
 
-/* Checkbox checkmark (using PrimeVue icon style) */
+/* 复选框勾选标记（使用 PrimeVue 的图标方式） */
 .pa-multi-listbox-checkbox::after {
     content: '';
     position: absolute;
@@ -3152,12 +3152,12 @@ body.column-resizing * {
     transition: transform 0.2s cubic-bezier(0.12, 0.4, 0.29, 1.46);
 }
 
-/* Show checkmark when selected, with elastic animation */
+/* 选中时显示勾选标记，带有弹性动画 */
 .pa-multi-listbox-item.selected .pa-multi-listbox-checkbox::after {
     transform: translate(-50%, -60%) rotate(45deg) scale(1);
 }
 
-/* ---Empty state hint--- */
+/* ---空状态提示--- */
 .pa-multi-listbox-empty {
     text-align: center;
     padding: 24px;
@@ -3165,7 +3165,7 @@ body.column-resizing * {
     font-size: 13px;
 }
 
-/* ---Bottom button bar--- */
+/* ---底部按钮栏--- */
 .pa-multi-listbox-footer {
     display: flex;
     justify-content: space-between;
@@ -3186,15 +3186,15 @@ body.column-resizing * {
 }
 
 /* ===================================================
-   6. API configuration manager - bottom warning message
+   6. API 配置管理器 - 底部警告信息
    =================================================== */
 
-/* API manager main window - set min-height to fit content */
+/* API 管理器主窗口 - 设置最小高度以适应内容 */
 .settings-modal.api-config-dialog-v2 {
     min-height: 760px;
 }
 
-/* Adjust notification area position to the bottom */
+/* 调整通知区域位置到最底部 */
 .api-config-dialog-v2 .p-dialog-notice {
     order: 10;
     padding: 0;
@@ -3202,7 +3202,7 @@ body.column-resizing * {
     width: 100%;
 }
 
-/* Warning message styles */
+/* 警告信息样式 */
 .api-config-warning {
     font-size: 12px;
     color: color-mix(in srgb, var(--p-text-muted-color), transparent 50%);
@@ -3214,17 +3214,17 @@ body.column-resizing * {
 }
 
 /* ===================================================
-   7. Rule configuration manager - tab styles
+   7. 规则配置管理器 - 标签页样式
    =================================================== */
 
-/* ---Rule configuration tab container--- */
+/* ---规则配置标签页容器--- */
 .rules-config-tabs {
     display: flex;
     flex-direction: column;
     height: 100%;
 }
 
-/* ---Tab header wrapper container--- */
+/* ---标签页头部包装容器--- */
 .rules-config-tabs .tab-header-wrapper {
     display: flex;
     align-items: flex-end;
@@ -3236,7 +3236,7 @@ body.column-resizing * {
     padding: 1px 16px 0px 16px;
 }
 
-/* ---Adjust tab header styles in rule configuration--- */
+/* ---调整规则配置中的标签头部样式--- */
 .rules-config-tabs .tab-header {
     border-bottom: none;
     padding-bottom: 0;
@@ -3244,19 +3244,19 @@ body.column-resizing * {
     flex: 1;
 }
 
-/* ---Add button container--- */
+/* ---添加按钮容器--- */
 .tab-header-actions {
     display: flex;
     align-items: center;
     flex-shrink: 0;
 }
 
-/* ---Tab add button styles--- */
+/* ---标签添加按钮样式--- */
 .tab-add-button {
     white-space: nowrap;
 }
 
-/* ---Rule panel notice--- */
+/* ---规则面板提示信息--- */
 .rule-pane-notice {
     display: flex;
     align-items: center;
@@ -3274,7 +3274,7 @@ body.column-resizing * {
     font-size: 14px;
 }
 
-/* ---Translation rule row styles (without status column)--- */
+/* ---翻译规则行样式（无状态列）--- */
 .prompt-list-row.translate-row {
     display: flex;
     align-items: stretch;
@@ -3294,10 +3294,10 @@ body.column-resizing * {
 }
 
 /* ===================================================
-   8. Tag manager exclusive styles (new version)
+   8. 标签管理器专属样式 (新版)
    =================================================== */
 
-/* CSV selector */
+/* CSV 选择器 */
 .popup_csv_selector {
     padding: 4px 8px;
     border-radius: 4px;
@@ -3314,7 +3314,7 @@ body.column-resizing * {
     border-color: var(--p-primary-color);
 }
 
-/* Tag context menu */
+/* 标签右键菜单 */
 .tag_context_menu {
     background-color: var(--p-content-background);
     border: 1px solid var(--p-dialog-border-color);
@@ -3344,7 +3344,7 @@ body.column-resizing * {
     font-size: 14px;
 }
 
-/* Favorite tags tab empty state hint */
+/* 收藏标签页空状态提示 */
 .empty_tip {
     padding: 24px;
     text-align: center;
@@ -3357,10 +3357,10 @@ body.column-resizing * {
 }
 
 /* ===================================================
-   9. Node help translator styles (Node Help Translator)
+   9. 节点帮助翻译器样式 (Node Help Translator)
    =================================================== */
 
-/* ---Translated text styles--- */
+/* ---翻译文本样式--- */
 .pa-trans-text {
     display: block;
     margin-top: 4px;
@@ -3381,13 +3381,13 @@ th .pa-trans-text {
     margin-top: 2px;
 }
 
-/* ---Separator styles--- */
+/* ---分隔符样式--- */
 .pa-trans-separator {
     height: 4px;
     margin-top: 2px;
 }
 
-/* ---Translate button container--- */
+/* ---翻译按钮容器--- */
 .pa-help-translate-btn-container {
     display: flex;
     align-items: center;
@@ -3396,7 +3396,7 @@ th .pa-trans-text {
     gap: 12px;
 }
 
-/* ---Translate button icon animation--- */
+/* ---翻译按钮图标动画--- */
 .pa-translate-btn-icon {
     font-size: 1.1em;
 }
@@ -3415,7 +3415,7 @@ th .pa-trans-text {
     }
 }
 
-/* ---View mode control--- */
+/* ---视图模式控制--- */
 .pa-mode-bilingual .pa-original-content {
     display: inline;
 }
@@ -3455,9 +3455,9 @@ th .pa-trans-text {
     display: none;
 }
 
-/* ====================== SelectButton component styles ====================== */
+/* ====================== SelectButton 组件样式 ====================== */
 
-/* SelectButton group container */
+/* SelectButton 组容器 */
 .pa-select-button-group {
     display: flex;
     flex-direction: row;
@@ -3470,23 +3470,23 @@ th .pa-trans-text {
     flex-shrink: 0;
 }
 
-/* Button container */
+/* 按钮容器 */
 .pa-select-button {
     display: inline-flex;
     border-radius: 10px;
     overflow: hidden;
     background: #000;
-    /* Dark background */
+    /* 深色背景 */
     padding: 6px;
-    /* Padding creates spacing effect */
+    /* 内边距产生间距效果 */
     gap: 6px;
-    /* Spacing between button items */
+    /* 按钮项之间的间距 */
     border: 1px solid color-mix(in srgb, var(--p-inputtext-border-color), transparent 50%);
 
 
 }
 
-/* Button item */
+/* 按钮项 */
 .pa-select-button-item {
     display: inline-flex;
     align-items: center;
@@ -3498,10 +3498,10 @@ th .pa-trans-text {
     border: none;
     outline: none;
     background: #222;
-    /* Default dark background */
+    /* 默认深色背景 */
     color: var(--p-text-muted-color);
     border-radius: 6px;
-    /* Individual border radius */
+    /* 独立圆角 */
     font-size: 0.875rem;
     font-family: inherit;
     transition: background-color 0.2s, color 0.2s, box-shadow 0.2s;
@@ -3509,18 +3509,18 @@ th .pa-trans-text {
     box-shadow: var(--p-dialog-shadow);
 }
 
-/* Remove separator */
+/* 移除分隔线 */
 .pa-select-button-item:not(:last-child)::after {
     display: none;
 }
 
-/* Hover state */
+/* 悬停状态 */
 .pa-select-button-item:not(.pa-select-button-item-disabled):hover {
     background: var(--p-button-primary-hover-background);
     color: var(--p-button-primary-color);
 }
 
-/* Selected state */
+/* 选中状态 */
 .pa-select-button-item-selected {
     background: var(--p-primary-500) !important;
     color: var(--p-button-primary-color);
@@ -3534,23 +3534,23 @@ th .pa-trans-text {
     display: none;
 }
 
-/* Disabled state */
+/* 禁用状态 */
 .pa-select-button-item-disabled {
     opacity: 0.5;
     cursor: not-allowed;
 }
 
-/* Button icon */
+/* 按钮图标 */
 .pa-select-button-icon {
     font-size: 0.875rem;
 }
 
-/* Button label */
+/* 按钮标签 */
 .pa-select-button-label {
     white-space: nowrap;
 }
 
-/* Small size */
+/* 小尺寸 */
 .pa-select-button-small .pa-select-button-item {
     padding: 0.4rem 1.0rem;
     font-size: 0.75rem;
@@ -3560,7 +3560,7 @@ th .pa-trans-text {
     font-size: 0.75rem;
 }
 
-/* Large size */
+/* 大尺寸 */
 .pa-select-button-large .pa-select-button-item {
     padding: 0.625rem 1rem;
     font-size: 1rem;
@@ -3571,10 +3571,10 @@ th .pa-trans-text {
 }
 
 /* ===================================================
-   10. General input styles
+   10. 通用输入框样式
    =================================================== */
 
-/* Disabled input */
+/* 禁用状态的输入框 */
 .pa-input-disabled {
     cursor: not-allowed !important;
     opacity: 0.5 !important;
